@@ -16,6 +16,11 @@ public class FamilyService : IFamilyService
         var family = await _familyRepository.GetByIdAsync(id);
         return _mapper.Map<FamilyDTO>(family);
     }
+    public async Task<FamilyDTO> GetByUserIdAsync(string userId)
+    {
+        var family = await _familyRepository.GetByUserIdAsync(userId);
+        return _mapper.Map<FamilyDTO>(family);
+    }
 
     public async Task<List<FamilyDTO>> GetAllFamiliesAsync()
     {

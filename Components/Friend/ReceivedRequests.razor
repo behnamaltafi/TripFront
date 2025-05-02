@@ -1,0 +1,102 @@
+﻿@page "/friend-request/received"
+@inject IFriendRequestService FriendRequestService
+@rendermode InteractiveServer
+<h3>درخواست‌های دوستی دریافتی</h3>
+
+@if (requests == null)
+{
+    <p>در حال بارگذاری...</p>
+}
+else if (!requests.Any())
+{
+    <p>درخواستی دریافت نشده است.</p>
+}
+else
+{
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>شناسه فرستنده</th>
+                <th>تاریخ ارسال</th>
+                <th>وضعیت</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var request in requests)
+            {
+                <tr>
+                    <td>@request.SenderFamilyId</td>
+                    <td>@request.SentAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</td>
+                    <td>@request.Status</td>
+                    <td>
+                        @if (request.Status == FriendRequestStatus.Pending)
+                        {
+                            @if (request.Status == FriendRequestStatus.Pending)
+                            {
+                                <button class="btn btn-success btn-sm" @onclick="async () => await Accept(request.Id)">پذیرفتن</button>
+                                <button class="btn btn-danger btn-sm" @onclick="async () => await Reject(request.Id)">رد کردن</button>
+                            }
+
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p>@message</p>
+}
+
+@code {
+    private List<FriendRequest>? requests;
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        requests = await FriendRequestService.GetReceivedFriendRequestsAsync();
+    }
+
+    private async Task Accept(int id)
+    {
+        try
+        {
+            await FriendRequestService.AcceptFriendRequestAsync(id);
+            message = "درخواست پذیرفته شد.";
+            await Refresh();
+        }
+        catch (Exception ex)
+        {
+            message = $"خطا: {ex.Message}";
+        }
+    }
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+    private async Task Reject(int id)
+    {
+        try
+        {
+            await FriendRequestService.RejectFriendRequestAsync(id);
+            message = "درخواست رد شد.";
+            await Refresh();
+        }
+        catch (Exception ex)
+        {
+            message = $"خطا: {ex.Message}";
+        }
+    }
+
+    private async Task Refresh()
+    {
+        requests = await FriendRequestService.GetReceivedFriendRequestsAsync();
+        StateHasChanged();
+    }
+}

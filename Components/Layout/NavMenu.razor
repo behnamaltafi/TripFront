@@ -1,7 +1,5 @@
 ﻿@implements IDisposable
-
 @inject NavigationManager NavigationManager
-
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">TripFront</a>
@@ -14,26 +12,42 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> خانه
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> شمارنده
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> آب‌وهوا
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="auth">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Auth Required
+                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> نیاز به احراز هویت
             </NavLink>
+        </div>
+
+        <!-- 🔻 بخش دوستان -->
+        <div class="nav-item px-3">
+            <div class="dropdown">
+                <a class="nav-link dropdown-toggle" data-bs-toggle="collapse" href="#friendMenu" role="button" aria-expanded="false">
+                    <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> دوستان
+                </a>
+                <div class="collapse" id="friendMenu">
+                    <div class="ms-3">
+                        <NavLink class="nav-link" href="friend-request/send">ارسال درخواست</NavLink>
+                        <NavLink class="nav-link" href="friend-request/received">درخواست‌های دریافتی</NavLink>
+                        <NavLink class="nav-link" href="friend-request/sent">درخواست‌های ارسالی</NavLink>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <AuthorizeView>
@@ -48,7 +62,7 @@
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                         <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> خروج
                         </button>
                     </form>
                 </div>
@@ -56,12 +70,12 @@
             <NotAuthorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> ثبت‌نام
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> ورود
                     </NavLink>
                 </div>
             </NotAuthorized>
@@ -89,4 +103,3 @@
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }
-

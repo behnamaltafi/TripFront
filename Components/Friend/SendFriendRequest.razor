@@ -1,0 +1,34 @@
+﻿@page "/friend-request/send"
+@inject IFriendRequestService FriendRequestService
+@rendermode InteractiveServer
+<h3>ارسال درخواست دوستی</h3>
+
+<div class="mb-3">
+    <label>شناسه خانواده گیرنده:</label>
+    <input type="number" @bind="receiverFamilyId" class="form-control" />
+</div>
+
+<button class="btn btn-primary" @onclick="SendRequest">ارسال</button>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p>@message</p>
+}
+
+@code {
+    private int receiverFamilyId;
+    private string? message;
+
+    private async Task SendRequest()
+    {
+        try
+        {
+            await FriendRequestService.SendFriendRequestAsync(receiverFamilyId);
+            message = "درخواست با موفقیت ارسال شد.";
+        }
+        catch (Exception ex)
+        {
+            message = $"خطا: {ex.Message}";
+        }
+    }
+}

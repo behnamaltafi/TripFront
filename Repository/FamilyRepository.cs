@@ -13,6 +13,10 @@ public class FamilyRepository : IFamilyRepository
     {
         return await _context.Families.FindAsync(id);
     }
+    public async Task<Family> GetByUserIdAsync(string userId)
+    {
+        return await _context.Families.FirstOrDefaultAsync(x=>x.UserId== userId);
+    }
 
     public async Task<List<Family>> GetAllAsync()
     {

@@ -1,0 +1,44 @@
+﻿@page "/friend-request/sent"
+@inject IFriendRequestService FriendRequestService
+
+<h3>درخواست‌های دوستی ارسالی</h3>
+
+@if (requests == null)
+{
+    <p>در حال بارگذاری...</p>
+}
+else if (!requests.Any())
+{
+    <p>درخواستی ارسال نشده است.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>شناسه گیرنده</th>
+                <th>تاریخ ارسال</th>
+                <th>وضعیت</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var request in requests)
+            {
+                <tr>
+                    <td>@request.ReceiverFamilyId</td>
+                    <td>@request.SentAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</td>
+                    <td>@request.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<FriendRequest>? requests;
+
+    protected override async Task OnInitializedAsync()
+    {
+        requests = await FriendRequestService.GetSentFriendRequestsAsync();
+    }
+}
