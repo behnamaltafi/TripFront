@@ -1,8 +1,9 @@
 ﻿@implements IDisposable
 @inject NavigationManager NavigationManager
-<div class="top-row ps-3 navbar navbar-dark">
+
+<div class="top-row ps-3 navbar navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">TripFront</a>
+        <a class="navbar-brand text-white" href="">TripFront</a>
     </div>
 </div>
 
@@ -33,22 +34,18 @@
                 <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> نیاز به احراز هویت
             </NavLink>
         </div>
-
-        <!-- 🔻 بخش دوستان -->
         <div class="nav-item px-3">
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle" data-bs-toggle="collapse" href="#friendMenu" role="button" aria-expanded="false">
-                    <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> دوستان
-                </a>
-                <div class="collapse" id="friendMenu">
-                    <div class="ms-3">
-                        <NavLink class="nav-link" href="friend-request/send">ارسال درخواست</NavLink>
-                        <NavLink class="nav-link" href="friend-request/received">درخواست‌های دریافتی</NavLink>
-                        <NavLink class="nav-link" href="friend-request/sent">درخواست‌های ارسالی</NavLink>
-                    </div>
-                </div>
-            </div>
+            <NavLink class="nav-link" href="friend-request/send">
+                <span class="bi bi-person-plus" aria-hidden="true"></span> ارسال درخواست
+            </NavLink>
+            <NavLink class="nav-link" href="friend-request/received">
+                <span class="bi bi-inbox" aria-hidden="true"></span> درخواست‌های دریافتی
+            </NavLink>
+            <NavLink class="nav-link" href="friend-request/sent">
+                <span class="bi bi-send" aria-hidden="true"></span> درخواست‌های ارسالی
+            </NavLink>
         </div>
+
 
         <AuthorizeView>
             <Authorized>
@@ -60,8 +57,8 @@
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link">
+                        <input type="hidden" name="ReturnUrl" value="@("/" + currentUrl)" />
+                        <button type="submit" class="nav-link btn btn-link text-start px-0">
                             <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> خروج
                         </button>
                     </form>
