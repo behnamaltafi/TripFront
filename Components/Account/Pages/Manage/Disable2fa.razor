@@ -1,5 +1,6 @@
 ﻿@page "/Account/Manage/Disable2fa"
 
+@using BusinessExceptionStructure
 @using Microsoft.AspNetCore.Identity
 @using TripFront.Data
 
@@ -42,7 +43,7 @@
 
         if (HttpMethods.IsGet(HttpContext.Request.Method) && !await UserManager.GetTwoFactorEnabledAsync(user))
         {
-            throw new InvalidOperationException("Cannot disable 2FA for user as it's not currently enabled.");
+            throw new BusinessException("Cannot disable 2FA for user as it's not currently enabled.");
         }
     }
 
@@ -51,7 +52,7 @@
         var disable2faResult = await UserManager.SetTwoFactorEnabledAsync(user, false);
         if (!disable2faResult.Succeeded)
         {
-            throw new InvalidOperationException("Unexpected error occurred disabling 2FA.");
+            throw new BusinessException("Unexpected error occurred disabling 2FA.");
         }
 
         var userId = await UserManager.GetUserIdAsync(user);

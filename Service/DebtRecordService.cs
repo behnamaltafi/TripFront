@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 public class DebtRecordService : IDebtRecordService
 {
@@ -26,7 +27,8 @@ public class DebtRecordService : IDebtRecordService
     }
     public async Task<string> GetPaymentReceipt(int debtRecordId)
     {
-        return await _debtRecordRepository.GetPaymentReceipt(debtRecordId);
+     
+        return (await _debtRecordRepository.Find(x => x.Id == debtRecordId)).File;
     }
 }
 

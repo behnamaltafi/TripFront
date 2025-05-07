@@ -1,6 +1,7 @@
 ﻿@page "/Account/LoginWithRecoveryCode"
 
 @using System.ComponentModel.DataAnnotations
+@using BusinessExceptionStructure
 @using Microsoft.AspNetCore.Identity
 @using TripFront.Data
 
@@ -47,7 +48,7 @@
     {
         // Ensure the user has gone through the username & password screen first
         user = await SignInManager.GetTwoFactorAuthenticationUserAsync() ??
-            throw new InvalidOperationException("Unable to load two-factor authentication user.");
+            throw new BusinessException("Unable to load two-factor authentication user.");
     }
 
     private async Task OnValidSubmitAsync()

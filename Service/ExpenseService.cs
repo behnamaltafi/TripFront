@@ -6,7 +6,7 @@
 // Implementations
 
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+using BusinessExceptionStructure;
 
 public class ExpenseService : IExpenseService
 {
@@ -26,19 +26,17 @@ public class ExpenseService : IExpenseService
 
     public async Task<ExpenseDTO> Add(AddExpenseDTO expenseDto)
     {
-        // Get the trip with families included
-        var trip = await _tripRepository.GetByIdAsync(expenseDto.TripId, includeFamilies: true);
+        var trip = await _tripRepository.GetByIdAsync( expenseDto.TripId,true);
         if (trip == null)
-            throw new InvalidOperationException("Trip not found");
-
-        // Verify the paying family is part of the trip
+            throw new BusinessException("Trip not found");
         var payingFamily = trip.Families.FirstOrDefault(f => f.FamilyId == expenseDto.FamilyId);
         if (payingFamily == null)
-            throw new InvalidOperationException("Paying family not part of this trip");
+            throw new BusinessException("Paying family not part of this trip");
 
         // Map and create the expense
         var expense = _mapper.Map<Expense>(expenseDto);
         await _expenseRepository.Add(expense);
+        await _expenseRepository.Save();
         return _mapper.Map<ExpenseDTO>(expense);
     }
 
@@ -55,11 +53,14 @@ public class ExpenseService : IExpenseService
     public async Task Update(int id, UpdateExpenseDTO expenseDto)
     {
         await _expenseRepository.Update(id, expenseDto);
+        await _expenseRepository.Save();
     }
 
     public async Task Remove(int id)
     {
         await _expenseRepository.Remove(id);
+        await _expenseRepository.Save();
+
     }
 
     public async Task<List<ExpenseDTO>> FindFamilyExpenses(int tripId, int familyId)
@@ -80,13 +81,13 @@ public class ExpenseService : IExpenseService
             throw new ArgumentException("Participant record not found");
 
         // Get trip family via repository
-        var tripFamily = await _tripRepository.GetTripFamilyAsync(participant.Expense.TripId, familyId);
+        var tripFamily = await _tripRepository.GetTripFamilyAsync( participant.Expense.TripId, familyId);
         if (tripFamily == null)
-            throw new InvalidOperationException("Family not part of this trip");
+            throw new BusinessException("Family not part of this trip");
 
         // Validate against max participants
         if (participantCount > tripFamily.MemberCount)
-            throw new InvalidOperationException(
+            throw new BusinessException(
                 $"Participant count cannot exceed family's trip participant count ({tripFamily.MemberCount})");
 
         // Update via repository
@@ -94,6 +95,6 @@ public class ExpenseService : IExpenseService
         await _expenseRepository.UpdateParticipant(participant);
     }
 
- 
+
 
 }

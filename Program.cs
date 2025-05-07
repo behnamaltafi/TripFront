@@ -1,8 +1,10 @@
+using BusinessExceptionStructure;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using System.Reflection;
+using System.Security.Cryptography;
 using TripFront.Components;
 using TripFront.Components.Account;
 using TripFront.Data;
@@ -19,6 +21,7 @@ builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
 builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
+builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
 builder.Services.AddScoped<IFamilyService, FamilyService>();
 builder.Services.AddScoped<ITripRepository, TripRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
@@ -44,7 +47,7 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("AppDbConnection") ?? throw new InvalidOperationException("Connection string 'AppDbConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString("AppDbConnection") ?? throw new BusinessException("Connection string 'AppDbConnection' not found.");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -56,6 +59,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, CustomClaimsPrincipalFactory>();
+builder.Services.AddAntDesign();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

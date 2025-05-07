@@ -1,9 +1,11 @@
 ﻿
+using FilterPagingEfCore.Paging;
+
 public interface IFriendRequestService
 {
     Task AcceptFriendRequestAsync( int requestId);
-    Task<List<FriendRequest>> GetReceivedFriendRequestsAsync();
-    Task<List<FriendRequest>> GetSentFriendRequestsAsync();
+    Task<PagingResult<FriendRequestDTO>> GetReceivedFriendRequestsAsync(PagingParam pagingParam);
+    Task<PagingResult<FriendRequestDTO>> GetSentFriendRequestsAsync(PagingParam pagingParam);
     Task RejectFriendRequestAsync( int requestId);
     Task SendFriendRequestAsync(int receiverFamilyId);
 }

@@ -1,23 +1,20 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
-public class DebtRecordRepository : IDebtRecordRepository
+public class DebtRecordRepository : GenericRepository<DebtRecord, int>, IDebtRecordRepository
 {
     private readonly AppDbContext _context;
     private readonly IMapper _mapper;
 
     public DebtRecordRepository(AppDbContext context,
-                             IMapper mapper)
+                             IMapper mapper) : base(context, mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
 
-    public async Task<DebtRecord> Find(int id)
-    {
-        return await _context.DebtRecords.FirstOrDefaultAsync(x => x.Id == id);
-    }
+ 
 
     public async Task<List<DebtRecordDto>> RegenerateDebtRecords(int tripId, List<DebtRecordDto> computedDebts)
     {
@@ -61,12 +58,12 @@ public class DebtRecordRepository : IDebtRecordRepository
 
 
 
-    public async Task<string> GetPaymentReceipt(int debtRecordId)
-    {
-        var debtRecord = await _context.DebtRecords.FirstOrDefaultAsync(x => x.Id == debtRecordId);
-        return debtRecord.File;
+    //public async Task<string> GetPaymentReceipt(int debtRecordId)
+    //{
+    //    var debtRecord = await _context.DebtRecords.FirstOrDefaultAsync(x => x.Id == debtRecordId);
+    //    return debtRecord.File;
       
-    }
+    //}
 }
 
 

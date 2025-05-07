@@ -1,11 +1,13 @@
 ﻿
+using FilterPagingEfCore.Paging;
+
 public interface IFamilyService
 {
-    Task<FamilyDTO> CreateFamilyAsync(AddFamilyDTO familyDto);
-    Task DeleteFamilyAsync(int id);
-    Task<List<FamilyDTO>> GetAllFamiliesAsync();
+    Task<FamilyDTO> Add(AddFamilyDTO familyDto);
+    Task Delete(int id);
+    Task<PagingResult<FamilyDTO>> FindAllPaging(PagingParam pagingParam);
     Task<FamilyDTO> GetByUserIdAsync(string userId);
-    Task<FamilyDTO> GetFamilyByIdAsync(int id);
-    Task UpdateFamilyAsync(int id, UpdateFamilyDTO familyDto);
+    Task<FamilyDTO> Find(int id);
+    Task Update(UpdateFamilyDTO familyDto);
 }
 

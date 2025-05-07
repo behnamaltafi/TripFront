@@ -1,8 +1,7 @@
 ﻿// مدل‌های پایه
 
-public class Family
+public class Family : BaseEntity<int>
 {
-    public int Id { get; set; }
     public string Name { get; set; }
 
     public string AccountNumber { get; set; }

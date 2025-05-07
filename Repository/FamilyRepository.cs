@@ -1,55 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
-public class FamilyRepository : IFamilyRepository
+public class FamilyRepository : GenericRepository<Family, int>, IFamilyRepository
 {
     private readonly AppDbContext _context;
+    private readonly IMapper _mapper;
 
-    public FamilyRepository(AppDbContext context)
+    public FamilyRepository(AppDbContext context, IMapper mapper) : base(context, mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
-
-    public async Task<Family> GetByIdAsync(int id)
-    {
-        return await _context.Families.FindAsync(id);
-    }
-    public async Task<Family> GetByUserIdAsync(string userId)
-    {
-        return await _context.Families.FirstOrDefaultAsync(x=>x.UserId== userId);
-    }
-
-    public async Task<List<Family>> GetAllAsync()
-    {
-        return await _context.Families.ToListAsync();
-    }
-
-    public async Task<Family> AddAsync(Family family)
-    {
-        await _context.Families.AddAsync(family);
-        await _context.SaveChangesAsync();
-        return family;
-    }
-
-    public async Task UpdateAsync(Family family)
-    {
-        _context.Families.Update(family);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        var family = await GetByIdAsync(id);
-        if (family != null)
-        {
-            _context.Families.Remove(family);
-            await _context.SaveChangesAsync();
-        }
-    }
-
-    public async Task<bool> ExistsAsync(int id)
-    {
-        return await _context.Families.AnyAsync(f => f.Id == id);
-    }
-
    
 }

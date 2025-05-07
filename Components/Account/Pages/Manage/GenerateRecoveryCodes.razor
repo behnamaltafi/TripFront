@@ -1,5 +1,6 @@
 ﻿@page "/Account/Manage/GenerateRecoveryCodes"
 
+@using BusinessExceptionStructure
 @using Microsoft.AspNetCore.Identity
 @using TripFront.Data
 
@@ -53,7 +54,7 @@ else
         var isTwoFactorEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
         if (!isTwoFactorEnabled)
         {
-            throw new InvalidOperationException("Cannot generate recovery codes for user because they do not have 2FA enabled.");
+            throw new BusinessException("Cannot generate recovery codes for user because they do not have 2FA enabled.");
         }
     }
 

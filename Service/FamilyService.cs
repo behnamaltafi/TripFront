@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using FilterPagingEfCore.Extenstion;
+using FilterPagingEfCore.Paging;
 
 public class FamilyService : IFamilyService
 {
@@ -11,39 +13,41 @@ public class FamilyService : IFamilyService
         _mapper = mapper;
     }
 
-    public async Task<FamilyDTO> GetFamilyByIdAsync(int id)
+    public async Task<FamilyDTO> Find(int id)
     {
-        var family = await _familyRepository.GetByIdAsync(id);
-        return _mapper.Map<FamilyDTO>(family);
+        var family = await _familyRepository.Find<FamilyDTO>(id);
+        return family;
     }
     public async Task<FamilyDTO> GetByUserIdAsync(string userId)
     {
-        var family = await _familyRepository.GetByUserIdAsync(userId);
-        return _mapper.Map<FamilyDTO>(family);
+        var family = await _familyRepository.Find<FamilyDTO>(x => x.UserId == userId);
+        return family;
     }
 
-    public async Task<List<FamilyDTO>> GetAllFamiliesAsync()
+    public async Task<PagingResult<FamilyDTO>> FindAllPaging(PagingParam pagingParam)
     {
-        var families = await _familyRepository.GetAllAsync();
-        return _mapper.Map<List<FamilyDTO>>(families);
+        var families = await _familyRepository.FindAllPaging<FamilyDTO>(pagingParam);
+        return families;
     }
 
-    public async Task<FamilyDTO> CreateFamilyAsync(AddFamilyDTO familyDto)
+    public async Task<FamilyDTO> Add(AddFamilyDTO familyDto)
     {
-        var family = _mapper.Map<Family>(familyDto);
-        var createdFamily = await _familyRepository.AddAsync(family);
-        return _mapper.Map<FamilyDTO>(createdFamily);
+        await _familyRepository.Add(familyDto);
+        await _familyRepository.Save();
+        return _mapper.Map<FamilyDTO>(familyDto);
     }
 
-    public async Task UpdateFamilyAsync(int id, UpdateFamilyDTO familyDto)
+    public async Task Update(UpdateFamilyDTO familyDto)
     {
-        var family = await _familyRepository.GetByIdAsync(id);
-        _mapper.Map(familyDto, family);
-        await _familyRepository.UpdateAsync(family);
+        await _familyRepository.Update(familyDto);
+        await _familyRepository.Save();
+
     }
 
-    public async Task DeleteFamilyAsync(int id)
+    public async Task Delete(int id)
     {
-        await _familyRepository.DeleteAsync(id);
+        await _familyRepository.Remove(id);
+        await _familyRepository.Save();
+
     }
 }

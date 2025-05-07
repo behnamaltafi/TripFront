@@ -1,102 +1,107 @@
-﻿@page "/friend-request/received"
+﻿@page "/friend-requests"
+@using AntDesign
+@using AntDesign.Filters
+@using AntDesign.TableModels
+@using FilterPagingEfCore.Extenstion
+@using FilterPagingEfCore.Filter
+@using FilterPagingEfCore.Paging
 @inject IFriendRequestService FriendRequestService
+@using FilterPagingEfCore.Sort
+@using TripFront.Components.FrontUtility
 @rendermode InteractiveServer
-<h3>درخواست‌های دوستی دریافتی</h3>
 
-@if (requests == null)
-{
-    <p>در حال بارگذاری...</p>
-}
-else if (!requests.Any())
-{
-    <p>درخواستی دریافت نشده است.</p>
-}
-else
-{
+<Table TItem="FriendRequestDTO"
+       DataSource="@requests"
+       Total="@totalCount"
+       PageSize="@pageSize"
+       PageIndex="@currentPage"
+       OnChange="@OnTableChange"
+       Loading="@isLoading">
+    <PropertyColumn Property="r => r.SenderFamilyTitle" Title="Sender Family Title" Sortable Filterable />
+    <PropertyColumn Property="r => r.Status" Title="Status" Sortable Filterable />
+    <PropertyColumn Property="r => r.SentAt" Title="Sent At" Sortable Filterable />
+    <PropertyColumn Property="r => r.RespondedAt" Title="Responded At" Sortable Filterable />
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>شناسه فرستنده</th>
-                <th>تاریخ ارسال</th>
-                <th>وضعیت</th>
-                <th>عملیات</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var request in requests)
-            {
-                <tr>
-                    <td>@request.SenderFamilyId</td>
-                    <td>@request.SentAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</td>
-                    <td>@request.Status</td>
-                    <td>
-                        @if (request.Status == FriendRequestStatus.Pending)
-                        {
-                            @if (request.Status == FriendRequestStatus.Pending)
-                            {
-                                <button class="btn btn-success btn-sm" @onclick="async () => await Accept(request.Id)">پذیرفتن</button>
-                                <button class="btn btn-danger btn-sm" @onclick="async () => await Reject(request.Id)">رد کردن</button>
-                            }
-
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-@if (!string.IsNullOrEmpty(message))
-{
-    <p>@message</p>
-}
+    <ActionColumn Title="Action">
+        <Template Context="r">
+            <Space Size="SpaceSize.Middle">
+                <SpaceItem>
+                @*     <Popconfirm Title="Are you sure you want to accept this request?"
+                                OnConfirm="@(() => AcceptRequestAsync(r.Id))"
+                                OkText="Yes"
+                                CancelText="No">
+                        <a>Accept</a>
+                    </Popconfirm> *@
+                </SpaceItem>
+                <SpaceItem>
+            @*         <Popconfirm Title="Are you sure you want to decline this request?"
+                                OnConfirm="@(() => DeclineRequestAsync(r.Id))"
+                                OkText="Yes"
+                                CancelText="No">
+                        <a>Decline</a>
+                    </Popconfirm> *@
+                </SpaceItem>
+            </Space>
+        </Template>
+    </ActionColumn>
+</Table>
 
 @code {
-    private List<FriendRequest>? requests;
-    private string? message;
+    private List<FriendRequestDTO> requests = new();
+    private int totalCount;
+    private int pageSize = 10;
+    private int currentPage = 1;
+    private bool isLoading = false;
 
-    protected override async Task OnInitializedAsync()
+    private async Task OnTableChange(QueryModel<FriendRequestDTO> queryModel)
     {
-        requests = await FriendRequestService.GetReceivedFriendRequestsAsync();
-    }
+        isLoading = true;
 
-    private async Task Accept(int id)
+        var result = await FriendRequestService.GetReceivedFriendRequestsAsync(queryModel.ToPagingParam());
+        requests = result.Items;
+        currentPage = result.PageNumber;
+        totalCount = result.TotalCount;
+        isLoading = false;
+    }
+    private async Task AcceptRequestAsync(int requestId)
     {
         try
         {
-            await FriendRequestService.AcceptFriendRequestAsync(id);
-            message = "درخواست پذیرفته شد.";
-            await Refresh();
+            isLoading = true;
+            await FriendRequestService.AcceptFriendRequestAsync(requestId);
+            await ReloadDataAsync();
         }
-        catch (Exception ex)
+        finally
         {
-            message = $"خطا: {ex.Message}";
+            isLoading = false;
         }
     }
-    private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-    private async Task Reject(int id)
+    private async Task DeclineRequestAsync(int requestId)
     {
         try
         {
-            await FriendRequestService.RejectFriendRequestAsync(id);
-            message = "درخواست رد شد.";
-            await Refresh();
+            isLoading = true;
+            await FriendRequestService.RejectFriendRequestAsync(requestId);
+            await ReloadDataAsync();
         }
-        catch (Exception ex)
+        finally
         {
-            message = $"خطا: {ex.Message}";
+            isLoading = false;
         }
     }
 
-    private async Task Refresh()
+
+    private async Task ReloadDataAsync()
     {
-        requests = await FriendRequestService.GetReceivedFriendRequestsAsync();
-        StateHasChanged();
+        var paging = new PagingParam
+        {
+
+        };
+        var result = await FriendRequestService.GetReceivedFriendRequestsAsync(paging);
+        requests = result.Items;
+        totalCount = result.TotalCount;
     }
+
+
 }

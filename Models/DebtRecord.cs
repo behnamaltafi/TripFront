@@ -1,6 +1,5 @@
-﻿public class DebtRecord
+﻿public class DebtRecord: BaseEntity<int>
 {
-    public int Id { get; set; }
 
     public Family FromFamily { get; set; }
     public Family ToFamily { get; set; }

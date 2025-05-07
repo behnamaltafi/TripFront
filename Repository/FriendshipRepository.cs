@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
-public class FriendshipRepository : IFriendshipRepository
+public class FriendshipRepository : GenericRepository<FamilyFriendship, int>, IFriendshipRepository
 {
     private readonly AppDbContext _context;
     private readonly IMapper _mapper;
 
-    public FriendshipRepository(AppDbContext context, IMapper mapper)
+    public FriendshipRepository(AppDbContext context, IMapper mapper):base(context,mapper)
     {
         _context = context;
         _mapper = mapper;
@@ -21,18 +21,7 @@ public class FriendshipRepository : IFriendshipRepository
             .FirstOrDefaultAsync(f => f.FamilyId1 == minId && f.FamilyId2 == maxId);
     }
 
-    public async Task AddFriendshipAsync(FamilyFriendship friendship)
-    {
-        await _context.FamilyFriendships.AddAsync(friendship);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task RemoveFriendshipAsync(FamilyFriendship friendship)
-    {
-        _context.FamilyFriendships.Remove(friendship);
-        await _context.SaveChangesAsync();
-    }
-
+  
     public async Task<List<FamilyDTO>> GetFriendsAsync(int familyId)
     {
        var qry= _context.FamilyFriendships

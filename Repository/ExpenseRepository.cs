@@ -1,28 +1,19 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
-public class ExpenseRepository : IExpenseRepository
+public class ExpenseRepository :  GenericRepository<Expense, int>,IExpenseRepository
 {
     private readonly AppDbContext _context;
     private readonly IMapper _mapper;
 
     public ExpenseRepository(AppDbContext context,
-                             IMapper mapper)
+                             IMapper mapper) :base(context, mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task Add(Expense expense)
-    {
-        await _context.Expenses.AddAsync(expense);
-        await _context.SaveChangesAsync();
-    }
 
-    public async Task<Expense> Find(int id)
-    {
-        return await _context.Expenses.FirstOrDefaultAsync(x => x.Id == id);
-    }
 
     public async Task<List<Expense>> FindTripExpenses(int tripId)
     {
@@ -49,18 +40,7 @@ public class ExpenseRepository : IExpenseRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task Remove(int id)
-    {
-        var expense = await _context.Expenses.FindAsync(id);
-        if (expense == null)
-        {
-            // Optionally handle "not found" case
-            throw new KeyNotFoundException($"Expense with Id {id} not found.");
-        }
-
-        _context.Expenses.Remove(expense);
-        await _context.SaveChangesAsync();
-    }
+  
     public async Task AddParticipant(ExpenseParticipant participant)
     {
         await _context.ExpenseParticipants.AddAsync(participant);

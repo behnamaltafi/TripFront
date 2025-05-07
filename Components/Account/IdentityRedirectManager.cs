@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using BusinessExceptionStructure;
 using Microsoft.AspNetCore.Components;
 
 namespace TripFront.Components.Account
@@ -27,9 +28,9 @@ namespace TripFront.Components.Account
             }
 
             // During static rendering, NavigateTo throws a NavigationException which is handled by the framework as a redirect.
-            // So as long as this is called from a statically rendered Identity component, the InvalidOperationException is never thrown.
+            // So as long as this is called from a statically rendered Identity component, the BusinessException is never thrown.
             navigationManager.NavigateTo(uri);
-            throw new InvalidOperationException($"{nameof(IdentityRedirectManager)} can only be used during static rendering.");
+            throw new BusinessException($"{nameof(IdentityRedirectManager)} can only be used during static rendering.");
         }
 
         [DoesNotReturn]

@@ -19,7 +19,8 @@ public class TripService : ITripService
         var trip = _mapper.Map<Trip>(tripDto);
         var familyId = _friendshipService.GetFamilyId();
         trip.OwnerFamily = familyId;
-        await _tripRepository.AddAsync(trip);
+        await _tripRepository.Add(trip);
+        await _tripRepository.Save();
         await _tripRepository.AddFamilyToTripAsync(trip.Id, familyId, tripDto.MemberCount);
         return _mapper.Map<TripDTO>(trip);
     }

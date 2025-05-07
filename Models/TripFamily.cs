@@ -1,4 +1,4 @@
-﻿public class TripFamily
+﻿public class TripFamily : BaseEntity<int>
 {
     public int TripId { get; set; }
     public Trip Trip { get; set; }

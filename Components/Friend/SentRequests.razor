@@ -13,32 +13,16 @@ else if (!requests.Any())
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>شناسه گیرنده</th>
-                <th>تاریخ ارسال</th>
-                <th>وضعیت</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var request in requests)
-            {
-                <tr>
-                    <td>@request.ReceiverFamilyId</td>
-                    <td>@request.SentAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</td>
-                    <td>@request.Status</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+
 }
 
 @code {
     private List<FriendRequest>? requests;
-
+    private List<string> columns = new() { "ReceiverFamilyId", "SentAt", "Status" };
     protected override async Task OnInitializedAsync()
     {
-        requests = await FriendRequestService.GetSentFriendRequestsAsync();
+        requests = new List<FriendRequest>();
     }
+
+
 }

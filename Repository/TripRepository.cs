@@ -1,13 +1,13 @@
 ﻿
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-public class TripRepository : ITripRepository
+public class TripRepository : GenericRepository<Trip, int>, ITripRepository
 {
     private readonly AppDbContext _context;
     private readonly IFriendshipService _friendshipService;
     private readonly IMapper _mapper;
 
-    public TripRepository(AppDbContext context, IFriendshipService friendshipService, IMapper mapper)
+    public TripRepository(AppDbContext context, IFriendshipService friendshipService, IMapper mapper):base(context,mapper)
     {
         _context = context;
         _friendshipService = friendshipService;
@@ -26,9 +26,6 @@ public class TripRepository : ITripRepository
                 .ThenInclude(e => e.Participants)
                     .ThenInclude(p => p.Family)
             .Where(t => t.Id == tripId);
-
-        if (trip == null) return null;
-
         var dto = await _mapper.ProjectTo<TripDetailsDto>(trip).FirstOrDefaultAsync();
 
         // Calculate shares and balances
@@ -90,19 +87,9 @@ public class TripRepository : ITripRepository
             .ToListAsync();
     }
 
-    public async Task AddAsync(Trip trip)
-    {
-        await _context.Trips.AddAsync(trip);
-        await _context.SaveChangesAsync();
-
-    }
+   
 
 
-    public async Task UpdateAsync(Trip trip)
-    {
-        _context.Trips.Update(trip);
-        await _context.SaveChangesAsync();
-    }
 
     public async Task AddFamilyToTripAsync(int tripId, int familyId, int participantCount)
     {

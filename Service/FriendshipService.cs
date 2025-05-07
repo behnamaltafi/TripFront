@@ -1,4 +1,6 @@
-﻿public class FriendshipService : IFriendshipService
+﻿using BusinessExceptionStructure;
+
+public class FriendshipService : IFriendshipService
 {
     private readonly IFriendshipRepository _repository;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -17,29 +19,31 @@
     public async Task CreateFriendshipAsync(int familyId1, int familyId2)
     {
         if (familyId1 == familyId2)
-            throw new InvalidOperationException("A family cannot be friends with itself.");
+            throw new BusinessException("A family cannot be friends with itself.");
 
         var existing = await _repository.GetFriendshipAsync(familyId1, familyId2);
         if (existing != null)
-            throw new InvalidOperationException("Families are already friends.");
+            throw new BusinessException("Families are already friends.");
 
         var friendship = new FamilyFriendship
         {
             FamilyId1 = Math.Min(familyId1, familyId2),
             FamilyId2 = Math.Max(familyId1, familyId2),
-            CreatedAt = DateTime.UtcNow
+     
         };
 
-        await _repository.AddFriendshipAsync(friendship);
+        await _repository.Add(friendship);
+        await _repository.Save();
     }
 
     public async Task RemoveFriendshipAsync(int familyId1, int familyId2)
     {
         var friendship = await _repository.GetFriendshipAsync(familyId1, familyId2);
         if (friendship == null)
-            throw new InvalidOperationException("Friendship does not exist.");
+            throw new BusinessException("Friendship does not exist.");
 
-        await _repository.RemoveFriendshipAsync(friendship);
+        await _repository.Remove(friendship);
+        await _repository.Save();
     }
 
     public async Task<List<FamilyDTO>> GetFriendsAsync()
