@@ -1,0 +1,102 @@
+﻿@using AntDesign
+
+@implements IDisposable
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+<Layout style="min-height: 100vh;">
+    <LayoutSider Theme="MenuTheme.Dark" Collapsible="true" Breakpoint="Breakpoint.Md" Width="220">
+        <div class="logo" style="height: 64px; color: white; text-align: center; line-height: 64px; font-size: 20px;">
+            TripFront
+        </div>
+        <Menu Mode="MenuMode.Inline" Theme="MenuTheme.Dark"  OnMenuItemClicked="@OnMenuClick">
+            <MenuItem Key="">
+                <span class="bi bi-house-door-fill"></span> خانه
+            </MenuItem>
+            <MenuItem Key="counter">
+                <span class="bi bi-plus-square-fill"></span> شمارنده
+            </MenuItem>
+            <MenuItem Key="weather">
+                <span class="bi bi-list-nested"></span> آب‌وهوا
+            </MenuItem>
+            <MenuItem Key="auth">
+                <span class="bi bi-lock"></span> نیاز به احراز هویت
+            </MenuItem>
+
+            <MenuItemGroup Title="درخواست دوستان">
+                <MenuItem Key="friend-request/send">
+                    <span class="bi bi-person-plus"></span> ارسال درخواست
+                </MenuItem>
+                <MenuItem Key="friend-requests">
+                    <span class="bi bi-inbox"></span> درخواست‌های دریافتی
+                </MenuItem>
+                <MenuItem Key="friend-request/sent">
+                    <span class="bi bi-send"></span> درخواست‌های ارسالی
+                </MenuItem>
+            </MenuItemGroup>
+
+            <AuthorizeView>
+                <Authorized>
+                    <MenuItem Key="Account/Manage">
+                        <span class="bi bi-person-fill"></span> @context.User.Identity?.Name
+                    </MenuItem>
+                    <MenuItem Key="logout" Disabled="true">
+                        <form action="Account/Logout" method="post" style="margin: 0;">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="ReturnUrl" value="@("/" + currentUrl)" />
+                            <button type="submit" class="ant-btn-link" style="color: white; background: none; border: none; padding: 0;">
+                                <span class="bi bi-arrow-bar-left"></span> خروج
+                            </button>
+                        </form>
+                    </MenuItem>
+                </Authorized>
+                <NotAuthorized>
+                    <MenuItem Key="Account/Register">
+                        <span class="bi bi-person"></span> ثبت‌نام
+                    </MenuItem>
+                    <MenuItem Key="Account/Login">
+                        <span class="bi bi-person-badge"></span> ورود
+                    </MenuItem>
+                </NotAuthorized>
+            </AuthorizeView>
+        </Menu>
+    </LayoutSider>
+
+    <Layout>
+        <LayoutHeader style="background: #fff; padding: 0 16px;">
+            <!-- Optional Header Content -->
+        </LayoutHeader>
+        <LayoutContent style="margin: 24px 16px;">
+            @Body
+        </LayoutContent>
+    </Layout>
+</Layout>
+
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    private void OnMenuClick(MenuItem item)
+    {
+        if (item.Key != "logout")
+        {
+            NavigationManager.NavigateTo(item.Key);
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
+

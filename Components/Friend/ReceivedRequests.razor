@@ -26,20 +26,20 @@
         <Template Context="r">
             <Space Size="SpaceSize.Middle">
                 <SpaceItem>
-                @*     <Popconfirm Title="Are you sure you want to accept this request?"
-                                OnConfirm="@(() => AcceptRequestAsync(r.Id))"
+                    <Popconfirm Title="Are you sure you want to accept this request?"
+                        @*         OnConfirm="@(() => AcceptRequestAsync(r.Id))" *@
                                 OkText="Yes"
                                 CancelText="No">
                         <a>Accept</a>
-                    </Popconfirm> *@
+                    </Popconfirm>
                 </SpaceItem>
                 <SpaceItem>
-            @*         <Popconfirm Title="Are you sure you want to decline this request?"
-                                OnConfirm="@(() => DeclineRequestAsync(r.Id))"
+                    <Popconfirm Title="Are you sure you want to decline this request?"
+                          @*       OnConfirm="@(() => DeclineRequestAsync(r.Id))" *@
                                 OkText="Yes"
                                 CancelText="No">
                         <a>Decline</a>
-                    </Popconfirm> *@
+                    </Popconfirm>
                 </SpaceItem>
             </Space>
         </Template>
