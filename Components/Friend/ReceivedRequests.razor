@@ -9,7 +9,7 @@
 @using FilterPagingEfCore.Sort
 @using TripFront.Components.FrontUtility
 @rendermode InteractiveServer
-
+<h1>درخواست ها</h1>
 <Table TItem="FriendRequestDTO"
        DataSource="@requests"
        Total="@totalCount"
@@ -17,32 +17,20 @@
        PageIndex="@currentPage"
        OnChange="@OnTableChange"
        Loading="@isLoading">
-    <PropertyColumn Property="r => r.SenderFamilyTitle" Title="Sender Family Title" Sortable Filterable />
-    <PropertyColumn Property="r => r.Status" Title="Status" Sortable Filterable />
-    <PropertyColumn Property="r => r.SentAt" Title="Sent At" Sortable Filterable />
-    <PropertyColumn Property="r => r.RespondedAt" Title="Responded At" Sortable Filterable />
+    <PropertyColumn Property="r => r.SenderFamilyTitle" Title="درخواست دهنده" Sortable Filterable />
+    <PropertyColumn Property="r => r.Status.GetDisplayName()" Title="وضعیت" Sortable Filterable />
+    <PropertyColumn Property="r => r.SentAt.ToShamsi()" Title="ارسال شده در" Sortable Filterable />
+
 
     <ActionColumn Title="Action">
-        <Template Context="r">
-            <Space Size="SpaceSize.Middle">
-                <SpaceItem>
-                    <Popconfirm Title="Are you sure you want to accept this request?"
-                        @*         OnConfirm="@(() => AcceptRequestAsync(r.Id))" *@
-                                OkText="Yes"
-                                CancelText="No">
-                        <a>Accept</a>
-                    </Popconfirm>
-                </SpaceItem>
-                <SpaceItem>
-                    <Popconfirm Title="Are you sure you want to decline this request?"
-                          @*       OnConfirm="@(() => DeclineRequestAsync(r.Id))" *@
-                                OkText="Yes"
-                                CancelText="No">
-                        <a>Decline</a>
-                    </Popconfirm>
-                </SpaceItem>
-            </Space>
-        </Template>
+        <Space Size="SpaceSize.Middle">
+            <SpaceItem>
+                <a>Accept </a>
+            </SpaceItem>
+            <SpaceItem>
+                <a>Delete</a>
+            </SpaceItem>
+        </Space>
     </ActionColumn>
 </Table>
 
@@ -57,7 +45,7 @@
     {
         isLoading = true;
 
-        var result = await FriendRequestService.GetReceivedFriendRequestsAsync(queryModel.ToPagingParam());
+        var result = await FriendRequestService.GetFriendRequestsAsync(queryModel.ToPagingParam());
         requests = result.Items;
         currentPage = result.PageNumber;
         totalCount = result.TotalCount;
@@ -98,7 +86,7 @@
         {
 
         };
-        var result = await FriendRequestService.GetReceivedFriendRequestsAsync(paging);
+        var result = await FriendRequestService.GetFriendRequestsAsync(paging);
         requests = result.Items;
         totalCount = result.TotalCount;
     }

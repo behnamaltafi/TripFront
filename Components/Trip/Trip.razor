@@ -1,0 +1,71 @@
+﻿@page "/trips"
+@using AntDesign
+@using AntDesign.Filters
+@using AntDesign.TableModels
+@using FilterPagingEfCore.Extenstion
+@using FilterPagingEfCore.Filter
+@using FilterPagingEfCore.Paging
+@inject ITripService _tripService
+@using FilterPagingEfCore.Sort
+@using TripFront.Components.FrontUtility
+@rendermode InteractiveServer
+<h1>سفر ها</h1>
+<Table TItem="TripDTO"
+       DataSource="@requests"
+       Total="@totalCount"
+       PageSize="@pageSize"
+       PageIndex="@currentPage"
+       OnChange="@OnTableChange"
+       Loading="@isLoading">
+    <PropertyColumn Property="r => r.Name" Title="نام" Sortable Filterable />
+    <PropertyColumn Property="r => r.StartDate.ToShamsi()" Title="شروع" Sortable Filterable />
+    <PropertyColumn Property="r => r.EndDate.Value.ToShamsi()" Title="پایان" Sortable Filterable />
+    <PropertyColumn Property="r => r.TotalFamilies" Title="تعداد خانواده" Sortable Filterable />
+    <PropertyColumn Property="r => r.TotalParticipants" Title="تعداد افراد" Sortable Filterable />
+    <ActionColumn Title="Action">
+        <Space Size="SpaceSize.Middle">
+            <SpaceItem>
+                <a>Accept </a>
+            </SpaceItem>
+            <SpaceItem>
+                <a>Delete</a>
+            </SpaceItem>
+        </Space>
+    </ActionColumn>
+</Table>
+
+@code {
+    private List<TripDTO> requests = new();
+    private int totalCount;
+    private int pageSize = 10;
+    private int currentPage = 1;
+    private bool isLoading = false;
+
+    private async Task OnTableChange(QueryModel<TripDTO> queryModel)
+    {
+        isLoading = true;
+
+        var result = await _tripService.GetTripsForFamilyAsync(queryModel.ToPagingParam());
+        requests = result.Items;
+        currentPage = result.PageNumber;
+        totalCount = result.TotalCount;
+        isLoading = false;
+    }
+
+
+
+
+
+    private async Task ReloadDataAsync()
+    {
+        var paging = new PagingParam
+        {
+
+        };
+        var result = await _tripService.GetTripsForFamilyAsync(paging);
+        requests = result.Items;
+        totalCount = result.TotalCount;
+    }
+
+
+}

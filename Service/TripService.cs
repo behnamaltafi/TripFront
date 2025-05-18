@@ -1,5 +1,9 @@
 ﻿
 using AutoMapper;
+using FilterPagingEfCore.Filter;
+using FilterPagingEfCore.Paging;
+using Humanizer;
+using Microsoft.EntityFrameworkCore;
 
 public class TripService : ITripService
 {
@@ -34,10 +38,11 @@ public class TripService : ITripService
         await _tripRepository.AddFamilyToTripAsync(tripId, familyId, participantCount);
     }
 
-    public async Task<List<TripDTO>> GetTripsForFamilyAsync()
+    public async Task<PagingResult<TripDTO>> GetTripsForFamilyAsync(PagingParam pagingParam)
     {
-        var trips = await _tripRepository.GetTripsForFamilyAsync();
-        return _mapper.Map<List<TripDTO>>(trips);
+        var familyId = _friendshipService.GetFamilyId();
+        var trips =await  _tripRepository.FindAllPaging<TripDTO>(pagingParam,x => x.Families.Select(x => x.Id).Contains(familyId));
+        return trips;
     }
     public async Task Paid(int tripId)
     {

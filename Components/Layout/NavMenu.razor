@@ -1,102 +1,61 @@
-﻿@implements IDisposable
+﻿@using AntDesign
+
 @inject NavigationManager NavigationManager
 
-<div class="top-row ps-3 navbar navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand text-white" href="">TripFront</a>
-    </div>
-</div>
+@rendermode InteractiveServer
+ <Sider Width="200" Class="site-layout-background">
+            <Menu Mode="MenuMode.Inline"
+                  DefaultSelectedKeys=@(new[] {"1"})
+                  DefaultOpenKeys=@(new[] {"sub1"})
+                  Style="height: 100%; border-right: 0;">
+                @{
+                    RenderFragment sub1Title =
+                    @<span>
+                        <Icon Type="@IconType.Outline.User" />
+                       دوستان
+                    </span>;
+                }
+                <SubMenu Key="sub1" TitleTemplate=sub1Title>
+                    <AuthorizeView>
+                               <MenuItem RouterLink="/friend-requests" Key="1">درخواست ها</MenuItem>
+                    </AuthorizeView>
+             
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+                </SubMenu>
+                @{
+                    RenderFragment sub2Title =
+                    @<span>
+                        <Icon Type="@IconType.Outline.Flag" />
+                        سفر ها
+                    </span>;
+                }
+                <SubMenu Key="sub2" TitleTemplate=sub2Title>
+                     <AuthorizeView>
+                    <MenuItem RouterLink="/trips" Key="5">سفر</MenuItem>
+                     </AuthorizeView>
+               
+                </SubMenu>
+                @{
+                    RenderFragment sub3Title =
+                    @<span>
+                        <Icon Type="@IconType.Outline.User" />
+                        کاربری
+                    </span>;
+                }
+                <SubMenu Key="sub3" TitleTemplate=sub3Title>
+                    <AuthorizeView>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> خانه
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> شمارنده
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> آب‌وهوا
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="auth">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> نیاز به احراز هویت
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="friend-request/send">
-                <span class="bi bi-person-plus" aria-hidden="true"></span> ارسال درخواست
-            </NavLink>
-            <NavLink class="nav-link" href="friend-requests">
-                <span class="bi bi-inbox" aria-hidden="true"></span> درخواست‌های دریافتی
-            </NavLink>
-            <NavLink class="nav-link" href="friend-request/sent">
-                <span class="bi bi-send" aria-hidden="true"></span> درخواست‌های ارسالی
-            </NavLink>
-        </div>
-
-
-        <AuthorizeView>
-            <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <form action="Account/Logout" method="post">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@("/" + currentUrl)" />
-                        <button type="submit" class="nav-link btn btn-link text-start px-0">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> خروج
-                        </button>
-                    </form>
-                </div>
-            </Authorized>
-            <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> ثبت‌نام
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> ورود
-                    </NavLink>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
-    </nav>
-</div>
-
-@code {
-    private string? currentUrl;
-
-    protected override void OnInitialized()
-    {
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        NavigationManager.LocationChanged += OnLocationChanged;
-    }
-
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
-        StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        NavigationManager.LocationChanged -= OnLocationChanged;
-    }
-}
+               
+                    <MenuItem Key="9">     <Icon Type="@IconType.Outline.User" />پروفایل
+                        <span>
+                   
+                        
+                    </span>
+                    </MenuItem>
+                     <MenuItem Key="10">
+                             <Icon Type="@IconType.Outline.Logout" />
+                         خروج</MenuItem>
+                              </AuthorizeView>
+                </SubMenu>
+            </Menu>
+        </Sider>

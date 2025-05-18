@@ -81,16 +81,11 @@ public class FriendRequestService : IFriendRequestService
         await _requestRepository.Save();
     }
 
-    public async Task<PagingResult<FriendRequestDTO>> GetReceivedFriendRequestsAsync(PagingParam pagingParam)
+    public async Task<PagingResult<FriendRequestDTO>> GetFriendRequestsAsync(PagingParam pagingParam)
     {
             int familyId = _friendshipService.GetFamilyId();
-            return await _requestRepository.FindAllPaging<FriendRequestDTO>(pagingParam, r => r.ReceiverFamilyId == familyId && r.Status == FriendRequestStatus.Pending);
+            return await _requestRepository.FindAllPaging<FriendRequestDTO>(pagingParam, r => r.Status == FriendRequestStatus.Pending);
     }
 
-    public async Task<PagingResult<FriendRequestDTO>> GetSentFriendRequestsAsync(PagingParam pagingParam)
-    {
-        int familyId = _friendshipService.GetFamilyId();
-        var result = await _requestRepository.FindAllPaging<FriendRequestDTO>(pagingParam, r => r.SenderFamilyId == familyId && r.Status == FriendRequestStatus.Pending);
-        return result;
-    }
+   
 }

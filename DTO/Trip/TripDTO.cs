@@ -19,12 +19,11 @@ public class TripDTO
     public DateTime? EndDate { get; set; }
     public int OwnerFamily { get; set; }
 
-    // Families participating in this trip with their actual participant counts
-    public List<TripFamilyDto> Families { get; set; } = new List<TripFamilyDto>();
+
 
     // Summary information
-    public int TotalFamilies => Families?.Count ?? 0;
-    public int TotalParticipants => Families?.Sum(f => f.ActualParticipantCount) ?? 0;
+    public int TotalFamilies { get; set; }// => Families?.Count ?? 0;
+    public int TotalParticipants { get; set; } //=> Families?.Sum(f => f.ActualParticipantCount) ?? 0;
 
     // For creation
     public List<int> FamilyIds { get; set; } = new List<int>();
