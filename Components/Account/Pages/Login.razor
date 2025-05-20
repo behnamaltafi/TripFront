@@ -1,109 +1,87 @@
 ﻿@page "/Account/Login"
-
 @using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
-@using System.Security.Claims
-@using System.Collections.ObjectModel
 @using TripFront.Data
-@using AntDesign
-
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject UserManager<ApplicationUser> UserManager
+@using AntDesign;
 
-@rendermode InteractiveServer
+<PageTitle>ورود</PageTitle>
 
-<PageTitle>Log in</PageTitle>
+<div style="height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(to left, #4e54c8, #8f94fb); direction: rtl;">
 
-<h1>Log in</h1>
+    <Card Style="width: 100%; max-width: 400px; padding: 24px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);" Title="ورود به حساب کاربری">
+        <div class="text-center mb-4 ">
 
-<Row Gutter="16">
-    <Col Span="8">
-    <Form  Model="@Input" OnFinish="@LoginUser" Layout="FormLayout.Vertical">
-        <h2>Use a local account to log in.</h2>
-        <Divider />
+            <Image src="images/logo.png" alt="لوگو" style="height:120px; margin-bottom: 1px;" />
+            <p style="margin-top: 0; color: #777;">برای مدیریت سفرهای خود وارد شوید</p>
+        </div>
 
-        <FormItem Label="User Name" Name="@nameof(Input.UserName)" Required>
-            <Input @bind-Value="Input.UserName" />
-        </FormItem>
+        <Form  method="HttpMethod.Post"  Model="@Input" OnFinish="LoginUser" Name="login">
+            <DataAnnotationsValidator />
+      
+            <FormItem Label="نام کاربری">
+                <Input Placeholder="ایمیل یا نام کاربری" @bind-Value="Input.UserName" />
+                <ValidationMessage For="@(() => Input.UserName)" />
+            </FormItem>
 
-        <FormItem Label="Password" Name="@nameof(Input.Password)" Required>
-            <Input Type="InputType.Password" @bind-Value="Input.Password" />
-        </FormItem>
+            <FormItem Label="رمز عبور">
+                <InputPassword Placeholder="رمز عبور" @bind-Value="Input.Password" />
+            </FormItem>
 
-        <FormItem>
-            <Checkbox @bind-Value="Input.RememberMe">Remember me</Checkbox>
-        </FormItem>
+            <FormItem>
+                <Checkbox @bind-Value="Input.RememberMe">مرا به خاطر بسپار</Checkbox>
+            </FormItem>
 
-        <FormItem>
-            <Button Type="ButtonType.Primary" HtmlType="submit" Block>Log in</Button>
-        </FormItem>
+            <FormItem>
+                <Button Type="ButtonType.Primary" HtmlType="submit" Block>ورود</Button>
+            </FormItem>
 
-        <FormItem>
-            <a href="Account/ForgotPassword">Forgot your password?</a><br />
-            <a href="@NavigationManager.GetUriWithQueryParameters("Account/Register",  new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl })">Register as a new user</a><br />
-            <a href="Account/ResendEmailConfirmation">Resend email confirmation</a>
-        </FormItem>
-    </Form>
-    </Col>
-
-    <Col Span="8" Offset="2">
-    <h3>Use another service to log in</h3>
-    <Divider />
-    <ExternalLoginPicker />
-    </Col>
-</Row>
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <Alert Message="@errorMessage" Type="AlertType.Error" ShowIcon="true"/>
+            }
+        </Form>
+    </Card>
+</div>
 
 @code {
-    private string errorMessage;
+    private string? errorMessage;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
+    [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     [SupplyParameterFromQuery]
-    private string ReturnUrl { get; set; }
+    private string? ReturnUrl { get; set; }
 
-
+   
     public async Task LoginUser()
     {
-        SignInResult result=null;
-
-        try
-        {
-
-
-            result = await SignInManager.PasswordSignInAsync(Input.UserName, Input.Password, Input.RememberMe, lockoutOnFailure: false);
-        }
-        catch (Exception e)
-        {
-
-        }
+        var result = await SignInManager.PasswordSignInAsync(Input.UserName, Input.Password, Input.RememberMe, false);
         if (result.Succeeded)
         {
-            Logger.LogInformation("User logged in.");
+            Logger.LogInformation("ورود موفق.");
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.RequiresTwoFactor)
         {
             RedirectManager.RedirectTo("Account/LoginWith2fa", new()
-                {
-                    ["returnUrl"] = ReturnUrl,
-                    ["rememberMe"] = Input.RememberMe
-                });
+            {
+                ["returnUrl"] = ReturnUrl,
+                ["rememberMe"] = Input.RememberMe
+            });
         }
         else if (result.IsLockedOut)
         {
-            Logger.LogWarning("User account locked out.");
+            Logger.LogWarning("اکانت قفل شده.");
             RedirectManager.RedirectTo("Account/Lockout");
         }
         else
         {
-            errorMessage = "Error: Invalid login attempt.";
+            errorMessage = "ورود نامعتبر. لطفاً اطلاعات را بررسی کنید.";
         }
     }
 
@@ -116,7 +94,6 @@
         [DataType(DataType.Password)]
         public string Password { get; set; } = "";
 
-        [Display(Name = "Remember me?")]
         public bool RememberMe { get; set; }
     }
 }

@@ -7,3 +7,12 @@
 .site-layout .site-layout-background {
     background: #fff;
 }
+
+@font-face {
+    font-family: 'Vazir FD';
+    src: url('/fonts/Vazir.woff2') format('woff2');
+}
+
+body {
+    font-family: 'Vazir FD', sans-serif;
+}
