@@ -10,6 +10,23 @@
 @using TripFront.Components.FrontUtility
 @rendermode InteractiveServer
 <h1>درخواست ها</h1>
+<style>
+    #components-form-demo-form-context .user {
+        margin-bottom: 8px;
+    }
+
+        #components-form-demo-form-context .user .ant-avatar {
+            margin-right: 8px;
+        }
+
+    .ant-row-rtl #components-form-demo-form-context .user .ant-avatar {
+        margin-right: 0;
+        margin-left: 8px;
+    }
+</style>
+<Button HtmlType="submit" Type="ButtonType.Primary" OnClick="ShowModal">
+    Submit
+</Button>
 <Table TItem="FriendRequestDTO"
        DataSource="@requests"
        Total="@totalCount"
@@ -40,7 +57,7 @@
     private int pageSize = 10;
     private int currentPage = 1;
     private bool isLoading = false;
-
+    private bool _modelVisible = false;
     private async Task OnTableChange(QueryModel<FriendRequestDTO> queryModel)
     {
         isLoading = true;
@@ -78,7 +95,16 @@
             isLoading = false;
         }
     }
+    private void ShowModal()
+    {
+        _modelVisible = true;
+    }
 
+    private void HideUserModal()
+    {
+        _modelVisible = false;
+        _userForm?.Reset();
+    }
 
     private async Task ReloadDataAsync()
     {

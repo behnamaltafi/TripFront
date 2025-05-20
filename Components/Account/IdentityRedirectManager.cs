@@ -34,13 +34,22 @@ namespace TripFront.Components.Account
         }
 
         [DoesNotReturn]
-        public void RedirectTo(string uri, Dictionary<string, object?> queryParameters)
+        public void RedirectTo(string url, Dictionary<string, object>? parameters = null)
         {
-            var uriWithoutQuery = navigationManager.ToAbsoluteUri(uri).GetLeftPart(UriPartial.Path);
-            var newUri = navigationManager.GetUriWithQueryParameters(uriWithoutQuery, queryParameters);
-            RedirectTo(newUri);
-        }
+            if (!string.IsNullOrWhiteSpace(url))
+            {
+                if (parameters != null && parameters.Any())
+                {
+                    var queryString = string.Join("&",
+                        parameters.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value?.ToString() ?? string.Empty)}"));
 
+                    url += url.Contains("?") ? "&" : "?";
+                    url += queryString;
+                }
+
+                navigationManager.NavigateTo(url, forceLoad: false);
+            }
+        }
         [DoesNotReturn]
         public void RedirectToWithStatus(string uri, string message, HttpContext context)
         {
