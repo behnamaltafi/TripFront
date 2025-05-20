@@ -10,4 +10,6 @@ public interface ITripService
     Task<PagingResult<TripDTO>> GetTripsForFamilyAsync(PagingParam pagingParam);
     Task<TripDetailsDto> GetTripDetailsAsync(int tripId);
     Task Paid(int tripId);
+    Task Delete(int tripId);
+    Task Update(UpdateTripDto updateTripDto);
 }

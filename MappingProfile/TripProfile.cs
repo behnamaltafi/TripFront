@@ -19,6 +19,10 @@ public partial class TripProfile : Profile
 
 
 
+        CreateMap<Trip, UpdateTripDto>();
+        CreateMap<TripDTO, UpdateTripDto>();
+        CreateMap<TripDTO, CreateTripDto>();
+        CreateMap<CreateTripDto, UpdateTripDto>();
         CreateMap<TripFamily, TripFamilyDto>()
             .ForMember(dest => dest.FamilyName, opt => opt.MapFrom(src => src.Family.Name))
             .ForMember(dest => dest.AccountNumber, opt => opt.MapFrom(src => src.Family.AccountNumber));

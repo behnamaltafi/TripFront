@@ -1,72 +1,139 @@
 ﻿@page "/trips"
 @using AntDesign
-@using AntDesign.Filters
-@using AntDesign.TableModels
-@using FilterPagingEfCore.Extenstion
-@using FilterPagingEfCore.Filter
-@using FilterPagingEfCore.Paging
+@using AutoMapper
 @inject ITripService _tripService
-@using FilterPagingEfCore.Sort
-@using TripFront.Components.FrontUtility
+@inject ITripRepository _tripRepository
+@inject IMapper _mapper
 @rendermode InteractiveServer
-<h1>سفر ها</h1>
-<Table TItem="TripDTO"
-       DataSource="@requests"
-       Total="@totalCount"
-       PageSize="@pageSize"
-       PageIndex="@currentPage"
-       OnChange="@OnTableChange"
-       Loading="@isLoading">
-    <PropertyColumn Property="r => r.Name" Title="نام" Sortable Filterable />
-    <PropertyColumn Property="r => r.StartDate.ToShamsi()" Title="شروع" Sortable Filterable />
-    <PropertyColumn Property="r => r.EndDate.Value.ToShamsi()" Title="پایان" Sortable Filterable />
-    <PropertyColumn Property="r => r.TotalFamilies" Title="تعداد خانواده" Sortable Filterable />
-    <PropertyColumn Property="r => r.TotalParticipants" Title="تعداد افراد" Sortable Filterable />
-    <PropertyColumn Property="r => r.Description" Title="خلاصه سفر" Sortable Filterable />
-    <ActionColumn Title="Action">
-        <Space Size="SpaceSize.Middle">
-            <SpaceItem>
-                <a>Accept </a>
-            </SpaceItem>
-            <SpaceItem>
-                <a>Delete</a>
-            </SpaceItem>
-        </Space>
-    </ActionColumn>
-</Table>
+
+<h1>سفرها</h1>
+
+<Button Type="ButtonType.Primary" Icon="plus" OnClick="@ShowCreateModal">افزودن سفر جدید</Button>
+
+<Row Gutter="16" Class="mt-4">
+    @if (isLoading)
+    {
+        <Spin Tip="در حال بارگذاری..." />
+    }
+    else
+    {
+        @foreach (var trip in trips)
+        {
+            <AntDesign.Col Xs="24" Sm="12" Md="8" Lg="6">
+                <Card Title="@trip.Name" Hoverable="true" Actions="@(new RenderFragment[] {
+                        builder => {
+                            builder.OpenComponent<Icon>(0);
+                            builder.AddAttribute(1, "Type", "edit");
+                             builder.AddAttribute(2, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, (e) => EditTrip(trip.Id)));
+                            builder.CloseComponent();
+                        },
+                        builder => {
+                            builder.OpenComponent<Icon>(3);
+                            builder.AddAttribute(4, "Type", "delete");
+                            builder.AddAttribute(2, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, (e) => DeleteTrip(trip.Id)));
+                            builder.CloseComponent();
+                        }
+                    })">
+                    <p><b>تاریخ شروع:</b> @trip.StartDate.ToShamsi()</p>
+                    <p><b>تاریخ پایان:</b> @(trip.EndDate?.ToShamsi())</p>
+                    <p><b>تعداد خانواده:</b> @trip.TotalFamilies</p>
+                    <p><b>تعداد افراد:</b> @trip.TotalParticipants</p>
+                    <p><b>توضیحات:</b> @trip.Description</p>
+                </Card>
+            </AntDesign.Col>
+
+
+        }
+    }
+</Row>
+
+<Modal Title="@modalTitle"
+       Visible="@isModalVisible"
+       OnOk="@HandleModalOk"
+       OnCancel="@(() => isModalVisible = false)">
+    <Form Model="@tripModel">
+        <FormItem Label="نام سفر">
+            <Input @bind-Value="@tripModel.Name" />
+        </FormItem>
+        <FormItem Label="تاریخ شروع">
+            <DatePicker @bind-Value="@tripModel.StartDate" />
+        </FormItem>
+        <FormItem Label="تاریخ پایان">
+            <DatePicker @bind-Value="@tripModel.EndDate" />
+        </FormItem>
+        <FormItem Label="تعداد خانواده">
+            <Input Type="InputType.Number" @bind-Value="@tripModel.TotalFamilies" />
+        </FormItem>
+        <FormItem Label="تعداد افراد">
+            <Input Type="InputType.Number" @bind-Value="@tripModel.TotalParticipants" />
+        </FormItem>`
+        <FormItem Label="توضیحات">
+            <TextArea @bind-Value="@tripModel.Description" Rows="3" />
+        </FormItem>
+    </Form>
+</Modal>
 
 @code {
-    private List<TripDTO> requests = new();
-    private int totalCount;
-    private int pageSize = 10;
-    private int currentPage = 1;
+    private List<TripDTO> trips = new();
     private bool isLoading = false;
+    private bool isModalVisible = false;
+    private string modalTitle = "افزودن سفر جدید";
+    private TripDTO tripModel = new();
+    private int editingTripId = 0;
 
-    private async Task OnTableChange(QueryModel<TripDTO> queryModel)
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTripsAsync();
+    }
+
+    private async Task LoadTripsAsync()
     {
         isLoading = true;
-
-        var result = await _tripService.GetTripsForFamilyAsync(queryModel.ToPagingParam());
-        requests = result.Items;
-        currentPage = result.PageNumber;
-        totalCount = result.TotalCount;
+        var result = await _tripService.GetTripsForFamilyAsync(new FilterPagingEfCore.Paging.PagingParam());
+        trips = result.Items;
         isLoading = false;
     }
 
-
-
-
-
-    private async Task ReloadDataAsync()
+    private void ShowCreateModal()
     {
-        var paging = new PagingParam
-        {
-
-        };
-        var result = await _tripService.GetTripsForFamilyAsync(paging);
-        requests = result.Items;
-        totalCount = result.TotalCount;
+        modalTitle = "افزودن سفر جدید";
+        tripModel = new TripDTO();
+        editingTripId = 0;
+        isModalVisible = true;
     }
 
+    private void EditTrip(int tripId)
+    {
+        var trip = trips.FirstOrDefault(t => t.Id == tripId);
+        if (trip != null)
+        {
+            tripModel = trip;
+            modalTitle = "ویرایش سفر";
 
+            editingTripId = tripId;
+            isModalVisible = true;
+        }
+    }
+
+    private async Task HandleModalOk()
+    {
+        if (editingTripId == 0)
+        {
+
+            await _tripService.CreateTripAsync(_mapper.Map<CreateTripDto>(tripModel));
+        }
+        else
+        {
+            await _tripService.Update(_mapper.Map<UpdateTripDto>(tripModel));
+        }
+
+        isModalVisible = false;
+        await LoadTripsAsync();
+    }
+
+    private async Task DeleteTrip(int tripId)
+    {
+        await _tripService.Delete(tripId);
+        await LoadTripsAsync();
+    }
 }

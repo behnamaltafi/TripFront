@@ -9,6 +9,7 @@ public class TripDTO
     [Required]
     [StringLength(100)]
     public string Name { get; set; }
+    public string ImageUrl { get; set; } // Avatar
 
     [StringLength(500)]
     public string Description { get; set; }
