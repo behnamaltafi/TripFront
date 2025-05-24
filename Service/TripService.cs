@@ -42,6 +42,7 @@ public class TripService : ITripService
     {
         var familyId = _friendshipService.GetFamilyId();
         var trips =await  _tripRepository.FindAllPaging<TripDTO>(pagingParam,x => x.Families.Any(f=>f.FamilyId==familyId));
+
         return trips;
     }
     public async Task Paid(int tripId)

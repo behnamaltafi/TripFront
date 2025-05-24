@@ -2,11 +2,12 @@
 @using AntDesign
 @using AntDesign.Filters
 @using AntDesign.TableModels
+
+@inject IFriendRequestService FriendRequestService
+@using FilterPagingEfCore.Sort
 @using FilterPagingEfCore.Extenstion
 @using FilterPagingEfCore.Filter
 @using FilterPagingEfCore.Paging
-@inject IFriendRequestService FriendRequestService
-@using FilterPagingEfCore.Sort
 @using TripFront.Components.FrontUtility
 @rendermode InteractiveServer
 <h1>درخواست ها</h1>

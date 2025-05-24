@@ -1,6 +1,8 @@
-﻿public interface IFriendshipRepository: IGenericRepository<FamilyFriendship, int>
+﻿using FilterPagingEfCore.Paging;
+
+public interface IFriendshipRepository: IGenericRepository<FamilyFriendship, int>
 {
     Task<FamilyFriendship?> GetFriendshipAsync(int familyId1, int familyId2);
 
-    Task<List<FamilyDTO>> GetFriendsAsync(int familyId);
+    Task<PagingResult<FamilyDTO>> GetFriendsAsync(PagingParam pagingParam, int familyId);
 }

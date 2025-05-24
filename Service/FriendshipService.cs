@@ -1,4 +1,5 @@
 ﻿using BusinessExceptionStructure;
+using FilterPagingEfCore.Paging;
 
 public class FriendshipService : IFriendshipService
 {
@@ -46,10 +47,10 @@ public class FriendshipService : IFriendshipService
         await _repository.Save();
     }
 
-    public async Task<List<FamilyDTO>> GetFriendsAsync()
+    public async Task<PagingResult<FamilyDTO>> GetFriendsAsync(PagingParam pagingParam)
     {
         var familyId = GetFamilyId();
-        return await _repository.GetFriendsAsync(familyId);
+        return await _repository.GetFriendsAsync(pagingParam, familyId);
     }
     public int GetFamilyId()
     {
