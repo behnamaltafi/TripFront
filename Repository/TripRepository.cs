@@ -93,30 +93,30 @@ public class TripRepository : GenericRepository<Trip, int>, ITripRepository
 
     public async Task AddFamilyToTripAsync(int tripId, int familyId, int participantCount)
     {
-        var friends = await _friendshipService.GetFriendsAsync();
+        //var friends = await _friendshipService.GetFriendsAsync();
         var trip = await _context.Trips.FirstOrDefaultAsync(t => t.Id == tripId);
         if (trip == null)
         {
             throw new KeyNotFoundException();
         }
-
-
-        if (friends.Select(x => x.Id).Contains(familyId) || familyId == _friendshipService.GetFamilyId())
+        var tripFamily = new TripFamily
         {
-            var tripFamily = new TripFamily
-            {
-                TripId = tripId,
-                FamilyId = familyId,
-                MemberCount = participantCount
-            };
-            await _context.TripFamilies.AddAsync(tripFamily);
-            await _context.SaveChangesAsync();
-        }
-        else
-        {
-            throw new NotSupportedException();
+            TripId = tripId,
+            FamilyId = familyId,
+            MemberCount = participantCount
+        };
+        await _context.TripFamilies.AddAsync(tripFamily);
+        await _context.SaveChangesAsync();
 
-        }
+        //if (friends.Select(x => x.Id).Contains(familyId) || familyId == _friendshipService.GetFamilyId())
+        //{
+       
+        //}
+        //else
+        //{
+        //    throw new NotSupportedException();
+
+    //    }
 
     }
 

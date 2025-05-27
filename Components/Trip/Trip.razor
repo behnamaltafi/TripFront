@@ -132,7 +132,7 @@
         trips = result.Items;
         isLoading = false;
     }
-    private async Task ShowAddExpenseModal(int tripId, string searchFamilyName)
+    private async Task ShowAddExpenseModal(int tripId, string searchFamilyName="")
     {
         selectedTripId = tripId;
         expenseModel = new AddExpenseDTO
