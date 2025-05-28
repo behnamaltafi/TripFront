@@ -1,13 +1,16 @@
 ﻿@page "/Account/Login"
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authentication
 @using TripFront.Data
 @using AntDesign
+@using System.Security.Claims
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject UserManager<ApplicationUser> UserManager
+
 
 <PageTitle>ورود</PageTitle>
 
@@ -110,7 +113,7 @@
                 <p>برای مدیریت سفرهای خود وارد شوید</p>
             </div>
 
-            <Form Model="@Input" OnFinish="LoginUser" Name="login">
+            <Form Method="HttpMethod.Post" Model="@Input" OnFinish="LoginUser" Name="login">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
@@ -146,8 +149,24 @@
 </div>
 
 @code {
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            // Clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+
     private string? errorMessage;
 
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     [SupplyParameterFromQuery]
@@ -159,8 +178,9 @@
 
         if (result.Succeeded)
         {
+            var user = await UserManager.FindByNameAsync(Input.UserName);
             Logger.LogInformation("ورود موفق.");
-            RedirectManager.RedirectTo(string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl);
+            RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.RequiresTwoFactor)
         {
