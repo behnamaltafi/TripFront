@@ -7,6 +7,7 @@
 
 using AutoMapper;
 using BusinessExceptionStructure;
+using FilterPagingEfCore.Paging;
 
 public class ExpenseService : IExpenseService
 {
@@ -40,29 +41,14 @@ public class ExpenseService : IExpenseService
         return _mapper.Map<ExpenseDTO>(expense);
     }
 
-    public async Task<Expense> Find(int id)
+ 
+
+    public async Task<PagingResult<Expense>> FindTripExpenses(PagingParam pagingParam,int tripId)
     {
-        return await _expenseRepository.Find(id);
+        return await _expenseRepository.FindTripExpenses(pagingParam, tripId);
     }
 
-    public async Task<List<Expense>> FindTripExpenses(int tripId)
-    {
-        return await _expenseRepository.FindTripExpenses(tripId);
-    }
-
-    public async Task Update(int id, UpdateExpenseDTO expenseDto)
-    {
-        await _expenseRepository.Update(id, expenseDto);
-        await _expenseRepository.Save();
-    }
-
-    public async Task Remove(int id)
-    {
-        await _expenseRepository.Remove(id);
-        await _expenseRepository.Save();
-
-    }
-
+    
     public async Task<List<ExpenseDTO>> FindFamilyExpenses(int tripId, int familyId)
     {
         var expenses = await _expenseRepository.FindTripExpenses(tripId);

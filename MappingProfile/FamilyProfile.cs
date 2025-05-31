@@ -8,6 +8,9 @@ public partial class TripProfile
         public FamilyProfile()
         {
             CreateMap<Family, FamilyDTO>();
+            CreateMap<FamilyFriendship ,FamilyDTO>() 
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Family2.Name))
+                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Family2.Id));
             CreateMap<AddFamilyDTO, FamilyDTO>();
             CreateMap<AddFamilyDTO, Family>();
             CreateMap<UpdateFamilyDTO, Family>()

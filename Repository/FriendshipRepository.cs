@@ -27,8 +27,8 @@ public class FriendshipRepository : GenericRepository<FamilyFriendship, int>, IF
     public async Task<PagingResult<FamilyDTO>> GetFriendsAsync(PagingParam pagingParam, int familyId)
     {
         var qry = _context.FamilyFriendships
-           .Where(f => f.FamilyId1 == familyId || f.FamilyId2 == familyId)
-           .Select(f => f.FamilyId1 == familyId ? f.Family2 : f.Family1);
+           .Where(f => f.FamilyId1 == familyId || f.FamilyId2 == familyId);
+ 
         return await _mapper.ProjectTo<FamilyDTO>(qry).FilterPaging(pagingParam);
 
     }

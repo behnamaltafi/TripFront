@@ -1,0 +1,26 @@
+﻿@using AntDesign
+@inject INotificationService NotificationService
+@inherits ErrorBoundary
+
+<ErrorBoundary @ref="errorBoundary" OnError="@OnErrorHandler">
+    @ChildContent
+</ErrorBoundary>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    private ErrorBoundary? errorBoundary;
+
+    private async void OnErrorHandler(Exception exception)
+    {
+        // Show toast notification using Ant Design
+        await NotificationService.Open(new NotificationConfig()
+            {
+                Message = "Unexpected Error",
+                Description = exception.Message,
+                NotificationType = NotificationType.Error
+            });
+
+        // Optional: Log to a server or file
+        Console.WriteLine("Global Exception: " + exception);
+    }
+}

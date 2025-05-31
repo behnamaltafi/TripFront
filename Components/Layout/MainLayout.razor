@@ -1,21 +1,26 @@
 ﻿@using AntDesign
 @inherits LayoutComponentBase
 
-
 <Layout>
     <Header Class="header">
         <div class="logo" />
-        <Menu Theme="MenuTheme.Dark" Mode="MenuMode.Horizontal" DefaultSelectedKeys=@(new []{"1"})>
+        <Menu Theme="MenuTheme.Dark" Mode="MenuMode.Horizontal" DefaultSelectedKeys=@(new[] { "1" })>
             <MenuItem Key="1">دنگچی</MenuItem>
-
         </Menu>
     </Header>
+
     <Layout>
         <NavMenu />
-        <Layout Style=" padding: 0 24px 24px;">
-
-            <Content Class="site-layout-background" Style=" padding: 24px; margin: 0; min-height: 280px;">
-                @Body
+        <Layout Style="padding: 0 24px 24px;">
+            <Content Class="site-layout-background" Style="padding: 24px; margin: 0; min-height: 280px;">
+                <ErrorBoundary>
+                    <ChildContent>
+                        @Body
+                    </ChildContent>
+                    <ErrorContent>
+                        <div style="color:red;">خطا در نمایش محتوا.</div>
+                    </ErrorContent>
+                </ErrorBoundary>
             </Content>
         </Layout>
     </Layout>

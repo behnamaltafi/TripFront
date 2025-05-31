@@ -1,5 +1,6 @@
 ﻿@page "/trips"
 @using AntDesign
+@using AntDesign.TableModels
 @using AutoMapper
 @inject ITripService _tripService
 @inject IExpenseService _expenseService
@@ -9,6 +10,7 @@
 @using FilterPagingEfCore.Extenstion
 @using FilterPagingEfCore.Filter
 @using FilterPagingEfCore.Paging
+@using TripFront.Components.FrontUtility
 @inject IMapper _mapper
 @rendermode InteractiveServer
 
@@ -27,26 +29,25 @@
         {
             <AntDesign.Col Xs="24" Sm="12" Md="8" Lg="6">
                 <Card Title="@trip.Name" Hoverable="true" Actions="@(new RenderFragment[] {
-                        builder => {
-                            builder.OpenComponent<Icon>(0);
-                            builder.AddAttribute(1, "Type", "edit");
-                             builder.AddAttribute(2, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, (e) => EditTrip(trip.Id)));
-                            builder.CloseComponent();
-
-                        },
-                        builder => {
-                            builder.OpenComponent<Icon>(5);
-                            builder.AddAttribute(6, "Type", "dollar"); // or "plus-circle"
-                            builder.AddAttribute(7, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, (e) => ShowAddExpenseModal(trip.Id)));
-                            builder.CloseComponent();
-                        },
-                          builder => {
-                            builder.OpenComponent<Icon>(3);
-                            builder.AddAttribute(4, "Type", "delete");
-                            builder.AddAttribute(2, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, (e) => DeleteTrip(trip.Id)));
-                            builder.CloseComponent();
-                        }
-                    })">
+                       builder => {
+        builder.OpenComponent<Icon>(0);
+        builder.AddAttribute(1, "Type", "edit");
+        builder.AddAttribute(2, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, (e) => EditTrip(trip.Id)));
+        builder.CloseComponent();
+    },
+    builder => {
+        builder.OpenComponent<Icon>(3);
+        builder.AddAttribute(4, "Type", "dollar");
+        builder.AddAttribute(5, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, (e) => ShowAddExpenseModal(trip.Id)));
+        builder.CloseComponent();
+    },
+    builder => {
+        builder.OpenComponent<Icon>(6);
+        builder.AddAttribute(7, "Type", "delete");
+        builder.AddAttribute(8, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, (e) => DeleteTrip(trip.Id)));
+        builder.CloseComponent();
+    }
+})">
                     <p><b>تاریخ شروع:</b> @trip.StartDate.ToShamsi()</p>
                     <p><b>تاریخ پایان:</b> @(trip.EndDate?.ToShamsi())</p>
                     <p><b>تعداد خانواده:</b> @trip.TotalFamilies</p>
@@ -60,17 +61,29 @@
     }
 </Row>
 <Modal Title="افزودن هزینه"
-       Visible="@isExpenseModalVisible"
-       OnOk="@HandleAddExpense"
-       OnCancel="@(() => isExpenseModalVisible = false)">
+Visible="@isExpenseModalVisible"
+OnOk="@HandleAddExpense"
+OnCancel="@(() => isExpenseModalVisible = false)">
     <Form Model="@expenseModel">
+
+
+
+
         <FormItem Label="خانواده">
-            @*     <Select TItem="SelectOption<int>" TValue="int" @bind-Value="expenseModel.FamilyId">
-                @foreach (var family in families)
-                {
-                    <SelectOption Value="@family.Value">@family.Label</SelectOption>
-                }
-            </Select> *@
+
+
+
+
+            <Select DataSource="@families"
+            @bind-Value="@selectedFamilyId"
+            ItemValue="p=>p.Id"
+            ItemLabel="p=>p.Name"
+            Placeholder="انتخاب خانواده"
+            EnableSearch="true"
+            OnFocus="@(async () => await LoadFamiliesAsync(""))"
+            OnSearch="@(async (e)=>await LoadFamiliesAsync(e))"
+            AutoClearSearchValue="false" />
+
         </FormItem>
         <FormItem Label="مقدار">
             <Input Type="InputType.Number" @bind-Value="expenseModel.Amount" />
@@ -84,9 +97,9 @@
     </Form>
 </Modal>
 <Modal Title="@modalTitle"
-       Visible="@isModalVisible"
-       OnOk="@HandleModalOk"
-       OnCancel="@(() => isModalVisible = false)">
+Visible="@isModalVisible"
+OnOk="@HandleModalOk"
+OnCancel="@(() => isModalVisible = false)">
     <Form Model="@tripModel">
         <FormItem Label="نام سفر">
             <Input @bind-Value="@tripModel.Name" />
@@ -108,18 +121,45 @@
         </FormItem>
     </Form>
 </Modal>
+<Modal Title="@tableTitle"
+       Visible="@isTableVisible"
+       OnCancel="@(() => isTableVisible = false)">
+
+    <Table TItem="Expense"
+           DataSource="@requests"
+           Total="@totalCount"
+           PageSize="@pageSize"
+           PageIndex="@currentPage"
+           OnChange="@OnTableChange(selectedTripId)"
+           Loading="@isLoadingTable">
+        <PropertyColumn Property="r => r.Trip" Title="درخواست دهنده" Sortable Filterable />
+        <ActionColumn Title="Action">
+            <Space Size="SpaceSize.Middle">
+                <SpaceItem>
+                    <a>Accept </a>
+                </SpaceItem>
+                <SpaceItem>
+                    <a>Delete</a>
+                </SpaceItem>
+            </Space>
+        </ActionColumn>
+    </Table>
+</Modal>
 
 @code {
     private List<TripDTO> trips = new();
     private bool isLoading = false;
     private bool isModalVisible = false;
+    private bool isTableVisible = false;
     private string modalTitle = "افزودن سفر جدید";
+    private string tableTitle = "لیست هزینه های سفر";
     private TripDTO tripModel = new();
     private int editingTripId = 0;
     private bool isExpenseModalVisible = false;
     private AddExpenseDTO expenseModel = new();
-    private List<SelectOption<string, int>> families = new();
+    private List<FamilyDTO> families = new();
     private int selectedTripId;
+    private int? selectedFamilyId;
     protected override async Task OnInitializedAsync()
     {
         await LoadTripsAsync();
@@ -132,33 +172,17 @@
         trips = result.Items;
         isLoading = false;
     }
-    private async Task ShowAddExpenseModal(int tripId, string searchFamilyName="")
+    private  void ShowAddExpenseModal(int tripId)
     {
         selectedTripId = tripId;
         expenseModel = new AddExpenseDTO
             {
                 TripId = tripId,
-                Date = DateTime.Now
+                Date = DateTime.Now,
             };
-        var pagingParam = new PagingParam
-            {
-                FilterParam = new List<FilterParam>
-                {
-                  new FilterParam
-                  {
-                      ColumnName=nameof(TripDTO.Name),
-                        FilterOption=ComparisonMethod.Contain,
-                        FilterValue=searchFamilyName
-
-                  }
-                }
-            };
-        // Fetch related families from the trip (assumed service call)
-        families = (await _friendshipService.GetFriendsAsync(pagingParam)).Items // Adjust to your actual service
-            .Select(f => new SelectOption<string, int> { Label = f.Name, Value = f.Id.ToString() })
-            .ToList();
 
         isExpenseModalVisible = true;
+
     }
 
     private void ShowCreateModal()
@@ -168,7 +192,29 @@
         editingTripId = 0;
         isModalVisible = true;
     }
+    private bool isFamilyLoading = false;
 
+    private async Task LoadFamiliesAsync(string searchTerm)
+    {
+        isFamilyLoading = true;
+
+        List<FilterParam> filters = new List<FilterParam>();
+        var pagingFilters = new PagingParam
+            {
+                FilterParam = filters
+            };
+        filters.Add(new FilterParam
+            {
+                ColumnName = "Name",
+                FilterValue = searchTerm ?? "",
+                FilterOption = ComparisonMethod.Contain
+            });
+        var result = await _friendshipService.GetFriendsAsync(pagingFilters);
+        families = result.Items;
+
+        isFamilyLoading = false;
+        StateHasChanged();
+    }
     private void EditTrip(int tripId)
     {
         var trip = trips.FirstOrDefault(t => t.Id == tripId);
@@ -203,9 +249,58 @@
         await _tripService.Delete(tripId);
         await LoadTripsAsync();
     }
+
     private async Task HandleAddExpense()
     {
+        expenseModel.FamilyId = selectedFamilyId.Value;
         await _expenseService.Add(expenseModel); // Adjust to your actual service
+
         isExpenseModalVisible = false;
     }
+
+
+
+
+    private List<Expense> requests = new();
+    private int totalCount;
+    private int pageSize = 10;
+    private int currentPage = 1;
+    private bool isLoadingTable = false;
+    private bool _modelVisible = false;
+    private async Task OnTableChange(QueryModel<Expense> queryModel,int tripId)
+    {
+        isLoadingTable = true;
+
+        var result = await _expenseService.FindTripExpenses(queryModel.ToPagingParam(), tripId);
+        requests = result.Items;
+        currentPage = result.PageNumber;
+        totalCount = result.TotalCount;
+        isLoadingTable = false;
+    }
+
+
+ 
+    private void ShowModal()
+    {
+        _modelVisible = true;
+    }
+
+    private void HideUserModal()
+    {
+        _modelVisible = false;
+
+    }
+
+    private async Task ReloadDataAsync(int tripId)
+    {
+        var paging = new PagingParam
+        {
+
+        };
+        var result = await _expenseService.FindTripExpenses(paging, tripId);
+        requests = result.Items;
+        totalCount = result.TotalCount;
+    }
+
+
 }
