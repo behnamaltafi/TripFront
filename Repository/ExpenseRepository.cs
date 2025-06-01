@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using FilterPagingEfCore.Extenstion;
 using FilterPagingEfCore.Filter;
 using FilterPagingEfCore.Paging;
@@ -20,10 +21,8 @@ public class ExpenseRepository :  GenericRepository<Expense, int>,IExpenseReposi
 
     public async Task<PagingResult<Expense>> FindTripExpenses(PagingParam pagingParam,int tripId)
     {
-        return await _context.Expenses
-            .Where(e => e.TripId == tripId)
-            .Include(e => e.Participants)
-            .FilterPaging(pagingParam);
+
+        return await FindAllPaging<Expense>(pagingParam,e => e.TripId == tripId);
     }
     public async Task<List<Expense>> FindTripExpenses(int tripId)
     {
@@ -32,6 +31,7 @@ public class ExpenseRepository :  GenericRepository<Expense, int>,IExpenseReposi
             .Include(e => e.Participants)
             .ToListAsync();
     }
+
 
     public async Task AddParticipant(ExpenseParticipant participant)
     {

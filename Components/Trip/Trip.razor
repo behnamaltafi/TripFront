@@ -18,7 +18,7 @@
 
 <Button Type="ButtonType.Primary" Icon="plus" OnClick="@ShowCreateModal">افزودن سفر جدید</Button>
 
-<Row Style="margin-top : 2%" Gutter="16" Class="mt-4">
+<Row Style="margin-top : 1%" Gutter="16" Class="mt-4">
     @if (isLoading)
     {
         <Spin Tip="در حال بارگذاری..." />
@@ -38,7 +38,7 @@
     builder => {
         builder.OpenComponent<Icon>(3);
         builder.AddAttribute(4, "Type", "dollar");
-        builder.AddAttribute(5, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, (e) => ShowAddExpenseModal(trip.Id)));
+        builder.AddAttribute(5, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, (e) => ShowTableExpenseModal(trip.Id)));
         builder.CloseComponent();
     },
     builder => {
@@ -49,7 +49,7 @@
     }
 })">
                     <p><b>تاریخ شروع:</b> @trip.StartDate.ToShamsi()</p>
-                    <p><b>تاریخ پایان:</b> @(trip.EndDate?.ToShamsi())</p>
+                    <p><b>تاریخ پایان:</b> @(trip.EndDate.HasValue ? trip.EndDate.Value.ToShamsi() : "-")</p>
                     <p><b>تعداد خانواده:</b> @trip.TotalFamilies</p>
                     <p><b>تعداد افراد:</b> @trip.TotalParticipants</p>
                     <p><b>توضیحات:</b> @trip.Description</p>
@@ -60,47 +60,11 @@
         }
     }
 </Row>
-<Modal Title="افزودن هزینه"
-Visible="@isExpenseModalVisible"
-OnOk="@HandleAddExpense"
-OnCancel="@(() => isExpenseModalVisible = false)">
-    <Form Model="@expenseModel">
-
-
-
-
-        <FormItem Label="خانواده">
-
-
-
-
-            <Select DataSource="@families"
-            @bind-Value="@selectedFamilyId"
-            ItemValue="p=>p.Id"
-            ItemLabel="p=>p.Name"
-            Placeholder="انتخاب خانواده"
-            EnableSearch="true"
-            OnFocus="@(async () => await LoadFamiliesAsync(""))"
-            OnSearch="@(async (e)=>await LoadFamiliesAsync(e))"
-            AutoClearSearchValue="false" />
-
-        </FormItem>
-        <FormItem Label="مقدار">
-            <Input Type="InputType.Number" @bind-Value="expenseModel.Amount" />
-        </FormItem>
-        <FormItem Label="تاریخ">
-            <DatePicker @bind-Value="expenseModel.Date" />
-        </FormItem>
-        <FormItem Label="توضیحات">
-            <TextArea @bind-Value="expenseModel.Description" Rows="2" />
-        </FormItem>
-    </Form>
-</Modal>
-<Modal Title="@modalTitle"
-Visible="@isModalVisible"
+<Modal Title="@tripModalTitle"
+Visible="@isTripModalVisible"
 OnOk="@HandleModalOk"
-OnCancel="@(() => isModalVisible = false)">
-    <Form Model="@tripModel">
+OnCancel="@(() =>{ isTripModalVisible = false;} )">
+    <Form Name="tripModel" Model="@tripModel">
         <FormItem Label="نام سفر">
             <Input @bind-Value="@tripModel.Name" />
         </FormItem>
@@ -122,49 +86,161 @@ OnCancel="@(() => isModalVisible = false)">
     </Form>
 </Modal>
 <Modal Title="@tableTitle"
-       Visible="@isTableVisible"
-       OnCancel="@(() => isTableVisible = false)">
-
+Visible="@isExpenseModalVisible"
+Width="800"
+OnCancel="@(() => isExpenseModalVisible = false)"
+Footer="null"
+>
+    @if (isEditingExpense)
+    {
+        <Form Name="ثxpenseModel" Model="@expenseModel" Class="mt-2">
+            <FormItem Label="خانواده">
+                <Select DataSource="@families"
+                @bind-Value="@selectedFamilyId"
+                ItemValue="p=>p.Id"
+                ItemLabel="p=>p.Name"
+                EnableSearch="true"
+                Placeholder="انتخاب خانواده"
+                OnFocus="@(async () => await LoadFamiliesAsync(""))"
+                OnSearch="@(async (e)=>await LoadFamiliesAsync(e))"                  
+                AutoClearSearchValue="false" />
+            </FormItem>
+            <FormItem Label="مقدار">
+                <Input Type="InputType.Number" @bind-Value="expenseModel.Amount" />
+            </FormItem>
+            <FormItem Label="تاریخ">
+                <DatePicker @bind-Value="expenseModel.Date" />
+            </FormItem>
+            <FormItem Label="توضیحات">
+                <TextArea @bind-Value="expenseModel.Description" Rows="2" />
+            </FormItem>
+            <Button Type="ButtonType.Primary" OnClick="@SaveExpense">ذخیره</Button>
+            <Button Type="ButtonType.Default" OnClick="@CancelEditExpense" Style="margin-right:10px">انصراف</Button>
+        </Form>
+    }
     <Table TItem="Expense"
-           DataSource="@requests"
-           Total="@totalCount"
-           PageSize="@pageSize"
-           PageIndex="@currentPage"
-           OnChange="@OnTableChange(selectedTripId)"
-           Loading="@isLoadingTable">
-        <PropertyColumn Property="r => r.Trip" Title="درخواست دهنده" Sortable Filterable />
-        <ActionColumn Title="Action">
-            <Space Size="SpaceSize.Middle">
-                <SpaceItem>
-                    <a>Accept </a>
-                </SpaceItem>
-                <SpaceItem>
-                    <a>Delete</a>
-                </SpaceItem>
-            </Space>
-        </ActionColumn>
+    DataSource="@expenses"
+    Total="@totalCount"
+    PageSize="@pageSize"
+    PageIndex="@currentPage"
+    OnChange="@(args => OnTableChange(args, selectedTripId))"
+    Loading="@isLoadingTable">
+
+        <TitleTemplate>
+            <Flex Justify="FlexJustify.End" Gap="@("10")">
+                <Button Type="ButtonType.Primary" Style="margin-bottom : 1%" Icon="plus" OnClick="@StartNewExpense">افزودن هزینه جدید</Button>
+            </Flex>
+        </TitleTemplate>
+
+        <ColumnDefinitions Context="row">
+            <PropertyColumn Property="r => r.Family.Name" Title="نام"  Filterable />
+            <PropertyColumn Property="r => r.Description" Title="توضیحات"  Filterable />
+            <PropertyColumn Property="r => r.Amount" Title="هزینه" Sortable Filterable />
+            <ActionColumn Title="عملیات">
+
+                <Space Size="SpaceSize.Middle">
+                    <SpaceItem>
+                        <a @onclick="@(() => EditExpense(row))">ویرایش</a>
+                    </SpaceItem>
+                    <SpaceItem>
+                        <a @onclick="@(() => DeleteExpense(row.Id))">حذف</a>
+                    </SpaceItem>
+                </Space>
+
+            </ActionColumn>
+        </ColumnDefinitions>
     </Table>
 </Modal>
+
 
 @code {
     private List<TripDTO> trips = new();
     private bool isLoading = false;
-    private bool isModalVisible = false;
-    private bool isTableVisible = false;
-    private string modalTitle = "افزودن سفر جدید";
+    private bool isTripModalVisible = false;
+    private bool isExpenseModalVisible = false;
+    private string tripModalTitle = "افزودن سفر جدید";
     private string tableTitle = "لیست هزینه های سفر";
     private TripDTO tripModel = new();
     private int editingTripId = 0;
-    private bool isExpenseModalVisible = false;
-    private AddExpenseDTO expenseModel = new();
+    private Expense expenseModel = new();
     private List<FamilyDTO> families = new();
     private int selectedTripId;
     private int? selectedFamilyId;
+    private List<Expense> expenses = new();
+    private int totalCount;
+    private int pageSize = 10;
+    private int currentPage = 1;
+    private bool isLoadingTable = false;
+    private bool _modelVisible = false;
+    private bool isEditingExpense = false;
+    private Expense expenseBeingEdited;
+
+    private Expense currentExpenseModel = new(); // dynamic type for form binding
+    private bool isEditing = false;
+
+    private void StartNewExpense()
+    {
+        currentExpenseModel = new Expense
+            {
+                TripId = selectedTripId,
+
+                Date = DateTime.Now
+            };
+        selectedFamilyId = null;
+        isEditing = false;
+        isEditingExpense = true;
+    }
+
+    private void EditExpense(Expense expense)
+    {
+        currentExpenseModel =expense;
+        selectedFamilyId = expense.FamilyId;
+        isEditing = true;
+        isEditingExpense = true;
+
+
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await LoadTripsAsync();
     }
+    private async Task SaveExpense()
+    {
+        if (selectedFamilyId == null) return;
 
+        if (isEditing)
+        {
+            var model = _mapper.Map<UpdateExpenseDTO>(expenseModel);
+            await _expenseService.Update(model);
+        }
+        else
+        {
+                var model = _mapper.Map<AddExpenseDTO>(expenseModel);
+                model.FamilyId = selectedFamilyId.Value;
+                model.TripId = selectedTripId;
+                await _expenseService.Add(model);
+                     
+        }
+
+        isEditingExpense = false;
+        await ReloadDataAsync(selectedTripId);
+    }
+
+
+    private void CancelEditExpense()
+    {
+        isEditingExpense = false;
+        expenseModel = new();
+        selectedFamilyId = null;
+    }
+
+ 
+    private async Task DeleteExpense(int expenseId)
+    {
+        await _expenseService.Remove(expenseId);
+        await ReloadDataAsync(selectedTripId);
+    }
     private async Task LoadTripsAsync()
     {
         isLoading = true;
@@ -172,25 +248,20 @@ OnCancel="@(() => isModalVisible = false)">
         trips = result.Items;
         isLoading = false;
     }
-    private  void ShowAddExpenseModal(int tripId)
+    private async Task ShowTableExpenseModal(int tripId)
     {
         selectedTripId = tripId;
-        expenseModel = new AddExpenseDTO
-            {
-                TripId = tripId,
-                Date = DateTime.Now,
-            };
-
+        await ReloadDataAsync(tripId);
         isExpenseModalVisible = true;
 
     }
 
     private void ShowCreateModal()
     {
-        modalTitle = "افزودن سفر جدید";
+        tripModalTitle = "افزودن سفر جدید";
         tripModel = new TripDTO();
         editingTripId = 0;
-        isModalVisible = true;
+        isTripModalVisible = true;
     }
     private bool isFamilyLoading = false;
 
@@ -221,10 +292,10 @@ OnCancel="@(() => isModalVisible = false)">
         if (trip != null)
         {
             tripModel = trip;
-            modalTitle = "ویرایش سفر";
+            tripModalTitle = "ویرایش سفر";
 
             editingTripId = tripId;
-            isModalVisible = true;
+            isTripModalVisible = true;
         }
     }
 
@@ -240,7 +311,7 @@ OnCancel="@(() => isModalVisible = false)">
             await _tripService.Update(_mapper.Map<UpdateTripDto>(tripModel));
         }
 
-        isModalVisible = false;
+        isTripModalVisible = false;
         await LoadTripsAsync();
     }
 
@@ -249,58 +320,60 @@ OnCancel="@(() => isModalVisible = false)">
         await _tripService.Delete(tripId);
         await LoadTripsAsync();
     }
-
-    private async Task HandleAddExpense()
+        private void ResetExpenseModal()
     {
-        expenseModel.FamilyId = selectedFamilyId.Value;
-        await _expenseService.Add(expenseModel); // Adjust to your actual service
-
-        isExpenseModalVisible = false;
+        selectedFamilyId = null;
+        expenseModel = new Expense();
     }
 
 
-
-
-    private List<Expense> requests = new();
-    private int totalCount;
-    private int pageSize = 10;
-    private int currentPage = 1;
-    private bool isLoadingTable = false;
-    private bool _modelVisible = false;
-    private async Task OnTableChange(QueryModel<Expense> queryModel,int tripId)
+    private async Task OnTableChange(QueryModel<Expense> queryModel, int tripId)
     {
+
         isLoadingTable = true;
+        try
+        {
+            var result = await _expenseService.FindTripExpenses(queryModel.ToPagingParam(), tripId);
+            expenses = result.Items;
+            currentPage = result.PageNumber;
+            totalCount = result.TotalCount;
+            isLoadingTable = false;
+        }
+        catch (Exception e)
+        {
 
-        var result = await _expenseService.FindTripExpenses(queryModel.ToPagingParam(), tripId);
-        requests = result.Items;
-        currentPage = result.PageNumber;
-        totalCount = result.TotalCount;
-        isLoadingTable = false;
+        }
+
     }
-
-
- 
     private void ShowModal()
     {
         _modelVisible = true;
     }
-
     private void HideUserModal()
     {
         _modelVisible = false;
 
     }
-
     private async Task ReloadDataAsync(int tripId)
     {
+
         var paging = new PagingParam
         {
 
         };
-        var result = await _expenseService.FindTripExpenses(paging, tripId);
-        requests = result.Items;
-        totalCount = result.TotalCount;
-    }
+        isLoadingTable = true;
+        try
+        {
+            var result = await _expenseService.FindTripExpenses(paging, tripId);
+            expenses = result.Items;
+            totalCount = result.TotalCount;
+            isLoadingTable = false;
+        }
+        catch (Exception e)
+        {
 
+        }
+
+    }
 
 }

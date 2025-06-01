@@ -28,6 +28,8 @@ public partial class TripProfile : Profile
             .ForMember(dest => dest.AccountNumber, opt => opt.MapFrom(src => src.Family.AccountNumber));
 
         // Expense mappings
+        CreateMap<Expense, Expense>();
+        CreateMap<Expense, UpdateExpenseDTO>();
         CreateMap<Expense, ExpenseDTO>()
             .ForMember(dest => dest.FamilyName, opt => opt.MapFrom(src => src.Family.Name))
             .ForMember(dest => dest.ParticipatingFamilyIds, opt => opt.MapFrom(src => src.Participants.Select(p => p.FamilyId)));
@@ -55,8 +57,10 @@ public partial class TripProfile : Profile
 
 
         // Expense -> ExpenseDetailsDto
-        CreateMap<AddExpenseDTO, Expense>();
+        CreateMap<AddExpenseDTO, Expense>().ReverseMap();
         CreateMap<AddExpenseDTO, ExpenseDTO>();
+        CreateMap<UpdateExpenseDTO, Expense>();
+        CreateMap<UpdateExpenseDTO, ExpenseDTO>();
         CreateMap<Expense, ExpenseDetailsDto>()
             .ForMember(dest => dest.FamilyName, opt => opt.MapFrom(src => src.Family.Name));
 

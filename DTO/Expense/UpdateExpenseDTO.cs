@@ -9,4 +9,5 @@ public class UpdateExpenseDTO
     public decimal Amount { get; set; }
 
     public DateTime Date { get; set; }
+    public int FamilyId { get; set; }
 }

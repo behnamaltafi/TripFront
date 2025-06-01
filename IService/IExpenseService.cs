@@ -7,4 +7,6 @@ public interface IExpenseService
     Task<List<ExpenseDTO>> FindFamilyExpenses(int tripId, int familyId);
     Task UpdateParticipant(int expenseId, int familyId, int participantCount);
     Task<PagingResult<Expense>> FindTripExpenses(PagingParam pagingParam, int tripId);
+    Task Remove(int id);
+    Task Update(UpdateExpenseDTO expense);
 }

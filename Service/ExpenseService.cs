@@ -27,7 +27,7 @@ public class ExpenseService : IExpenseService
 
     public async Task<ExpenseDTO> Add(AddExpenseDTO expenseDto)
     {
-        var trip = await _tripRepository.GetByIdAsync( expenseDto.TripId,true);
+        var trip = await _tripRepository.GetByIdAsync(expenseDto.TripId, true);
         if (trip == null)
             throw new BusinessException("Trip not found");
         var payingFamily = trip.Families.FirstOrDefault(f => f.FamilyId == expenseDto.FamilyId);
@@ -41,14 +41,25 @@ public class ExpenseService : IExpenseService
         return _mapper.Map<ExpenseDTO>(expense);
     }
 
- 
+    public async Task Remove(int id)
+    {
+        await _expenseRepository.Remove(id);
+        await _expenseRepository.Save();
+        
+    }
+    public async Task Update(UpdateExpenseDTO expense)
+    {
+        await _expenseRepository.Update(expense);
+        await _expenseRepository.Save();
 
-    public async Task<PagingResult<Expense>> FindTripExpenses(PagingParam pagingParam,int tripId)
+    }
+
+    public async Task<PagingResult<Expense>> FindTripExpenses(PagingParam pagingParam, int tripId)
     {
         return await _expenseRepository.FindTripExpenses(pagingParam, tripId);
     }
 
-    
+
     public async Task<List<ExpenseDTO>> FindFamilyExpenses(int tripId, int familyId)
     {
         var expenses = await _expenseRepository.FindTripExpenses(tripId);
@@ -67,7 +78,7 @@ public class ExpenseService : IExpenseService
             throw new ArgumentException("Participant record not found");
 
         // Get trip family via repository
-        var tripFamily = await _tripRepository.GetTripFamilyAsync( participant.Expense.TripId, familyId);
+        var tripFamily = await _tripRepository.GetTripFamilyAsync(participant.Expense.TripId, familyId);
         if (tripFamily == null)
             throw new BusinessException("Family not part of this trip");
 
