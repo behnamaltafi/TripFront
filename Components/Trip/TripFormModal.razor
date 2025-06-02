@@ -1,0 +1,25 @@
+﻿@using AntDesign
+<Modal Title="@Title" Visible="@Visible" OnOk="OnSave" OnCancel="@(() => OnCancel.InvokeAsync())">
+    <Form Model="@TripModel">
+        <FormItem Label="نام سفر">
+            <Input @bind-value="@TripModel.Name" />
+        </FormItem>
+        <FormItem Label="تاریخ شروع">
+            <DatePicker @bind-value="@TripModel.StartDate" />
+        </FormItem>
+        <FormItem Label="تاریخ پایان">
+            <DatePicker @bind-value="@TripModel.EndDate" />
+        </FormItem>
+        <FormItem Label="توضیحات">
+            <TextArea @bind-value="@TripModel.Description" Rows="3" />
+        </FormItem>
+    </Form>
+</Modal>
+
+@code {
+    [Parameter] public string Title { get; set; }
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public TripDTO TripModel { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

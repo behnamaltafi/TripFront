@@ -1,0 +1,76 @@
+﻿@using FilterPagingEfCore.Extenstion
+@using FilterPagingEfCore.Filter
+@using FilterPagingEfCore.Paging
+@using Microsoft.AspNetCore.Components.Forms
+@using AntDesign
+@inject IFriendshipService _friendshipService
+<Form Model="@Model" Layout="FormLayout.Vertical">
+    <FormItem Label="خانواده پرداخت‌کننده">
+        <FormItem Label="خانواده">
+            <Select DataSource="@Families"
+                    Value="@SelectedFamilyId"
+                    ValueChanged="@((int? value) => OnFamilyChanged(value))"
+                    ItemValue="p=>p.Id"
+                    ItemLabel="p=>p.Name"
+                    EnableSearch="true"
+                    Placeholder="انتخاب خانواده"
+                    OnFocus="@Focus"
+                    OnSearch="async (value) => await Search(value)"
+                    AutoClearSearchValue="false" />
+        </FormItem>
+    </FormItem>
+
+    <FormItem Label="مبلغ" Required>
+        <input Type="InputType.Number" @bind-value="Model.Amount" />
+    </FormItem>
+
+    <FormItem Label="توضیحات">
+        <Input Type="InputType.Text" @bind-value="Model.Description" Rows="3" />
+    </FormItem>
+
+    <FormItem>
+        <Button Type="ButtonType.Primary" OnClick="Save" Icon="save">ثبت</Button>
+        <Button Type="ButtonType.Default" OnClick="Cancel" Class="ml-2">لغو</Button>
+    </FormItem>
+</Form>
+
+
+@code {
+    [Parameter] public ExpenseDTO Model { get; set; }
+    [Parameter] public List<FamilyDTO> Families { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnFocus { get; set; }
+    [Parameter] public EventCallback<string> OnSearch { get; set; }
+    [Parameter] public int? SelectedFamilyId { get; set; }
+    [Parameter] public EventCallback<int?> SelectedFamilyIdChanged { get; set; }
+
+    private async Task Save()
+    {
+        await OnSave.InvokeAsync();
+    }
+
+    private async Task OnFamilyChanged(int? value)
+    {
+        SelectedFamilyId = value;
+        await SelectedFamilyIdChanged.InvokeAsync(value);
+    }
+
+    private async Task Focus()
+    {
+        await OnFocus.InvokeAsync();
+    }
+
+    private async Task Search(string value)
+    {
+        if (OnSearch.HasDelegate)
+        {
+            await OnSearch.InvokeAsync(value);
+        }
+    }
+
+    private async Task Cancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}

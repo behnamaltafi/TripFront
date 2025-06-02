@@ -1,0 +1,39 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@using AntDesign
+
+<Card Title="@Trip.Name" Hoverable="true" Actions="@(Actions)">
+    <p><b>تاریخ شروع:</b> @Trip.StartDate.ToShamsi()</p>
+    <p><b>تاریخ پایان:</b> @(Trip.EndDate.HasValue ? Trip.EndDate.Value.ToShamsi() : "-")</p>
+    <p><b>تعداد خانواده:</b> @Trip.TotalFamilies</p>
+    <p><b>تعداد افراد:</b> @Trip.TotalParticipants</p>
+    <p><b>توضیحات:</b> @Trip.Description</p>
+</Card>
+
+@code {
+    [Parameter] public TripDTO Trip { get; set; }
+    [Parameter] public EventCallback OnEdit { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnExpenses { get; set; }
+
+    private RenderFragment[] Actions => new RenderFragment[]
+    {
+        builder => {
+            builder.OpenComponent<Icon>(0);
+            builder.AddAttribute(1, "Type", "edit");
+            builder.AddAttribute(2, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, OnEdit));
+            builder.CloseComponent();
+        },
+        builder => {
+            builder.OpenComponent<Icon>(3);
+            builder.AddAttribute(4, "Type", "dollar");
+            builder.AddAttribute(5, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, OnExpenses));
+            builder.CloseComponent();
+        },
+        builder => {
+            builder.OpenComponent<Icon>(6);
+            builder.AddAttribute(7, "Type", "delete");
+            builder.AddAttribute(8, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, OnDelete));
+            builder.CloseComponent();
+        }
+    };
+}

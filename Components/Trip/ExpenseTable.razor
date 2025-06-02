@@ -1,0 +1,101 @@
+﻿@using AntDesign
+@using FilterPagingEfCore.Extenstion
+@using FilterPagingEfCore.Filter
+@using FilterPagingEfCore.Paging
+@using Microsoft.AspNetCore.Components.Web
+@inject IFriendshipService _friendshipService
+
+<Row Justify="RowJustify.SpaceBetween" Align="RowAlign.Middle" Class="mb-3">
+    <Col>
+    <Select DataSource="@Families"
+            Value="@SelectedFamilyId"
+            ValueChanged="@((int? value) => OnFamilyChanged(value))"
+            ItemValue="p=>p.Id"
+            ItemLabel="p=>p.Name"
+            EnableSearch="true"
+            Placeholder="انتخاب خانواده"
+            OnFocus="@Focus"
+            OnSearch="async (value) => await Search(value)"
+            AutoClearSearchValue="false" />
+    </Col>
+    <Col>
+    <Button Type="ButtonType.Primary" Icon="plus" OnClick="OnAddNew">افزودن هزینه</Button>
+    </Col>
+</Row>
+
+<Table TItem="ExpenseDTO"
+       DataSource="@Expenses"
+       RowKey="e => e.Id"
+       Pagination="false"
+       Bordered="true">
+
+    <TitleTemplate>
+        <Flex Justify="FlexJustify.End" Gap="@("10")">
+            <Button Type="ButtonType.Primary" Icon="plus" OnClick="OnAddNew">افزودن هزینه جدید</Button>
+        </Flex>
+    </TitleTemplate>
+
+    <ColumnDefinitions Context="row">
+        <PropertyColumn Property="r => r.FamilyName" Title="نام" Filterable />
+        <PropertyColumn Property="r => r.Description" Title="توضیحات" Filterable />
+        <PropertyColumn Property="r => r.Amount" Title="هزینه" Sortable Filterable />
+        <ActionColumn Title="عملیات">
+            <Space Size="SpaceSize.Middle">
+                <SpaceItem>
+                    <a @onclick="() => OnEdit.InvokeAsync(row.Id)">ویرایش</a>
+                </SpaceItem>
+                <SpaceItem>
+                    <a @onclick="() => OnDelete.InvokeAsync(row.Id)">حذف</a>
+                </SpaceItem>
+            </Space>
+        </ActionColumn>
+    </ColumnDefinitions>
+</Table>
+
+<Pagination Total="@Total"
+            PageSize="@PageSize"
+            Current="@CurrentPage"
+            OnChange="(page) => OnPageChange.InvokeAsync(page.Page)"
+            ShowSizeChanger="false"
+            Class="mt-3" />
+
+@code {
+    [Parameter] public List<ExpenseDTO> Expenses { get; set; }
+    [Parameter] public List<FamilyDTO> Families { get; set; } = new();
+    [Parameter] public int? SelectedFamilyId { get; set; }
+    [Parameter] public EventCallback<int?> SelectedFamilyIdChanged { get; set; }
+    [Parameter] public int Total { get; set; }
+    [Parameter] public int PageSize { get; set; } = 10;
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public EventCallback<int> OnPageChange { get; set; }
+    [Parameter] public EventCallback<int> OnEdit { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+    [Parameter] public EventCallback OnAddNew { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnFocus { get; set; }
+    [Parameter] public EventCallback<string> OnSearch { get; set; }
+
+
+
+    private async Task OnFamilyChanged(int? value)
+    {
+        SelectedFamilyId = value;
+        await SelectedFamilyIdChanged.InvokeAsync(value);
+    }
+
+    private async Task Focus()
+    {
+        await OnFocus.InvokeAsync();
+    }
+
+    private async Task Search(string value)
+    {
+        if (OnSearch.HasDelegate)
+        {
+            await OnSearch.InvokeAsync(value);
+        }
+    }
+
+
+
+}
