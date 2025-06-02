@@ -6,7 +6,7 @@ public class TripDTO
 {
     public int Id { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "نام سفر الزامی است")]
     [StringLength(100)]
     public string Name { get; set; }
     public string ImageUrl { get; set; } // Avatar
@@ -14,7 +14,7 @@ public class TripDTO
     [StringLength(500)]
     public string Description { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "تاریخ شروع الزامی است")]
     public DateTime StartDate { get; set; }
 
     public DateTime? EndDate { get; set; }

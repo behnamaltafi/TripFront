@@ -2,6 +2,7 @@
 
 public class UpdateExpenseDTO
 {
+    public int Id { get; set; }
     [StringLength(100)]
     public  string Description { get; set; }
 
@@ -10,4 +11,6 @@ public class UpdateExpenseDTO
 
     public DateTime Date { get; set; }
     public int FamilyId { get; set; }
+
+
 }

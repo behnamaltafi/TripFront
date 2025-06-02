@@ -74,12 +74,7 @@ OnCancel="@(() =>{ isTripModalVisible = false;} )">
         <FormItem Label="تاریخ پایان">
             <DatePicker @bind-Value="@tripModel.EndDate" />
         </FormItem>
-        <FormItem Label="تعداد خانواده">
-            <Input Type="InputType.Number" @bind-Value="@tripModel.TotalFamilies" />
-        </FormItem>
-        <FormItem Label="تعداد افراد">
-            <Input Type="InputType.Number" @bind-Value="@tripModel.TotalParticipants" />
-        </FormItem>`
+       
         <FormItem Label="توضیحات">
             <TextArea @bind-Value="@tripModel.Description" Rows="3" />
         </FormItem>
@@ -93,7 +88,7 @@ Footer="null"
 >
     @if (isEditingExpense)
     {
-        <Form Name="ثxpenseModel" Model="@expenseModel" Class="mt-2">
+        <Form Name="expenseModel" Model="@expenseModel" Class="mt-2">
             <FormItem Label="خانواده">
                 <Select DataSource="@families"
                 @bind-Value="@selectedFamilyId"
@@ -118,38 +113,43 @@ Footer="null"
             <Button Type="ButtonType.Default" OnClick="@CancelEditExpense" Style="margin-right:10px">انصراف</Button>
         </Form>
     }
-    <Table TItem="Expense"
-    DataSource="@expenses"
-    Total="@totalCount"
-    PageSize="@pageSize"
-    PageIndex="@currentPage"
-    OnChange="@(args => OnTableChange(args, selectedTripId))"
-    Loading="@isLoadingTable">
+    else
+    {
+        <Table TItem="Expense"
+        DataSource="@expenses"
+        Total="@totalCount"
+        PageSize="@pageSize"
+        PageIndex="@currentPage"
+        OnChange="@(args => OnTableChange(args, selectedTripId))"
+        Loading="@isLoadingTable">
 
-        <TitleTemplate>
-            <Flex Justify="FlexJustify.End" Gap="@("10")">
-                <Button Type="ButtonType.Primary" Style="margin-bottom : 1%" Icon="plus" OnClick="@StartNewExpense">افزودن هزینه جدید</Button>
-            </Flex>
-        </TitleTemplate>
+            <TitleTemplate>
+                <Flex Justify="FlexJustify.End" Gap="@("10")">
+                    <Button Type="ButtonType.Primary" Style="margin-bottom : 1%" Icon="plus" OnClick="@StartNewExpense">افزودن هزینه جدید</Button>
+                </Flex>
+            </TitleTemplate>
 
-        <ColumnDefinitions Context="row">
-            <PropertyColumn Property="r => r.Family.Name" Title="نام"  Filterable />
-            <PropertyColumn Property="r => r.Description" Title="توضیحات"  Filterable />
-            <PropertyColumn Property="r => r.Amount" Title="هزینه" Sortable Filterable />
-            <ActionColumn Title="عملیات">
+            <ColumnDefinitions Context="row">
+                <PropertyColumn Property="r => r.Family.Name" Title="نام" Filterable />
+                <PropertyColumn Property="r => r.Description" Title="توضیحات" Filterable />
+                <PropertyColumn Property="r => r.Amount" Title="هزینه" Sortable Filterable />
+                <ActionColumn Title="عملیات">
 
-                <Space Size="SpaceSize.Middle">
-                    <SpaceItem>
-                        <a @onclick="@(() => EditExpense(row))">ویرایش</a>
-                    </SpaceItem>
-                    <SpaceItem>
-                        <a @onclick="@(() => DeleteExpense(row.Id))">حذف</a>
-                    </SpaceItem>
-                </Space>
+                    <Space Size="SpaceSize.Middle">
+                        <SpaceItem>
+                            <a @onclick="@(() => EditExpense(row))">ویرایش</a>
+                        </SpaceItem>
 
-            </ActionColumn>
-        </ColumnDefinitions>
-    </Table>
+                        <SpaceItem>
+                            <a @onclick="@(() => DeleteExpense(row.Id))">حذف</a>
+                        </SpaceItem>
+                    </Space>
+
+                </ActionColumn>
+            </ColumnDefinitions>
+        </Table>
+    }
+
 </Modal>
 
 
@@ -173,14 +173,13 @@ Footer="null"
     private bool isLoadingTable = false;
     private bool _modelVisible = false;
     private bool isEditingExpense = false;
-    private Expense expenseBeingEdited;
 
-    private Expense currentExpenseModel = new(); // dynamic type for form binding
+    //private Expense currentExpenseModel = new(); // dynamic type for form binding
     private bool isEditing = false;
 
     private void StartNewExpense()
     {
-        currentExpenseModel = new Expense
+        expenseModel = new Expense
             {
                 TripId = selectedTripId,
 
@@ -193,7 +192,8 @@ Footer="null"
 
     private void EditExpense(Expense expense)
     {
-        currentExpenseModel =expense;
+
+        expenseModel = expense;
         selectedFamilyId = expense.FamilyId;
         isEditing = true;
         isEditingExpense = true;
@@ -212,15 +212,23 @@ Footer="null"
         if (isEditing)
         {
             var model = _mapper.Map<UpdateExpenseDTO>(expenseModel);
-            await _expenseService.Update(model);
+            try
+            {
+                await _expenseService.Update(model);
+
+            }
+            catch (Exception e)
+            {
+
+            }
         }
         else
         {
-                var model = _mapper.Map<AddExpenseDTO>(expenseModel);
-                model.FamilyId = selectedFamilyId.Value;
-                model.TripId = selectedTripId;
-                await _expenseService.Add(model);
-                     
+            var model = _mapper.Map<AddExpenseDTO>(expenseModel);
+            model.FamilyId = selectedFamilyId.Value;
+            model.TripId = selectedTripId;
+            await _expenseService.Add(model);
+
         }
 
         isEditingExpense = false;
@@ -235,7 +243,7 @@ Footer="null"
         selectedFamilyId = null;
     }
 
- 
+
     private async Task DeleteExpense(int expenseId)
     {
         await _expenseService.Remove(expenseId);
@@ -260,6 +268,9 @@ Footer="null"
     {
         tripModalTitle = "افزودن سفر جدید";
         tripModel = new TripDTO();
+        var date = DateTime.Now;
+        tripModel.StartDate = date;
+        tripModel.EndDate = date.AddDays(5);
         editingTripId = 0;
         isTripModalVisible = true;
     }
@@ -358,10 +369,11 @@ Footer="null"
     {
 
         var paging = new PagingParam
-        {
-
-        };
-        isLoadingTable = true;
+            {
+                PageNumber = currentPage,
+                PageSize = pageSize
+            };
+            isLoadingTable = true;
         try
         {
             var result = await _expenseService.FindTripExpenses(paging, tripId);
