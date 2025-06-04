@@ -1,37 +1,25 @@
 ﻿@using AntDesign
+@using AntDesign.TableModels
+@using AutoMapper
 @using FilterPagingEfCore.Extenstion
 @using FilterPagingEfCore.Filter
 @using FilterPagingEfCore.Paging
 @using Microsoft.AspNetCore.Components.Web
-@inject IFriendshipService _friendshipService
-
-<Row Justify="RowJustify.SpaceBetween" Align="RowAlign.Middle" Class="mb-3">
-    <Col>
-    <Select DataSource="@Families"
-            Value="@SelectedFamilyId"
-            ValueChanged="@((int? value) => OnFamilyChanged(value))"
-            ItemValue="p=>p.Id"
-            ItemLabel="p=>p.Name"
-            EnableSearch="true"
-            Placeholder="انتخاب خانواده"
-            OnFocus="@Focus"
-            OnSearch="async (value) => await Search(value)"
-            AutoClearSearchValue="false" />
-    </Col>
-    <Col>
-    <Button Type="ButtonType.Primary" Icon="plus" OnClick="OnAddNew">افزودن هزینه</Button>
-    </Col>
-</Row>
+@using TripFront.Components.FrontUtility
 
 <Table TItem="ExpenseDTO"
-       DataSource="@Expenses"
-       RowKey="e => e.Id"
-       Pagination="false"
-       Bordered="true">
+DataSource="@Expenses"
+RowKey="e => e.Id"
+Bordered="true"
+Loading="@IsLoading"
+Pagination="true"
+Total="@TotalCount"
+PageSize="@PageSize"\
+OnChange="OnTableChange">
 
     <TitleTemplate>
         <Flex Justify="FlexJustify.End" Gap="@("10")">
-            <Button Type="ButtonType.Primary" Icon="plus" OnClick="OnAddNew">افزودن هزینه جدید</Button>
+            <Button Type="ButtonType.Primary" Icon="plus" OnClick="ShowAddModal">افزودن هزینه جدید</Button>
         </Flex>
     </TitleTemplate>
 
@@ -42,60 +30,191 @@
         <ActionColumn Title="عملیات">
             <Space Size="SpaceSize.Middle">
                 <SpaceItem>
-                    <a @onclick="() => OnEdit.InvokeAsync(row.Id)">ویرایش</a>
+                    <a @onclick="() => Edit(row.Id)">ویرایش</a>
                 </SpaceItem>
                 <SpaceItem>
-                    <a @onclick="() => OnDelete.InvokeAsync(row.Id)">حذف</a>
+                    <a @onclick="() => DeleteAsync(row.Id)">حذف</a>
                 </SpaceItem>
             </Space>
         </ActionColumn>
     </ColumnDefinitions>
 </Table>
 
-<Pagination Total="@Total"
-            PageSize="@PageSize"
-            Current="@CurrentPage"
-            OnChange="(page) => OnPageChange.InvokeAsync(page.Page)"
-            ShowSizeChanger="false"
-            Class="mt-3" />
+<Modal Title="افزودن هزینه جدید"
+Visible="@IsAddModalVisible"
+OnOk="Save"
+OnCancel="CloseAddModal"
+OkText="@OK"
+CancelText="@Cancel"
+DestroyOnClose="true">
 
+    <Form Model="@Model" Layout="FormLayout.Vertical">
+        <FormItem Label="خانواده پرداخت‌کننده">
+            <Select DataSource="@Families"
+            Value="@SelectedFamilyId"
+            ValueChanged="@((int? value) => OnFamilyChanged(value))"
+            ItemValue="p => p.Id"
+            ItemLabel="p => p.Name"
+            EnableSearch="true"
+            Placeholder="انتخاب خانواده"
+            OnFocus="@Focus"
+            OnSearch="async (value) => await Search(value)"
+            AutoClearSearchValue="false" />
+        </FormItem>
+
+        <FormItem Label="مبلغ" Required>
+            <Input Number @bind-Value="Model.Amount" />
+        </FormItem>
+
+        <FormItem Label="توضیحات">
+            <Input Type="InputType.Text"  @bind-value="Model.Description" Rows="3" />
+        </FormItem>
+    </Form>
+</Modal>
 @code {
-    [Parameter] public List<ExpenseDTO> Expenses { get; set; }
+    [Inject] private IExpenseService _expenseService { get; set; }
+    [Inject] private IFriendshipService _friendshipService { get; set; }
+    [Inject] private IMapper _mapper { get; set; }
+
+    [Parameter] public int TripId { get; set; }
     [Parameter] public List<FamilyDTO> Families { get; set; } = new();
-    [Parameter] public int? SelectedFamilyId { get; set; }
-    [Parameter] public EventCallback<int?> SelectedFamilyIdChanged { get; set; }
-    [Parameter] public int Total { get; set; }
-    [Parameter] public int PageSize { get; set; } = 10;
-    [Parameter] public int CurrentPage { get; set; } = 1;
-    [Parameter] public EventCallback<int> OnPageChange { get; set; }
-    [Parameter] public EventCallback<int> OnEdit { get; set; }
-    [Parameter] public EventCallback<int> OnDelete { get; set; }
-    [Parameter] public EventCallback OnAddNew { get; set; }
-    [Parameter] public EventCallback OnCancel { get; set; }
-    [Parameter] public EventCallback OnFocus { get; set; }
-    [Parameter] public EventCallback<string> OnSearch { get; set; }
+
+    private List<ExpenseDTO> Expenses { get; set; } = new();
+    private ExpenseDTO Model { get; set; } = new();
+    private int? SelectedFamilyId { get; set; }
+    private bool IsAddModalVisible { get; set; }
+
+    private string OK => "ثبت";
+    private string Cancel => "انصراف";
+
+    private int CurrentPage { get; set; } = 1;
+    private int PageSize { get; set; } = 10;
+    private int TotalCount { get; set; }
+    private bool IsLoading { get; set; }
 
 
 
-    private async Task OnFamilyChanged(int? value)
+    private async Task OnTableChange(QueryModel<ExpenseDTO> queryModel)
     {
-        SelectedFamilyId = value;
-        await SelectedFamilyIdChanged.InvokeAsync(value);
-    }
-
-    private async Task Focus()
-    {
-        await OnFocus.InvokeAsync();
-    }
-
-    private async Task Search(string value)
-    {
-        if (OnSearch.HasDelegate)
+        try
         {
-            await OnSearch.InvokeAsync(value);
+            IsLoading = true;
+
+            var result = await _expenseService.FindTripExpenses(queryModel.ToPagingParam(), TripId);
+            Expenses = _mapper.Map<List<ExpenseDTO>>(result.Items);
+            TotalCount = result.TotalCount;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading expenses: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 
+    private void ShowAddModal()
+    {
+        Model = new ExpenseDTO();
+        SelectedFamilyId = null;
+        IsAddModalVisible = true;
+    }
 
+    private void Edit(int id)
+    {
+        var existing = Expenses.FirstOrDefault(e => e.Id == id);
+        if (existing is not null)
+        {
+            Model = new ExpenseDTO
+                {
+                    Id = existing.Id,
+                    FamilyId = existing.FamilyId,
+                    Amount = existing.Amount,
+                    Description = existing.Description
+                };
+            SelectedFamilyId = Model.FamilyId;
+            IsAddModalVisible = true;
+        }
+    }
 
+    private async Task Save()
+    {
+        try
+        {
+            if (Model.Id == 0)
+            {
+                var addDto = _mapper.Map<AddExpenseDTO>(Model);
+                await _expenseService.Add(addDto);
+            }
+            else
+            {
+                var updateDto = _mapper.Map<UpdateExpenseDTO>(Model);
+                await _expenseService.Update(updateDto);
+            }
+
+            IsAddModalVisible = false;
+
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error saving expense: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteAsync(int expenseId)
+    {
+        try
+        {
+            await _expenseService.Remove(expenseId);
+
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error deleting expense: {ex.Message}");
+        }
+    }
+
+    private Task CloseAddModal()
+    {
+        IsAddModalVisible = false;
+        return Task.CompletedTask;
+    }
+
+    private void OnFamilyChanged(int? value)
+    {
+        SelectedFamilyId = value;
+        if (value.HasValue)
+        {
+            Model.FamilyId = value.Value;
+        }
+    }
+    private async Task LoadFamiliesAsync(string searchTerm)
+    {
+        var filters = new List<FilterParam>
+        {
+            new FilterParam
+            {
+                ColumnName = "Name",
+                FilterValue = searchTerm ?? "",
+                FilterOption = ComparisonMethod.Contain
+            }
+        };
+        var pagingFilters = new PagingParam { FilterParam = filters };
+        var result = await _friendshipService.GetFriendsAsync(pagingFilters);
+        Families = result.Items;
+        StateHasChanged();
+    }
+    private async Task Focus()
+    {
+        await LoadFamiliesAsync("");
+    }
+
+    private async Task Search(string searchTerm)
+    {
+        await LoadFamiliesAsync(searchTerm);
+
+    }
 }
+
+

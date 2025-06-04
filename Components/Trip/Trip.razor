@@ -13,111 +13,129 @@
 
 <h1>سفرها</h1>
 
-<Button Type="ButtonType.Primary" Icon="plus" OnClick="@ShowAddTripModal">افزودن سفر جدید</Button>
+<Button Type="ButtonType.Primary"
+Icon="plus"
+Disabled="@isLoadingTrips"
+OnClick="@ShowAddTripModal">
+    افزودن سفر جدید
+</Button>
 
 <Row Style="margin-top: 1%" Gutter="16">
     @if (isLoadingTrips)
     {
         <Spin Tip="در حال بارگذاری..." />
     }
+    else if (!trips.Any())
+    {
+        <Empty Description="@emptyMessage" />
+    }
     else
     {
         @foreach (var trip in trips)
         {
             <TripCard Trip="trip"
-                      OnDelete="() => DeleteTripAsync(trip.Id)"
-                      OnEdit="() => ShowEditTripModal(trip.Id)"
-                      OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
+            OnDelete="() => DeleteTripAsync(trip.Id)"
+            OnEdit="() => ShowEditTripModal(trip.Id)"
+            OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
         }
     }
 </Row>
 
 <TripFormModal Title="@tripModalTitle"
-               TripModel="@currentTrip"
-               Visible="@isTripModalVisible"
-               OnSave="SaveTripAsync"
-               OnCancel="() => isTripModalVisible = false" />
+TripModel="@currentTrip"
+Visible="@isTripModalVisible"
+OnSave="SaveTripAsync"
+OnCancel="() => isTripModalVisible = false" />
 
 <Modal Title="هزینه‌های سفر"
-       Visible="@isExpenseModalVisible"
-       Width="900"
-       OnCancel="@(() => { isExpenseModalVisible = false; CancelExpenseEdit(); })"
-       Footer="null">
+Visible="@isExpenseModalVisible"
+Width="900"
+OnCancel="@(() => { isExpenseModalVisible = false; CancelExpenseEdit(); })"
+Footer="null">
+    @if (isLoadingExpenses)
+    {
+        <Spin Tip="در حال بارگذاری هزینه‌ها..." />
+    }
+  
 
-    @if (isEditingExpense)
-    {
-        <ExpenseForm Model="@currentExpense"
-                     Families="@families"
-                     OnSave="@SaveExpenseAsync"
-                     OnCancel="@CancelExpenseEdit" />
-    }
-    else
-    {
         <ExpenseTable Expenses="@expenses"
-                      Families="@families"
-                      Total="@totalExpensesCount"
-                      PageSize="@expensesPageSize"
-                      CurrentPage="@expensesCurrentPage"
-                      OnPageChange="page => LoadExpensesAsync(selectedTripId, page)"
-                      OnEdit="StartEditExpense"
-                      OnDelete="DeleteExpenseAsync"
-                      OnAddNew="StartAddExpense" />
-    }
+        OnSearch="LoadFamiliesAsync"
+        OnFocus="LoadFamiliesAsync"
+        Families="@families"
+      />
+    
 </Modal>
 
 @code {
-    @code {
-        private List<TripDTO> trips = new();
-        private TripDTO currentTrip = new();
-        private bool isTripModalVisible = false;
-        private string tripModalTitle = string.Empty;
-        private int selectedTripId;
-        private List<FamilyDTO> families = new();
-        private List<ExpenseDTO> expenses = new();
-        private ExpenseDTO currentExpense = new();
-        private bool isExpenseModalVisible = false;
-        private bool isEditingExpense = false;
-        private int totalExpensesCount;
-        private int expensesPageSize = 10;
-        private int expensesCurrentPage = 1;
-        private bool isLoadingTrips = false;
+    private List<TripDTO> trips = new();
+    private TripDTO currentTrip = new();
+    private bool isTripModalVisible = false;
+    private string tripModalTitle = string.Empty;
+    private int selectedTripId;
+    private List<FamilyDTO> families = new();
+    private List<ExpenseDTO> expenses = new();
+    private ExpenseDTO currentExpense = new();
+    private bool isExpenseModalVisible = false;
+    private bool isEditingExpense = false;
+    private bool isLoadingTrips = false;
+    private bool isLoadingExpenses = false;
+    private int totalExpensesCount;
+    private int expensesPageSize = 10;
+    private int expensesCurrentPage = 1;
+    private string emptyMessage = "هیچ داده‌ای موجود نیست.";
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTripsAsync();
+    }
 
-        protected override async Task OnInitializedAsync()
-        {
-            await LoadTripsAsync();
-        }
-
-        private async Task LoadTripsAsync()
+    private async Task LoadTripsAsync()
+    {
+        try
         {
             isLoadingTrips = true;
             var result = await _tripService.GetTripsForFamilyAsync(new());
-            trips = result.Items;
+            trips = result?.Items ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading trips: {ex.Message}");
+        }
+        finally
+        {
             isLoadingTrips = false;
         }
+    }
 
-        private void ShowAddTripModal()
-        {
-            currentTrip = new TripDTO
+    private TripDTO CreateNewTrip()
+    {
+        return new TripDTO
             {
                 StartDate = DateTime.Now,
                 EndDate = DateTime.Now.AddDays(3)
             };
-            tripModalTitle = "افزودن سفر جدید";
+    }
+
+    private void ShowAddTripModal()
+    {
+        currentTrip = CreateNewTrip();
+        tripModalTitle = "افزودن سفر جدید";
+        isTripModalVisible = true;
+    }
+
+    private void ShowEditTripModal(int tripId)
+    {
+        var trip = trips.FirstOrDefault(t => t.Id == tripId);
+        if (trip != null)
+        {
+            currentTrip = trip;
+            tripModalTitle = "ویرایش سفر";
             isTripModalVisible = true;
         }
+    }
 
-        private void ShowEditTripModal(int tripId)
-        {
-            var trip = trips.FirstOrDefault(t => t.Id == tripId);
-            if (trip != null)
-            {
-                currentTrip = trip;
-                tripModalTitle = "ویرایش سفر";
-                isTripModalVisible = true;
-            }
-        }
-
-        private async Task SaveTripAsync()
+    private async Task SaveTripAsync()
+    {
+        try
         {
             if (currentTrip.Id == 0)
             {
@@ -131,94 +149,57 @@
             isTripModalVisible = false;
             await LoadTripsAsync();
         }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error saving trip: {ex.Message}");
+        }
+    }
 
-        private async Task DeleteTripAsync(int tripId)
+    private async Task DeleteTripAsync(int tripId)
+    {
+        try
         {
             await _tripService.Delete(tripId);
             await LoadTripsAsync();
         }
-
-        private async Task ShowExpensesModalAsync(int tripId)
+        catch (Exception ex)
         {
-            selectedTripId = tripId;
-            await LoadFamiliesAsync("");
-            await LoadExpensesAsync(tripId, 1);
-            isExpenseModalVisible = true;
-        }
-
-        private async Task LoadExpensesAsync(int tripId, int page)
-        {
-            expensesCurrentPage = page;
-            var pagingParams = new PagingParam { PageNumber = page, PageSize = expensesPageSize };
-            var result = await _expenseService.FindTripExpenses(pagingParams, tripId);
-            expenses = _mapper.Map<List<ExpenseDTO>>(result.Items);
-            totalExpensesCount = result.TotalCount;
-        }
-
-        private void StartAddExpense()
-        {
-            currentExpense = new ExpenseDTO
-            {
-                TripId = selectedTripId,
-                Date = DateTime.Now
-            };
-            isEditingExpense = true;
-        }
-
-        private void StartEditExpense(int expenseId)
-        {
-            var expense = expenses.FirstOrDefault(e => e.Id == expenseId);
-            if (expense != null)
-            {
-                currentExpense = expense;
-                isEditingExpense = true;
-            }
-        }
-
-        private async Task DeleteExpenseAsync(int expenseId)
-        {
-            await _expenseService.Remove(expenseId);
-            await LoadExpensesAsync(selectedTripId, expensesCurrentPage);
-        }
-
-        private async Task SaveExpenseAsync()
-        {
-            if (currentExpense.Id == 0)
-            {
-                await _expenseService.Add(_mapper.Map<AddExpenseDTO>(currentExpense));
-            }
-            else
-            {
-                await _expenseService.Update(_mapper.Map<UpdateExpenseDTO>(currentExpense));
-            }
-
-            isEditingExpense = false;
-            await LoadExpensesAsync(selectedTripId, expensesCurrentPage);
-        }
-
-        private void CancelExpenseEdit()
-        {
-            isEditingExpense = false;
-            currentExpense = new ExpenseDTO();
-        }
-
-        private async Task LoadFamiliesAsync(string searchTerm)
-        {
-            var filters = new List<FilterParam>
-        {
-            new FilterParam
-            {
-                ColumnName = "Name",
-                FilterValue = searchTerm ?? "",
-                FilterOption = ComparisonMethod.Contain
-            }
-        };
-            var pagingFilters = new PagingParam { FilterParam = filters };
-            var result = await _friendshipService.GetFriendsAsync(pagingFilters);
-            families = result.Items;
-            StateHasChanged();
+            Console.Error.WriteLine($"Error deleting trip: {ex.Message}");
         }
     }
 
+    private async Task ShowExpensesModalAsync(int tripId)
+    {
+        selectedTripId = tripId;
+        isExpenseModalVisible = true;
+        await LoadFamiliesAsync("");
+    }
+    private void CancelExpenseEdit()
+    {
+        isEditingExpense = false;
+        currentExpense = new ExpenseDTO();
+    }
+    private async Task LoadFamiliesAsync(string searchTerm = "")
+    {
+        try
+        {
+            var filters = new List<FilterParam>
+            {
+                new FilterParam
+                {
+                    ColumnName = "Name",
+                    FilterValue = searchTerm ?? "",
+                    FilterOption = ComparisonMethod.Contain
+                }
+            };
 
+            var pagingFilters = new PagingParam { FilterParam = filters };
+            var result = await _friendshipService.GetFriendsAsync(pagingFilters);
+            families = result.Items;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading families: {ex.Message}");
+        }
+    }
 }
