@@ -9,10 +9,10 @@
 }
 
 @font-face {
-    font-family: 'Vazir FD';
+    font-family: 'Vazir';
     src: url('/fonts/Vazir.woff2') format('woff2');
 }
 
 body {
-    font-family: 'Vazir FD', sans-serif;
+    font-family: 'Vazir', sans-serif;
 }

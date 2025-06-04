@@ -1,5 +1,7 @@
 ﻿
 // Interfaces
+using Microsoft.AspNetCore.Identity;
+using System.Reflection.Emit;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TripFront.Data;
@@ -26,8 +28,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(builder);
 
-
-
+        builder.Entity<ApplicationUser>().ToTable("Users");
+        builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
+        builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins");
+        builder.Entity<IdentityRole>().ToTable("Roles");
+        builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
+        builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims");
+        builder.Entity<IdentityUserToken<string>>().ToTable("UserToken");
         // Friendships
         builder.Entity<FamilyFriendship>()
             .HasOne(f => f.Family1)
@@ -38,6 +45,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<FamilyFriendship>()
             .HasOne(f => f.Family2)
             .WithMany(f => f.FriendshipsB)
+        
             .HasForeignKey(f => f.FamilyId2)
             .OnDelete(DeleteBehavior.Restrict);
 

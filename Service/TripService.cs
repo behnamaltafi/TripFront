@@ -49,6 +49,7 @@ public class TripService : ITripService
     public async Task Delete(int tripId)
     {
         await _tripRepository.Remove(tripId);
+        await _tripRepository.Save();
     }
     public async Task Update(UpdateTripDto updateTripDto)
     {
