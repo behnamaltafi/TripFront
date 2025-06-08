@@ -1,0 +1,118 @@
+﻿@page "/trip-report/{TripId:int}"
+@using AntDesign
+
+<AntContainer>
+    <Row Gutter="16" Justify="RowJustify.Center">
+        <Col Span="10">
+            <Card Title="جدول شرح بدهی‌ها" Bordered="true">
+ @*            <Table TItem="DebtRecordDto" DataSource="@Debts" RowKey="d => d.Id">
+                    <Column Title="خانواده بدهکار" DataIndex="FromFamilyName" />
+                    <Column Title="خانواده بستانکار" DataIndex="ToFamilyName" />
+                    <Column Title="نفرات" DataIndex="ParticipantCount" />
+                    <Column Title="مبلغ (تومان)">
+                        <Template Context="d">
+                            @d.AmountDisplay تومان
+                        </Template>
+                    </Column>
+                    <Column Title="شماره کارت" DataIndex="AccountNumber" />
+                    <Column Title="فیش پرداخت">
+                        <Template Context="d">
+                            @if (d.IsPaid)
+                            {
+                            <Button Type="Link" OnClick="() => ShowReceiptAsync(d.Id)">نمایش فیش</Button>
+                            }
+                            else
+                            {
+                            <InputFile OnChange="e => UploadReceiptAsync(e, d.Id)" />
+                            }
+                        </Template>
+                    </Column>
+                    <Column Title="توضیحات">
+                        <Template Context="d">
+                            @($"{d.FromFamilyName} باید به {d.ToFamilyName} {d.AmountDisplay} تومان پرداخت کند.")
+                        </Template>
+                    </Column>
+                </Table> *@
+            </Card>
+        </Col>
+
+        <Col Span="12">
+            <Card Title="نمودار پرداختی‌ها و سهم هر خانواده">
+                @if (ChartData != null)
+                {
+                    <ColumnChart @ref="ChartRef" Title="@ChartTitle" Data="@ChartData" XField="FamilyName" YField="Amount" SeriesField="Category" Height="400" />
+                }
+            </Card>
+        </Col>
+    </Row>
+</AntContainer>
+
+<Modal @bind-Visible="@IsReceiptModalVisible" Title="تصویر فیش پرداخت" Width="800">
+    <img src="@ReceiptImageSrc" class="img-fluid rounded shadow" />
+</Modal>
+
+@code {
+    [Parameter] public int TripId { get; set; }
+    [Inject] private IDebtRecordService _debtRecordService { get; set; }
+    [Inject] private ISettlementService _settlementService{ get; set; }
+
+    private List<DebtRecordDto> Debts = new();
+    private List<ChartEntry> ChartData;
+    private string ReceiptImageSrc = "";
+    private bool IsReceiptModalVisible = false;
+    private string ChartTitle = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var report = await _settlementService.GetTripSettlementAsync(TripId);
+
+        if (report is not null)
+        {
+            Debts = report.OptimizedDebts;
+            ChartTitle = report.TripName;
+            ChartData = new();
+
+            foreach (var fam in report.Families)
+            {
+                ChartData.Add(new ChartEntry { FamilyName = fam.FamilyName, Amount = fam.TotalPaid, Category = "پرداختی" });
+                ChartData.Add(new ChartEntry { FamilyName = fam.FamilyName, Amount = fam.TotalShare, Category = "سهم" });
+            }
+        }
+    }
+
+    private async Task ShowReceiptAsync(int debtId)
+    {
+        var result = await _debtRecordService.GetPaymentReceipt(debtId);
+        if (!string.IsNullOrWhiteSpace(result))
+        {
+            ReceiptImageSrc = $"data:image/jpeg;base64,{result}";
+            IsReceiptModalVisible = true;
+        }
+    }
+
+    private async Task UploadReceiptAsync(InputFileChangeEventArgs e, int debtId)
+    {
+        var file = e.File;
+
+        using var stream = file.OpenReadStream(long.MaxValue); // or a custom limit
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var base64 = Convert.ToBase64String(ms.ToArray());
+
+        await _debtRecordService.UpdatePaymentReceipt(debtId, base64);
+      
+            await OnInitializedAsync(); // Reload the data
+        
+    }
+
+
+    // Models
+   
+   
+    public class ChartEntry
+    {
+        public string FamilyName { get; set; }
+        public decimal Amount { get; set; }
+        public string Category { get; set; }
+    }
+}
