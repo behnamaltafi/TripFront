@@ -7,16 +7,15 @@
 @inject ITripService _tripService
 @inject IExpenseService _expenseService
 @inject IFamilyService _familyService
-@inject IFriendshipService _friendshipService
 @inject IMapper _mapper
 @rendermode InteractiveServer
 
 <h1>سفرها</h1>
 
 <Button Type="ButtonType.Primary"
-Icon="plus"
-Disabled="@isLoadingTrips"
-OnClick="@ShowAddTripModal">
+        Icon="plus"
+        Disabled="@isLoadingTrips"
+        OnClick="@ShowAddTripModal">
     افزودن سفر جدید
 </Button>
 
@@ -34,36 +33,31 @@ OnClick="@ShowAddTripModal">
         @foreach (var trip in trips)
         {
             <TripCard Trip="trip"
-            OnDelete="() => DeleteTripAsync(trip.Id)"
-            OnEdit="() => ShowEditTripModal(trip.Id)"
-            OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
+                      OnDelete="() => DeleteTripAsync(trip.Id)"
+                      OnEdit="() => ShowEditTripModal(trip.Id)"
+                      OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
         }
     }
 </Row>
 
 <TripFormModal Title="@tripModalTitle"
-TripModel="@currentTrip"
-Visible="@isTripModalVisible"
-OnSave="SaveTripAsync"
-OnCancel="() => isTripModalVisible = false" />
+               TripModel="@currentTrip"
+               Visible="@isTripModalVisible"
+               Families="@families"
+               OnSave="SaveTripAsync"
+               OnCancel="() => isTripModalVisible = false" />
 
 <Modal Title="هزینه‌های سفر"
-Visible="@isExpenseModalVisible"
-Width="900"
-OnCancel="@(() => { isExpenseModalVisible = false; CancelExpenseEdit(); })"
-Footer="null">
+       Visible="@isExpenseModalVisible"
+       Width="900"
+       OnCancel="@(() => { isExpenseModalVisible = false; CancelExpenseEdit(); })"
+       Footer="null">
     @if (isLoadingExpenses)
     {
         <Spin Tip="در حال بارگذاری هزینه‌ها..." />
     }
-  
+    <ExpenseTable TripId="@selectedTripId" Families="@families" />
 
-        <ExpenseTable Expenses="@expenses"
-        OnSearch="LoadFamiliesAsync"
-        OnFocus="LoadFamiliesAsync"
-        Families="@families"
-      />
-    
 </Modal>
 
 @code {
@@ -183,19 +177,22 @@ Footer="null">
     {
         try
         {
-            var filters = new List<FilterParam>
-            {
-                new FilterParam
-                {
-                    ColumnName = "Name",
-                    FilterValue = searchTerm ?? "",
-                    FilterOption = ComparisonMethod.Contain
-                }
-            };
+            var filters = new List<FilterParam>();
 
+            if (searchTerm != "")
+            {
+                filters.Add(new FilterParam
+                    {
+                        ColumnName = "Name",
+                        FilterValue = searchTerm ?? "",
+                        FilterOption = ComparisonMethod.Contain
+                    });
+
+            }
+           
             var pagingFilters = new PagingParam { FilterParam = filters };
-            var result = await _friendshipService.GetFriendsAsync(pagingFilters);
-            families = result.Items;
+            var result = await _tripService.GetTripFamilyAsync(pagingFilters, selectedTripId);
+            families = _mapper.Map<List<FamilyDTO>>(result.Items);
         }
         catch (Exception ex)
         {

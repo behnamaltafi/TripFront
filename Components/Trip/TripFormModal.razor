@@ -1,4 +1,5 @@
 ﻿@using AntDesign
+@using AutoMapper
 <Modal Title="@Title" Visible="@Visible" OnOk="OnSave" OnCancel="@(() => OnCancel.InvokeAsync())">
     <Form Model="@TripModel">
         <FormItem Label="نام سفر">
@@ -13,13 +14,28 @@
         <FormItem Label="توضیحات">
             <TextArea @bind-value="@TripModel.Description" Rows="3" />
         </FormItem>
+        <Button Type="ButtonType.Dashed" OnClick="ShowFamilyModal">مدیریت خانواده‌ها</Button>
+        <AddFamilyToTripModal TripId="@TripModel.Id"
+                            
+                              Visible="@ShowFamilyManager"
+                              VisibleChanged="v => ShowFamilyManager = v" />
     </Form>
 </Modal>
 
 @code {
+    [Inject] private IFriendshipService _friendshipService { get; set; }
+    [Inject] private IMapper _mapper { get; set; }
     [Parameter] public string Title { get; set; }
     [Parameter] public bool Visible { get; set; }
     [Parameter] public TripDTO TripModel { get; set; }
     [Parameter] public EventCallback OnSave { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public List<FamilyDTO> Families { get; set; } = new();
+    private List<int> SelectedFamiliesId { get; set; }
+    private bool ShowFamilyManager { get; set; }
+
+    private void ShowFamilyModal()
+    {
+        ShowFamilyManager = true;
+    }
 }

@@ -14,6 +14,10 @@ public class TripService : ITripService
         _mapper = mapper;
         _friendshipService = friendshipService;
     }
+    public async Task<PagingResult<TripFamilyDto>> GetTripFamilyAsync(PagingParam pagingParam, int tripId)
+    {
+        return await _tripRepository.GetTripFamilyAsync(pagingParam, tripId);
+    }
 
     public async Task<TripDTO> CreateTripAsync(CreateTripDto tripDto)
     {
@@ -22,7 +26,13 @@ public class TripService : ITripService
         trip.OwnerFamily = familyId;
         await _tripRepository.Add(trip);
         await _tripRepository.Save();
-        await _tripRepository.AddFamilyToTripAsync(trip.Id, familyId, tripDto.MemberCount);
+        var tripFamily = new TripFamily
+        {
+            FamilyId = familyId,
+            TripId = trip.Id,
+            MemberCount = tripDto.MemberCount,
+        };
+        await _tripRepository.AddFamilyToTripAsync(tripFamily);
         return _mapper.Map<TripDTO>(trip);
     }
 
@@ -30,11 +40,24 @@ public class TripService : ITripService
     {
         return await _tripRepository.GetTripDetailsAsync(tripId);
     }
-    public async Task AddFamilyToTripAsync(int tripId, int familyId, int participantCount)
+    public async Task<TripDetailsDto> GetTrip(int tripId)
     {
-        await _tripRepository.AddFamilyToTripAsync(tripId, familyId, participantCount);
+        return await _tripRepository.GetTripDetailsAsync(tripId);
     }
+    public async Task AddFamilyToTripAsync(TripFamily tripFamily)
+    {
+        await _tripRepository.AddFamilyToTripAsync(tripFamily);
+    }
+    public async Task UpdateTripFamily(TripFamily tripFamily)
+    {
+        await _tripRepository.UpdateTripFamily(tripFamily);
+    }
+    public async Task RemoveTripFamily(int tripFamilyId)
+    {
+        var familyId = _friendshipService.GetFamilyId();
 
+        await _tripRepository.RemoveTripFamily(tripFamilyId);
+    }
     public async Task<PagingResult<TripDTO>> GetTripsForFamilyAsync(PagingParam pagingParam)
     {
         var familyId = _friendshipService.GetFamilyId();

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace TripFront.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250608083859_tripfamilies")]
+    partial class tripfamilies
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -68,7 +71,7 @@ namespace TripFront.Migrations
 
                     b.HasIndex("TripId");
 
-                    b.ToTable("DebtRecords", (string)null);
+                    b.ToTable("DebtRecords");
                 });
 
             modelBuilder.Entity("Expense", b =>
@@ -101,7 +104,7 @@ namespace TripFront.Migrations
 
                     b.HasIndex("TripId");
 
-                    b.ToTable("Expenses", (string)null);
+                    b.ToTable("Expenses");
                 });
 
             modelBuilder.Entity("ExpenseParticipant", b =>
@@ -123,7 +126,7 @@ namespace TripFront.Migrations
 
                     b.HasIndex("FamilyId");
 
-                    b.ToTable("ExpenseParticipants", (string)null);
+                    b.ToTable("ExpenseParticipants");
                 });
 
             modelBuilder.Entity("Family", b =>
@@ -146,7 +149,7 @@ namespace TripFront.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Families", (string)null);
+                    b.ToTable("Families");
                 });
 
             modelBuilder.Entity("FamilyFriendship", b =>
@@ -170,7 +173,7 @@ namespace TripFront.Migrations
 
                     b.HasIndex("FamilyId2");
 
-                    b.ToTable("FamilyFriendships", (string)null);
+                    b.ToTable("FamilyFriendships");
                 });
 
             modelBuilder.Entity("FriendRequest", b =>
@@ -203,7 +206,7 @@ namespace TripFront.Migrations
 
                     b.HasIndex("SenderFamilyId");
 
-                    b.ToTable("FriendRequests", (string)null);
+                    b.ToTable("FriendRequests");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -368,7 +371,7 @@ namespace TripFront.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Trips", (string)null);
+                    b.ToTable("Trips");
                 });
 
             modelBuilder.Entity("TripFamily", b =>
@@ -395,7 +398,7 @@ namespace TripFront.Migrations
 
                     b.HasIndex("TripId");
 
-                    b.ToTable("TripFamilies", (string)null);
+                    b.ToTable("TripFamilies");
                 });
 
             modelBuilder.Entity("TripFront.Data.ApplicationUser", b =>

@@ -12,9 +12,8 @@ DataSource="@Expenses"
 RowKey="e => e.Id"
 Bordered="true"
 Loading="@IsLoading"
-Pagination="true"
 Total="@TotalCount"
-PageSize="@PageSize"\
+PageSize="@PageSize"
 OnChange="OnTableChange">
 
     <TitleTemplate>
@@ -73,7 +72,7 @@ DestroyOnClose="true">
 </Modal>
 @code {
     [Inject] private IExpenseService _expenseService { get; set; }
-    [Inject] private IFriendshipService _friendshipService { get; set; }
+    [Inject] private ITripService _tripService{ get; set; }
     [Inject] private IMapper _mapper { get; set; }
 
     [Parameter] public int TripId { get; set; }
@@ -91,15 +90,26 @@ DestroyOnClose="true">
     private int PageSize { get; set; } = 10;
     private int TotalCount { get; set; }
     private bool IsLoading { get; set; }
+    private QueryModel<ExpenseDTO> _lastQueryModel = new QueryModel<ExpenseDTO>(1, 1, 1, null, null);
 
 
 
     private async Task OnTableChange(QueryModel<ExpenseDTO> queryModel)
     {
+        _lastQueryModel = queryModel; // Store the last query
+        await LoadExpensesAsync(queryModel);
+    }
+    private async Task RefreshTableAsync()
+    {
+        // Use the last query or a default one
+        await LoadExpensesAsync(_lastQueryModel ?? new QueryModel<ExpenseDTO>(1,1,1,null,null));
+    }
+
+    private async Task LoadExpensesAsync(QueryModel<ExpenseDTO> queryModel)
+    {
         try
         {
             IsLoading = true;
-
             var result = await _expenseService.FindTripExpenses(queryModel.ToPagingParam(), TripId);
             Expenses = _mapper.Map<List<ExpenseDTO>>(result.Items);
             TotalCount = result.TotalCount;
@@ -113,7 +123,6 @@ DestroyOnClose="true">
             IsLoading = false;
         }
     }
-
     private void ShowAddModal()
     {
         Model = new ExpenseDTO();
@@ -145,16 +154,18 @@ DestroyOnClose="true">
             if (Model.Id == 0)
             {
                 var addDto = _mapper.Map<AddExpenseDTO>(Model);
+                addDto.TripId = TripId;
                 await _expenseService.Add(addDto);
             }
             else
             {
                 var updateDto = _mapper.Map<UpdateExpenseDTO>(Model);
+
                 await _expenseService.Update(updateDto);
             }
 
             IsAddModalVisible = false;
-
+            await RefreshTableAsync();
         }
         catch (Exception ex)
         {
@@ -167,7 +178,7 @@ DestroyOnClose="true">
         try
         {
             await _expenseService.Remove(expenseId);
-
+            await RefreshTableAsync();
         }
         catch (Exception ex)
         {
@@ -191,18 +202,22 @@ DestroyOnClose="true">
     }
     private async Task LoadFamiliesAsync(string searchTerm)
     {
-        var filters = new List<FilterParam>
+        var filters = new List<FilterParam>();
+
+        if (searchTerm != "")
         {
-            new FilterParam
-            {
-                ColumnName = "Name",
-                FilterValue = searchTerm ?? "",
-                FilterOption = ComparisonMethod.Contain
-            }
-        };
+            filters.Add(new FilterParam
+                {
+                    ColumnName = "Name",
+                    FilterValue = searchTerm ?? "",
+                    FilterOption = ComparisonMethod.Contain
+                });
+
+        }
+
         var pagingFilters = new PagingParam { FilterParam = filters };
-        var result = await _friendshipService.GetFriendsAsync(pagingFilters);
-        Families = result.Items;
+        var result = await _tripService.GetTripFamilyAsync(pagingFilters, TripId);
+        Families = _mapper.Map<List<FamilyDTO>>(result.Items);
         StateHasChanged();
     }
     private async Task Focus()

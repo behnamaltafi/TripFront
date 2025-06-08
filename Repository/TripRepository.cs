@@ -1,5 +1,7 @@
 ﻿
 using AutoMapper;
+using FilterPagingEfCore.Extenstion;
+using FilterPagingEfCore.Paging;
 using Microsoft.EntityFrameworkCore;
 public class TripRepository : GenericRepository<Trip, int>, ITripRepository
 {
@@ -7,7 +9,7 @@ public class TripRepository : GenericRepository<Trip, int>, ITripRepository
     private readonly IFriendshipService _friendshipService;
     private readonly IMapper _mapper;
 
-    public TripRepository(AppDbContext context, IFriendshipService friendshipService, IMapper mapper):base(context,mapper)
+    public TripRepository(AppDbContext context, IFriendshipService friendshipService, IMapper mapper) : base(context, mapper)
     {
         _context = context;
         _friendshipService = friendshipService;
@@ -18,6 +20,13 @@ public class TripRepository : GenericRepository<Trip, int>, ITripRepository
         return await _context.TripFamilies
             .FirstOrDefaultAsync(tf => tf.TripId == tripId && tf.FamilyId == familyId);
     }
+    public async Task<PagingResult<TripFamilyDto>> GetTripFamilyAsync(PagingParam pagingParam, int tripId)
+    {
+        var qry = _context.TripFamilies.Include(tf => tf.Family)
+           .Where(tf => tf.TripId == tripId);
+        return await _mapper.ProjectTo<TripFamilyDto>(qry).FilterPaging(pagingParam);
+    }
+
     public async Task<TripDetailsDto> GetTripDetailsAsync(int tripId)
     {
         var trip = _context.Trips
@@ -87,44 +96,41 @@ public class TripRepository : GenericRepository<Trip, int>, ITripRepository
             .ToListAsync();
     }
 
-   
 
 
 
-    public async Task AddFamilyToTripAsync(int tripId, int familyId, int participantCount)
+
+    public async Task AddFamilyToTripAsync(TripFamily tripFamily)
     {
-        //var friends = await _friendshipService.GetFriendsAsync();
-        var trip = await _context.Trips.FirstOrDefaultAsync(t => t.Id == tripId);
+        var trip = await _context.Trips.FirstOrDefaultAsync(t => t.Id == tripFamily.TripId);
         if (trip == null)
         {
             throw new KeyNotFoundException();
         }
-        var tripFamily = new TripFamily
-        {
-            TripId = tripId,
-            FamilyId = familyId,
-            MemberCount = participantCount
-        };
+
         await _context.TripFamilies.AddAsync(tripFamily);
         await _context.SaveChangesAsync();
-
-        //if (friends.Select(x => x.Id).Contains(familyId) || familyId == _friendshipService.GetFamilyId())
-        //{
-       
-        //}
-        //else
-        //{
-        //    throw new NotSupportedException();
-
-    //    }
-
     }
 
     public async Task Paid(int tripId)
     {
         var trip = await _context.Trips.FindAsync(tripId);
-        trip.IsPaid=true;
+        trip.IsPaid = true;
         _context.Trips.Update(trip);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateTripFamily(TripFamily tripFamily)
+    {
+
+
+        _context.TripFamilies.Update(tripFamily);
+        await _context.SaveChangesAsync();
+    }
+    public async Task RemoveTripFamily(int tripFamilyId)
+    {
+        var tripFamily = await _context.TripFamilies.Where(x=>x.Id ==tripFamilyId &&x.Trip.OwnerFamily!=x.FamilyId).FirstOrDefaultAsync();
+        _context.TripFamilies.Remove(tripFamily);
         await _context.SaveChangesAsync();
     }
 }

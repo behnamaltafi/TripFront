@@ -64,7 +64,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         // Configure relationships
         builder.Entity<TripFamily>()
-            .HasKey(tf => new { tf.TripId, tf.FamilyId });
+            .HasKey(tf => new { tf.Id, tf.FamilyId });
 
         builder.Entity<TripFamily>()
             .HasOne(tf => tf.Trip)
