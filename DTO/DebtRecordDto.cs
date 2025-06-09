@@ -12,6 +12,7 @@ public class DebtRecordDto
     public string AccountNumber { get; set; }
     public bool IsPaid { get; set; }
     public int ParticipantCount { get; set; }
+    public string AmountWithToman => Amount.ToString() + " تومان";
     public string? PaymentReceiptUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? PaidAt { get; set; }

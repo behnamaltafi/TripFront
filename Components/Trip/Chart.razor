@@ -1,48 +1,58 @@
 ﻿@page "/trip-report/{TripId:int}"
 @using AntDesign
+@using AntDesign.TableModels
 
 <AntContainer>
     <Row Gutter="16" Justify="RowJustify.Center">
         <Col Span="10">
             <Card Title="جدول شرح بدهی‌ها" Bordered="true">
- @*            <Table TItem="DebtRecordDto" DataSource="@Debts" RowKey="d => d.Id">
-                    <Column Title="خانواده بدهکار" DataIndex="FromFamilyName" />
-                    <Column Title="خانواده بستانکار" DataIndex="ToFamilyName" />
-                    <Column Title="نفرات" DataIndex="ParticipantCount" />
-                    <Column Title="مبلغ (تومان)">
-                        <Template Context="d">
-                            @d.AmountDisplay تومان
-                        </Template>
-                    </Column>
-                    <Column Title="شماره کارت" DataIndex="AccountNumber" />
-                    <Column Title="فیش پرداخت">
-                        <Template Context="d">
+                <Table TItem="DebtRecordDto"
+                DataSource="@Debts"
+                RowKey="d => d.Id"
+                Bordered="true">
+                    <PropertyColumn Property=" d => d.FromFamilyName" Title="خانواده بدهکار" />
+                    <PropertyColumn Property="d => d.ToFamilyName" Title="خانواده بستانکار" />
+                    <PropertyColumn Property="d => d.ParticipantCount" Title="نفرات" />
+                    <PropertyColumn Property="d => d.AmountWithToman" Title="مبلغ (تومان)" />
+                    <PropertyColumn Property="d => d.AccountNumber" Title="شماره کارت" />
+                    <PropertyColumn Title="توضیحات" Property="@(d => $"{d.FromFamilyName} باید به {d.ToFamilyName} {d.AmountWithToman} تومان پرداخت کند.")" />
+
+
+                    <ActionColumn Title="عملیات">
+                        <Space Size="SpaceSize.Middle">
                             @if (d.IsPaid)
                             {
-                            <Button Type="Link" OnClick="() => ShowReceiptAsync(d.Id)">نمایش فیش</Button>
+                            <SpaceItem>
+                                <a @onclick="() => ShowReceiptAsync(d.Id)">نمایش فیش</a>
+                            </SpaceItem>
                             }
                             else
                             {
-                            <InputFile OnChange="e => UploadReceiptAsync(e, d.Id)" />
+                           <SpaceItem>
+                            <a @onclick=" () => => UploadReceiptAsync(e, d.Id)</a>
+                        </SpaceItem>
                             }
-                        </Template>
-                    </Column>
-                    <Column Title="توضیحات">
-                        <Template Context="d">
-                            @($"{d.FromFamilyName} باید به {d.ToFamilyName} {d.AmountDisplay} تومان پرداخت کند.")
-                        </Template>
-                    </Column>
-                </Table> *@
-            </Card>
+                   
+             
+                    </Space>
+                </ActionColumn>
+          
+
+            </Table>
+
+
+
+
+        </Card>
         </Col>
 
         <Col Span="12">
-            <Card Title="نمودار پرداختی‌ها و سهم هر خانواده">
-                @if (ChartData != null)
+        <Card Title="نمودار پرداختی‌ها و سهم هر خانواده">
+                @*  @if (ChartData != null)
                 {
                     <ColumnChart @ref="ChartRef" Title="@ChartTitle" Data="@ChartData" XField="FamilyName" YField="Amount" SeriesField="Category" Height="400" />
-                }
-            </Card>
+                } *@
+        </Card>
         </Col>
     </Row>
 </AntContainer>
@@ -54,14 +64,33 @@
 @code {
     [Parameter] public int TripId { get; set; }
     [Inject] private IDebtRecordService _debtRecordService { get; set; }
-    [Inject] private ISettlementService _settlementService{ get; set; }
+    [Inject] private ISettlementService _settlementService { get; set; }
 
     private List<DebtRecordDto> Debts = new();
     private List<ChartEntry> ChartData;
     private string ReceiptImageSrc = "";
     private bool IsReceiptModalVisible = false;
     private string ChartTitle = "";
+    private int CurrentPage { get; set; } = 1;
+    private int PageSize { get; set; } = 10;
+    private int TotalCount { get; set; }
+    private bool IsLoading { get; set; }
+    private QueryModel<DebtRecordDto> _lastQueryModel = new QueryModel<DebtRecordDto>(1, 1, 1, null, null);
+    private async Task OnTableChange(QueryModel<DebtRecordDto> queryModel)
+    {
+        _lastQueryModel = queryModel;
+        LoadDebtsAsync(queryModel);
+    }
+    private void RefreshTableAsync()
+    {
+        // Use the last query or a default one
+        LoadDebtsAsync(_lastQueryModel ?? new QueryModel<DebtRecordDto>(1, 1, 1, null, null));
+    }
 
+    private void LoadDebtsAsync(QueryModel<DebtRecordDto> queryModel)
+    {
+
+    }
     protected override async Task OnInitializedAsync()
     {
         var report = await _settlementService.GetTripSettlementAsync(TripId);
@@ -100,15 +129,15 @@
         var base64 = Convert.ToBase64String(ms.ToArray());
 
         await _debtRecordService.UpdatePaymentReceipt(debtId, base64);
-      
-            await OnInitializedAsync(); // Reload the data
-        
+
+        await OnInitializedAsync(); // Reload the data
+
     }
 
 
     // Models
-   
-   
+
+
     public class ChartEntry
     {
         public string FamilyName { get; set; }
