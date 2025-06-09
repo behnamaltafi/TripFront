@@ -10,6 +10,7 @@
                 DataSource="@Debts"
                 RowKey="d => d.Id"
                 Bordered="true">
+                    <ColumnDefinitions Context="row">
                     <PropertyColumn Property=" d => d.FromFamilyName" Title="خانواده بدهکار" />
                     <PropertyColumn Property="d => d.ToFamilyName" Title="خانواده بستانکار" />
                     <PropertyColumn Property="d => d.ParticipantCount" Title="نفرات" />
@@ -18,25 +19,28 @@
                     <PropertyColumn Title="توضیحات" Property="@(d => $"{d.FromFamilyName} باید به {d.ToFamilyName} {d.AmountWithToman} تومان پرداخت کند.")" />
 
 
-                    <ActionColumn Title="عملیات">
+                <ActionColumn Title="عملیات">
+                
                         <Space Size="SpaceSize.Middle">
-                            @if (d.IsPaid)
-                            {
-                            <SpaceItem>
-                                <a @onclick="() => ShowReceiptAsync(d.Id)">نمایش فیش</a>
-                            </SpaceItem>
-                            }
-                            else
-                            {
-                           <SpaceItem>
-                            <a @onclick=" () => => UploadReceiptAsync(e, d.Id)</a>
-                        </SpaceItem>
-                            }
-                   
-             
-                    </Space>
-                </ActionColumn>
-          
+                                @if (row.IsPaid)
+                                {
+                                <SpaceItem>
+                                    <a @onclick="() => ShowReceiptAsync(row.Id)">نمایش فیش</a>
+                                </SpaceItem>
+                                }
+                                else
+                                {
+                                <SpaceItem>
+                                    <label style="cursor: pointer;">
+                                        <span>آپلود فیش</span>
+                                        <InputFile OnChange="e => UploadReceiptAsync(e, row.Id)" style="display: none;" />
+                                    </label>
+                                </SpaceItem>
+                                }
+                        </Space>
+      
+                    </ActionColumn>
+                </ColumnDefinitions>
 
             </Table>
 
