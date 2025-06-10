@@ -6,6 +6,7 @@ public class Family : BaseEntity<int>
 
     public string AccountNumber { get; set; }
     public string UserId { get; set; }
+    public string ProfileImage { get; set; }
 
 
     public List<TripFamily> TripFamilies { get; set; } = new();

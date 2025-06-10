@@ -41,6 +41,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(f => f.FriendshipsA)
             .HasForeignKey(f => f.FamilyId1)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<Trip>()
+       .HasOne(t => t.OwnerFamily)
+       .WithMany()
+       .HasForeignKey(t => t.OwnerFamilyId)
+       .OnDelete(DeleteBehavior.NoAction); // or NoAction
 
         builder.Entity<FamilyFriendship>()
             .HasOne(f => f.Family2)

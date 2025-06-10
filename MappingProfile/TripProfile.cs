@@ -16,7 +16,7 @@ public partial class TripProfile : Profile
         ;
 
 
-
+        CreateMap<TripFamily, FamilyDTO>();
 
 
         CreateMap<Trip, UpdateTripDto>();
@@ -48,6 +48,9 @@ public partial class TripProfile : Profile
         CreateMap<Trip, TripDetailsDto>();
         CreateMap<Trip, TripDTO>()
                  .ForMember(dest => dest.TotalFamilies, opt => opt.MapFrom(src => src.Families.Count))
+                 .ForMember(dest => dest.TripProfileImage, opt => opt.MapFrom(src => src.TripProfileImage))
+                 .ForMember(dest => dest.OwnerFamilyName, opt => opt.MapFrom(src => src.OwnerFamily.Name))
+                 .ForMember(dest => dest.OwnerFamilyProfile, opt => opt.MapFrom(src => src.OwnerFamily.ProfileImage))
                  .ForMember(dest => dest.TotalParticipants, opt => opt.MapFrom(src => src.Families.Sum(f => f.MemberCount)));
 
 

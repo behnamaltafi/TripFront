@@ -6,7 +6,9 @@
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public bool IsPaid{ get; set; }
-    public int OwnerFamily { get; set; }
+    public Family OwnerFamily { get; set; }
+    public int OwnerFamilyId { get; set; }
+    public string TripProfileImage { get; set; }
 
     // Navigation properties
     public List<TripFamily> Families { get; set; } = new();

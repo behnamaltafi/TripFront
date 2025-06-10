@@ -10,35 +10,49 @@
 @inject IMapper _mapper
 @rendermode InteractiveServer
 
-<h1>سفرها</h1>
+<PageHeader Title="سفرها">
+    <PageHeaderExtra>
+        <Button Type="ButtonType.Primary"
+                Icon="plus"
+                Disabled="@isLoadingTrips"
+                OnClick="@ShowAddTripModal">
+            افزودن سفر جدید
+        </Button>
+    </PageHeaderExtra>
+</PageHeader>
 
-<Button Type="ButtonType.Primary"
-        Icon="plus"
-        Disabled="@isLoadingTrips"
-        OnClick="@ShowAddTripModal">
-    افزودن سفر جدید
-</Button>
+<Divider />
 
-<Row Style="margin-top: 1%" Gutter="16">
-    @if (isLoadingTrips)
-    {
-        <Spin Tip="در حال بارگذاری..." />
-    }
-    else if (!trips.Any())
-    {
+@if (isLoadingTrips)
+{
+    <div style="text-align: center; margin-top: 50px;">
+        <Spin Tip="در حال بارگذاری..." Size="SpinSize.Large" />
+    </div>
+}
+else if (!trips.Any())
+{
+    <div style="text-align: center; margin-top: 50px;">
         <Empty Description="@emptyMessage" />
-    }
-    else
-    {
+    </div>
+}
+else
+{
+    <AntDesign.Row Gutter="(16,16)">
         @foreach (var trip in trips)
         {
-            <TripCard Trip="trip"
-                      OnDelete="() => DeleteTripAsync(trip.Id)"
-                      OnEdit="() => ShowEditTripModal(trip.Id)"
-                      OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
+            <AntDesign.Col Xs="24" Sm="12" Md="8" Lg="6">
+                
+                <TripCard Trip="trip"
+                          OnClick="@(() => NavigateToTripDetails(trip.Id))"
+                          OnDelete="() => DeleteTripAsync(trip.Id)"
+                          OnEdit="() => ShowEditTripModal(trip.Id)"
+                          OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
+            </AntDesign.Col>
+
         }
-    }
-</Row>
+    </AntDesign.Row>
+
+}
 
 <TripFormModal Title="@tripModalTitle"
                TripModel="@currentTrip"
@@ -54,10 +68,11 @@
        Footer="null">
     @if (isLoadingExpenses)
     {
-        <Spin Tip="در حال بارگذاری هزینه‌ها..." />
+        <div style="text-align: center; padding: 20px;">
+            <Spin Tip="در حال بارگذاری هزینه‌ها..." />
+        </div>
     }
     <ExpenseTable TripId="@selectedTripId" Families="@families" />
-
 </Modal>
 
 @code {
@@ -77,6 +92,10 @@
     private int expensesPageSize = 10;
     private int expensesCurrentPage = 1;
     private string emptyMessage = "هیچ داده‌ای موجود نیست.";
+
+    [Inject]
+    private NavigationManager _navigationManager { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         await LoadTripsAsync();
@@ -93,6 +112,7 @@
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error loading trips: {ex.Message}");
+            // Consider showing a user-friendly error message
         }
         finally
         {
@@ -146,6 +166,7 @@
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error saving trip: {ex.Message}");
+            // Consider showing a user-friendly error message
         }
     }
 
@@ -159,6 +180,7 @@
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error deleting trip: {ex.Message}");
+            // Consider showing a user-friendly error message
         }
     }
 
@@ -168,11 +190,13 @@
         isExpenseModalVisible = true;
         await LoadFamiliesAsync("");
     }
+
     private void CancelExpenseEdit()
     {
         isEditingExpense = false;
         currentExpense = new ExpenseDTO();
     }
+
     private async Task LoadFamiliesAsync(string searchTerm = "")
     {
         try
@@ -187,9 +211,8 @@
                         FilterValue = searchTerm ?? "",
                         FilterOption = ComparisonMethod.Contain
                     });
-
             }
-           
+
             var pagingFilters = new PagingParam { FilterParam = filters };
             var result = await _tripService.GetTripFamilyAsync(pagingFilters, selectedTripId);
             families = _mapper.Map<List<FamilyDTO>>(result.Items);
@@ -197,6 +220,12 @@
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error loading families: {ex.Message}");
+            // Consider showing a user-friendly error message
         }
+    }
+
+    private void NavigateToTripDetails(int tripId)
+    {
+        _navigationManager.NavigateTo($"/trips/{tripId}");
     }
 }

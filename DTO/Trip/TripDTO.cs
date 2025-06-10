@@ -9,7 +9,7 @@ public class TripDTO
     [Required(ErrorMessage = "نام سفر الزامی است")]
     [StringLength(100)]
     public string Name { get; set; }
-    public string ImageUrl { get; set; } // Avatar
+    public string TripProfileImage { get; set; } // Avatar
 
     [StringLength(500)]
     public string Description { get; set; }
@@ -18,14 +18,14 @@ public class TripDTO
     public DateTime StartDate { get; set; }
 
     public DateTime? EndDate { get; set; }
-    public int OwnerFamily { get; set; }
-
-
+    public int OwnerFamilyId { get; set; }
+    public string OwnerFamilyProfile { get; set; }
+    public string OwnerFamilyName { get; set; } // For the owner's name
 
     // Summary information
     public int TotalFamilies { get; set; }// => Families?.Count ?? 0;
     public int TotalParticipants { get; set; } //=> Families?.Sum(f => f.ActualParticipantCount) ?? 0;
-
     // For creation
+    public List<FamilyDTO> Families { get; set; } = new List<FamilyDTO>();
     public List<int> FamilyIds { get; set; } = new List<int>();
 }

@@ -129,7 +129,7 @@ public class TripRepository : GenericRepository<Trip, int>, ITripRepository
     }
     public async Task RemoveTripFamily(int tripFamilyId)
     {
-        var tripFamily = await _context.TripFamilies.Where(x=>x.Id ==tripFamilyId &&x.Trip.OwnerFamily!=x.FamilyId).FirstOrDefaultAsync();
+        var tripFamily = await _context.TripFamilies.Where(x=>x.Id ==tripFamilyId &&x.Trip.OwnerFamilyId!=x.FamilyId).FirstOrDefaultAsync();
         _context.TripFamilies.Remove(tripFamily);
         await _context.SaveChangesAsync();
     }

@@ -23,7 +23,7 @@ public class TripService : ITripService
     {
         var trip = _mapper.Map<Trip>(tripDto);
         var familyId = _friendshipService.GetFamilyId();
-        trip.OwnerFamily = familyId;
+        trip.OwnerFamilyId = familyId;
         await _tripRepository.Add(trip);
         await _tripRepository.Save();
         var tripFamily = new TripFamily
