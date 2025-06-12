@@ -1,9 +1,34 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
 @using AntDesign
-<Card Class="trip-card-custom"
-      Hoverable="true">
+<style>
 
- @*    <CardMeta AvatarTemplate="@AvatarTemplate" Title="@Trip.Name">
+    .trip-card-custom {
+        height: 100%; /* Ensures all cards in a row have the same height */
+        display: flex;
+        flex-direction: column;
+    }
+
+        .trip-card-custom .ant-card-body {
+            flex-grow: 1; /* Allows the content area to expand */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .trip-card-custom .ant-card-meta-description {
+            flex-grow: 1; /* Allows the description to fill available space */
+            margin-bottom: 10px; /* Space between description and actions */
+        }
+
+        /* Optional: To make the actions at the bottom of the card */
+        .trip-card-custom .ant-card-actions {
+            margin-top: auto; /* Pushes the actions to the bottom */
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+</style>
+<Card Class="trip-card-custom" Actions="@Actions" Cover="@CoverTemplate" Hoverable="true">
+
+    <CardMeta  AvatarTemplate="@AvatarTemplate" Title="@Trip.Name">
         <DescriptionTemplate>
             <p><b>تاریخ شروع:</b> @Trip.StartDate.ToShamsi()</p>
             <p><b>تاریخ پایان:</b> @(Trip.EndDate.HasValue ? Trip.EndDate.Value.ToShamsi() : "-")</p>
@@ -11,7 +36,7 @@
             <p><b>تعداد افراد:</b> @Trip.TotalParticipants</p>
             <p><b>توضیحات:</b> @Trip.Description</p>
         </DescriptionTemplate>
-    </CardMeta> *@
+    </CardMeta>
 </Card>
 
 @code {
@@ -51,22 +76,22 @@
             builder.OpenComponent<Icon>(0);
             builder.AddAttribute(1, "Type", "edit");
             builder.AddAttribute(2, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, () => {  OnEdit.InvokeAsync(); }));
-            builder.AddAttribute(3, "Title", "ویرایش سفر");
+            // builder.AddAttribute(3, "Title", "ویرایش سفر");
             builder.CloseComponent();
         },
         builder => {
             builder.OpenComponent<Icon>(4);
             builder.AddAttribute(5, "Type", "dollar");
             builder.AddAttribute(6, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, () => {  OnExpenses.InvokeAsync(); }));
-            builder.AddAttribute(7, "Title", "مشاهده هزینه‌ها");
+            // builder.AddAttribute(7, "Title", "مشاهده هزینه‌ها");
             builder.CloseComponent();
         },
         builder => {
             builder.OpenComponent<Icon>(8);
             builder.AddAttribute(9, "Type", "delete");
-            builder.AddAttribute(10, "Theme", "outline");
+            // builder.AddAttribute(10, "Theme", "outline");
             builder.AddAttribute(11, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, () => { OnDelete.InvokeAsync(); }));
-            builder.AddAttribute(12, "Title", "حذف سفر");
+            // builder.AddAttribute(12, "Title", "حذف سفر");
             builder.CloseComponent();
         }
     };
