@@ -9,7 +9,7 @@
         transition: all 0.3s ease;
         border-radius: 8px;
         overflow: hidden;
-        direction: rtl;
+        direction: rtl; /* Keep RTL for Persian text */
     }
 
         .trip-card-custom:hover {
@@ -42,21 +42,25 @@
         .trip-card-custom .trip-info-item {
             margin-bottom: 8px;
             display: flex;
+            align-items: baseline; /* Align labels and values nicely */
         }
 
         .trip-card-custom .trip-info-label {
             font-weight: 600;
-            margin-left: 8px;
-            min-width: 90px;
+            margin-left: 8px; /* Space between label and value */
+            min-width: 90px; /* Consistent label width */
+            color: #555; /* Slightly softer label color */
         }
 
         .trip-card-custom .trip-info-value {
             flex: 1;
+            color: #333;
         }
 
         .trip-card-custom .ant-card-cover {
             height: 180px;
             overflow: hidden;
+            border-bottom: 1px solid #f0f0f0; /* Slight separator */
         }
 
             .trip-card-custom .ant-card-cover img {
@@ -81,77 +85,99 @@
             }
 
         .trip-card-custom .action-icon {
-            font-size: 16px;
+            font-size: 18px; /* Slightly larger icons */
             cursor: pointer;
-            transition: color 0.3s;
+            transition: color 0.3s, transform 0.2s;
+            display: block; /* Ensures the whole icon area is clickable */
+            padding: 4px; /* Makes clickable area larger */
         }
 
+            .trip-card-custom .action-icon:hover {
+                transform: translateY(-2px); /* Subtle hover effect */
+            }
+
         .trip-card-custom .edit-icon:hover {
-            color: #1890ff;
+            color: #1890ff; /* Ant Design Blue */
         }
 
         .trip-card-custom .expense-icon:hover {
-            color: #52c41a;
+            color: #52c41a; /* Ant Design Green */
         }
 
         .trip-card-custom .delete-icon:hover {
-            color: #f5222d;
+            color: #f5222d; /* Ant Design Red */
         }
 
     .trip-description {
         color: #666;
-        max-height: 80px;
-        overflow-y: auto;
+        max-height: 80px; /* Restrict height */
+        overflow-y: auto; /* Add scrollbar if content overflows */
         margin-top: 8px;
+        line-height: 1.6; /* Better readability for text */
+    }
+
+    .owner-info {
+        margin-top: 10px;
+        border-top: 1px dashed #f0f0f0; /* Subtle separator */
+        padding-top: 8px;
+        color: #777;
     }
 </style>
-
-<Card Class="trip-card-custom" Actions="@Actions" Cover="@CoverTemplate" Hoverable="true">
+<div class="trip-card-wrapper" @onclick="HandleCardClick">
+<Card Class="trip-card-custom" Actions="@Actions" Cover="@CoverTemplate" Hoverable="true" >
     <CardMeta AvatarTemplate="@AvatarTemplate" Title="@Trip.Name">
         <DescriptionTemplate>
-            <div class="trip-info-item">
-                <span class="trip-info-label">تاریخ شروع:</span>
-                <span class="trip-info-value">@Trip.StartDate.ToShamsi()</span>
-            </div>
-            <div class="trip-info-item">
-                <span class="trip-info-label">تاریخ پایان:</span>
-                <span class="trip-info-value">@(Trip.EndDate.HasValue ? Trip.EndDate.Value.ToShamsi() : "-")</span>
-            </div>
-            <div class="trip-info-item">
-                <span class="trip-info-label">تعداد خانواده:</span>
-                <span class="trip-info-value">@Trip.TotalFamilies</span>
-            </div>
-            <div class="trip-info-item">
-                <span class="trip-info-label">تعداد افراد:</span>
-                <span class="trip-info-value">@Trip.TotalParticipants</span>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(Trip.Description))
-            {
+            <div class="trip-details">
                 <div class="trip-info-item">
-                    <span class="trip-info-label">توضیحات:</span>
-                    <span class="trip-info-value trip-description">@Trip.Description</span>
+                    <span class="trip-info-label">تاریخ شروع:</span>
+                    <span class="trip-info-value">@Trip.StartDate.ToShamsi()</span>
+                </div>
+                <div class="trip-info-item">
+                    <span class="trip-info-label">تاریخ پایان:</span>
+                    <span class="trip-info-value">@(Trip.EndDate.HasValue ? Trip.EndDate.Value.ToShamsi() : "-")</span>
+                </div>
+                <div class="trip-info-item">
+                    <span class="trip-info-label">تعداد خانواده:</span>
+                    <span class="trip-info-value">@Trip.TotalFamilies</span>
+                </div>
+                <div class="trip-info-item">
+                    <span class="trip-info-label">تعداد افراد:</span>
+                    <span class="trip-info-value">@Trip.TotalParticipants</span>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Trip.Description))
+                {
+                    <div class="trip-info-item">
+                        <span class="trip-info-label">توضیحات:</span>
+                        <span class="trip-info-value trip-description">@Trip.Description</span>
+                    </div>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Trip.OwnerFamilyName))
+            {
+                <div class="owner-info">
+                    <Text Type="TextElementType.Secondary">ایجاد کننده: <Text Strong>@Trip.OwnerFamilyName</Text></Text>
                 </div>
             }
         </DescriptionTemplate>
     </CardMeta>
 </Card>
-
+</div>
 @code {
     [Parameter] public TripDTO Trip { get; set; }
     [Parameter] public EventCallback OnEdit { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
-    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; } // For card body click
     [Parameter] public EventCallback OnExpenses { get; set; }
 
     private RenderFragment CoverTemplate => builder =>
     {
         builder.OpenElement(0, "img");
-        builder.AddAttribute(1, "alt", "trip cover");
+        builder.AddAttribute(1, "alt", $"تصویر سفر {Trip.Name}");
 
-        // Fix the image source with proper fallback
+        // Use Trip.TripProfileImage with a proper default fallback
         if (string.IsNullOrWhiteSpace(Trip.TripProfileImage))
         {
-            builder.AddAttribute(2, "src", "/images/default-trip-cover.jpg"); // Use a default image
+            builder.AddAttribute(2, "src", "/images/default-trip-cover.jpg"); // Ensure this path is correct in your wwwroot
         }
         else
         {
@@ -164,52 +190,61 @@
     private RenderFragment AvatarTemplate => builder =>
     {
         builder.OpenComponent<Avatar>(0);
-        if (string.IsNullOrWhiteSpace(Trip.OwnerFamilyProfile))
+        if (!string.IsNullOrWhiteSpace(Trip.OwnerFamilyProfile))
         {
-            builder.AddAttribute(1, "Icon", "user");
+            builder.AddAttribute(1, "Src", Trip.OwnerFamilyProfile);
+        }
+        else if (!string.IsNullOrWhiteSpace(Trip.OwnerFamilyName))
+        {
+            // Fallback to initials if no profile image but a name exists
+            builder.AddAttribute(1, "Text", Trip.OwnerFamilyName.Length >= 2 ? Trip.OwnerFamilyName.Substring(0, 2).ToUpper() : Trip.OwnerFamilyName.ToUpper());
+            builder.AddAttribute(2, "Style", "background-color: #87d068;"); // Example background color for text avatar
         }
         else
         {
-            builder.AddAttribute(1, "Src", Trip.OwnerFamilyProfile);
+            // Default icon if no image or name
+            builder.AddAttribute(1, "Icon", "user");
         }
         builder.CloseComponent();
     };
 
     private RenderFragment[] Actions => new RenderFragment[]
     {
+        // Edit Icon
         builder => {
             builder.OpenComponent<Tooltip>(0);
-            builder.AddAttribute(1, "Title", "ویرایش سفر");
+
             builder.AddAttribute(2, "ChildContent", (RenderFragment)(childBuilder => {
                 childBuilder.OpenComponent<Icon>(3);
                 childBuilder.AddAttribute(4, "Type", "edit");
                 childBuilder.AddAttribute(5, "Class", "action-icon edit-icon");
                 childBuilder.AddAttribute(6, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, async (e) => {
-
+                  
                     await OnEdit.InvokeAsync();
                 }));
                 childBuilder.CloseComponent();
             }));
             builder.CloseComponent();
         },
+        // Expenses Icon
         builder => {
             builder.OpenComponent<Tooltip>(0);
-            builder.AddAttribute(1, "Title", "مشاهده هزینه‌ها");
+
             builder.AddAttribute(2, "ChildContent", (RenderFragment)(childBuilder => {
                 childBuilder.OpenComponent<Icon>(3);
                 childBuilder.AddAttribute(4, "Type", "dollar");
                 childBuilder.AddAttribute(5, "Class", "action-icon expense-icon");
                 childBuilder.AddAttribute(6, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, async (e) => {
-
+     
                     await OnExpenses.InvokeAsync();
                 }));
                 childBuilder.CloseComponent();
             }));
             builder.CloseComponent();
         },
+        // Delete Icon
         builder => {
             builder.OpenComponent<Tooltip>(0);
-            builder.AddAttribute(1, "Title", "حذف سفر");
             builder.AddAttribute(2, "ChildContent", (RenderFragment)(childBuilder => {
                 childBuilder.OpenComponent<Icon>(3);
                 childBuilder.AddAttribute(4, "Type", "delete");
