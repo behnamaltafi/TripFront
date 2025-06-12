@@ -17,7 +17,12 @@ public partial class TripProfile
             CreateMap<TripFamilyDto, FamilyDTO>()
              .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FamilyName))
              .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.FamilyId)).ReverseMap();
-
+            CreateMap<TripFamily, FamilyDTO>()
+ .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Family.Name))
+ .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.FamilyId))
+ .ForMember(dest => dest.AccountNumber, opt => opt.MapFrom(src => src.Family.AccountNumber))
+ 
+ .ReverseMap();
 
             CreateMap<TripFamilyDto,Family>().ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FamilyName))
              .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.FamilyId)).ReverseMap();

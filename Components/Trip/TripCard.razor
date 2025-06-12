@@ -84,6 +84,36 @@
                 margin: 6px 0;
             }
 
+    .families-preview {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .family-icons {
+        display: flex;
+        gap: 5px;
+    }
+
+    .family-icon {
+        width: 30px;
+        height: 30px;
+        background-color: #ccc;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+        cursor: default;
+        position: relative;
+    }
+
+    .more-icon {
+        background-color: #888;
+        color: #fff;
+    }
         .trip-card-custom .action-icon {
             font-size: 18px; /* Slightly larger icons */
             cursor: pointer;
@@ -127,6 +157,9 @@
 <Card Class="trip-card-custom" Actions="@Actions" Cover="@CoverTemplate" Hoverable="true" >
     <CardMeta AvatarTemplate="@AvatarTemplate" Title="@Trip.Name">
         <DescriptionTemplate>
+                <div class="owner-info">
+                    <Text Type="TextElementType.Secondary"> <Text Strong>@Trip.OwnerFamilyName</Text></Text>
+                </div>
             <div class="trip-details">
                 <div class="trip-info-item">
                     <span class="trip-info-label">تاریخ شروع:</span>
@@ -136,14 +169,9 @@
                     <span class="trip-info-label">تاریخ پایان:</span>
                     <span class="trip-info-value">@(Trip.EndDate.HasValue ? Trip.EndDate.Value.ToShamsi() : "-")</span>
                 </div>
-                <div class="trip-info-item">
-                    <span class="trip-info-label">تعداد خانواده:</span>
-                    <span class="trip-info-value">@Trip.TotalFamilies</span>
-                </div>
-                <div class="trip-info-item">
-                    <span class="trip-info-label">تعداد افراد:</span>
-                    <span class="trip-info-value">@Trip.TotalParticipants</span>
-                </div>
+   
+
+              
                 @if (!string.IsNullOrWhiteSpace(Trip.Description))
                 {
                     <div class="trip-info-item">
@@ -152,12 +180,26 @@
                     </div>
                 }
             </div>
-            @if (!string.IsNullOrWhiteSpace(Trip.OwnerFamilyName))
-            {
-                <div class="owner-info">
-                    <Text Type="TextElementType.Secondary">ایجاد کننده: <Text Strong>@Trip.OwnerFamilyName</Text></Text>
+                <div class="trip-info-item families-preview">
+                    <div class="family-icons">
+                        @foreach (var (family, index) in Trip.Families.Select((value, i) => (value, i)))
+                        {
+                            if (index < 3)
+                            {
+                                <div class="family-icon" title="@family.Name">
+                                    @family.Name.Substring(0, 1) <!-- یا عکس پروفایل اگر دارید -->
+                                </div>
+                            }
+                            else if (index == 3)
+                            {
+                                <div class="family-icon more-icon" title="@($"+{Trip.Families.Count - 3} خانواده دیگر")">
+                                    +@((Trip.Families.Count - 3))
+                                </div>
+                                break;
+                            }
+                        }
+                    </div>
                 </div>
-            }
         </DescriptionTemplate>
     </CardMeta>
 </Card>
