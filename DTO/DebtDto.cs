@@ -28,6 +28,7 @@ public class SettlementProfile : Profile
                 opt => opt.MapFrom(src => src.Expenses.Sum(e => e.Amount) /
                                        src.Families.Sum(tf => tf.MemberCount)))
                       .ForMember(dest => dest.TripName, opt => opt.MapFrom(src => src.Name))
+                      .ForMember(dest => dest.TripId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Families, opt => opt.Ignore()) // Will be calculated
             .ForMember(dest => dest.OptimizedDebts, opt => opt.Ignore()).ReverseMap(); // Will be calculated
 

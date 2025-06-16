@@ -225,8 +225,9 @@
 		color: #777;
 	}
 </style>
-<div class="trip-card-wrapper" @onclick="HandleCardClick">
+
 	<Card Class="trip-card-custom" Actions="@Actions" Cover="@CoverTemplate" Hoverable="true">
+	<div class="trip-card-wrapper" @onclick="HandleCardClick">
 		<CardMeta Title="@Trip.Name">
 			<DescriptionTemplate>
 				<div class="owner-info">
@@ -281,8 +282,9 @@
 				</div>
 			</DescriptionTemplate>
 		</CardMeta>
+		</div>
 	</Card>
-</div>
+
 @code {
 	[Parameter] public TripDTO Trip { get; set; }
 	[Parameter] public EventCallback OnEdit { get; set; }
