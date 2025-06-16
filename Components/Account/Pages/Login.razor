@@ -16,77 +16,77 @@
 
 <style>
     .login-container {
-        height: 100vh;
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: stretch;
-        background: linear-gradient(to left, #4e54c8, #8f94fb);
-        direction: rtl;
-        overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    background: linear-gradient(to left, #4e54c8, #8f94fb);
+    direction: rtl;
+    overflow: hidden;
     }
 
     .login-box {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: white;
-        padding: 32px;
-        max-width: 480px;
-        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    padding: 32px;
+    max-width: 480px;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
     }
 
     .login-form-card {
-        width: 100%;
-        border-radius: 12px;
+    width: 100%;
+    border-radius: 12px;
     }
 
     .login-header {
-        text-align: center;
-        margin-bottom: 24px;
+    text-align: center;
+    margin-bottom: 24px;
     }
 
-        .login-header img {
-            height: 100px;
-            margin-bottom: 12px;
-        }
+    .login-header img {
+    height: 100px;
+    margin-bottom: 12px;
+    }
 
     .login-description {
-        flex: 1.5;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        padding: 40px;
-        text-align: center;
-        line-height: 1.8;
+    flex: 1.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 40px;
+    text-align: center;
+    line-height: 1.8;
     }
 
-        .login-description h1 {
-            font-size: 32px;
-            margin-bottom: 16px;
-        }
+    .login-description h1 {
+    font-size: 32px;
+    margin-bottom: 16px;
+    }
 
-        .login-description p {
-            font-size: 18px;
-            color: #e0e0e0;
-        }
+    .login-description p {
+    font-size: 18px;
+    color: #e0e0e0;
+    }
 
     @@media (max-width: 768px) {
-        .login-container
+    .login-container
 
     {
-        flex-direction: column-reverse;
+    flex-direction: column-reverse;
     }
 
     .login-description {
-        padding: 24px;
+    padding: 24px;
     }
 
     .login-box {
-        max-width: 100%;
-        box-shadow: none;
+    max-width: 100%;
+    box-shadow: none;
     }
 
     }
@@ -180,6 +180,10 @@
         {
             var user = await UserManager.FindByNameAsync(Input.UserName);
             Logger.LogInformation("ورود موفق.");
+            if (ReturnUrl == null || ReturnUrl=="")
+            {
+                RedirectManager.RedirectTo("/trips");
+            }
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.RequiresTwoFactor)

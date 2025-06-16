@@ -29,7 +29,7 @@ public class SettlementProfile : Profile
                                        src.Families.Sum(tf => tf.MemberCount)))
                       .ForMember(dest => dest.TripName, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.Families, opt => opt.Ignore()) // Will be calculated
-            .ForMember(dest => dest.OptimizedDebts, opt => opt.Ignore()); // Will be calculated
+            .ForMember(dest => dest.OptimizedDebts, opt => opt.Ignore()).ReverseMap(); // Will be calculated
 
         CreateMap<TripFamily, FamilyBalanceDto>()
             .ForMember(dest => dest.FamilyId, opt => opt.MapFrom(src => src.FamilyId))

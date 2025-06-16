@@ -22,10 +22,7 @@ public class TripDTO
     public string OwnerFamilyProfile { get; set; }
     public string OwnerFamilyName { get; set; } // For the owner's name
 
-    // Summary information
-    public int TotalFamilies { get; set; }// => Families?.Count ?? 0;
-    public int TotalParticipants { get; set; } //=> Families?.Sum(f => f.ActualParticipantCount) ?? 0;
-    // For creation
+
     public List<FamilyDTO> Families { get; set; } = new List<FamilyDTO>();
     public List<int> FamilyIds { get; set; } = new List<int>();
 }

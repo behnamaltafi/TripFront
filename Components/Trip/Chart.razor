@@ -105,11 +105,11 @@
             ChartTitle = report.TripName;
             ChartData = new();
 
-            foreach (var fam in report.Families)
-            {
-                ChartData.Add(new ChartEntry { FamilyName = fam.FamilyName, Amount = fam.TotalPaid, Category = "پرداختی" });
-                ChartData.Add(new ChartEntry { FamilyName = fam.FamilyName, Amount = fam.TotalShare, Category = "سهم" });
-            }
+            // foreach (var fam in report.Families)
+            // {
+            //     ChartData.Add(new ChartEntry { FamilyName = fam.FamilyName, Amount = fam.TotalPaid, Category = "پرداختی" });
+            //     ChartData.Add(new ChartEntry { FamilyName = fam.FamilyName, Amount = fam.TotalShare, Category = "سهم" });
+            // }
         }
     }
 
