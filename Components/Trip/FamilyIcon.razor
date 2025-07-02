@@ -1,0 +1,14 @@
+﻿<div class="family-icon" title="@Family.Name">
+	@if (!string.IsNullOrEmpty(Family.ProfileImage))
+	{
+		<img src="@Family.ProfileImage" alt="@Family.Name" class="family-avatar" />
+	}
+	else
+	{
+		<span class="family-avatar fallback">@Family.Name.Substring(0, 1)</span>
+	}
+</div>
+
+@code {
+	[Parameter] public FamilyDTO Family { get; set; }
+}

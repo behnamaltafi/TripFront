@@ -2,10 +2,20 @@
 @using AntDesign
 
 <style>
+	:root {
+		--primary-color: #1890ff;
+		--success-color: #52c41a;
+		--danger-color: #f5222d;
+		--shadow-color: rgba(0, 0, 0, 0.15);
+		--avatar-size: 72px;
+		--gap-size: 6px;
+	}
+
+	/* کاور و آواتار */
 	.cover-with-avatar {
 		position: relative;
 		height: 180px;
-		overflow: visible; /* ❗ مهم: اجازه می‌ده آواتار از کاور بزنه بیرون */
+		overflow: visible;
 	}
 
 		.cover-with-avatar img {
@@ -18,15 +28,16 @@
 
 	.cover-avatar {
 		position: absolute;
-		bottom: -36px; /* نصف آواتار بیاد بیرون */
+		bottom: calc(var(--avatar-size) / -2); /* نصف آواتار خارج از کاور */
 		left: 16px;
 		z-index: 10;
 		background: white;
 		border-radius: 50%;
 		padding: 4px;
-		box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 0 6px var(--shadow-color);
 	}
 
+	/* کارت سفر */
 	.trip-card-custom {
 		height: 100%;
 		display: flex;
@@ -34,11 +45,11 @@
 		transition: all 0.3s ease;
 		border-radius: 8px;
 		overflow: hidden;
-		direction: rtl; /* Keep RTL for Persian text */
+		direction: rtl;
 	}
 
 		.trip-card-custom:hover {
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+			box-shadow: 0 4px 12px var(--shadow-color);
 			transform: translateY(-3px);
 		}
 
@@ -49,356 +60,228 @@
 			padding: 16px;
 		}
 
-		.trip-card-custom .ant-card-meta {
-			margin-bottom: 12px;
-		}
-
 		.trip-card-custom .ant-card-meta-title {
 			font-size: 1.2rem;
 			font-weight: 600;
 			margin-bottom: 10px;
 		}
 
-		.trip-card-custom .ant-card-meta-description {
-			flex-grow: 1;
-			margin-bottom: 12px;
-		}
-
 		.trip-card-custom .trip-info-item {
 			margin-bottom: 8px;
 			display: flex;
-			align-items: baseline; /* Align labels and values nicely */
+			align-items: baseline;
 		}
 
-		.trip-card-custom .trip-info-label {
-			font-weight: 600;
-			margin-left: 8px; /* Space between label and value */
-			min-width: 90px; /* Consistent label width */
-			color: #555; /* Slightly softer label color */
-		}
-
-		.trip-card-custom .trip-info-value {
-			flex: 1;
-			color: #333;
-		}
-
-		.trip-card-custom .ant-card-cover {
-			height: 180px;
-			overflow: hidden;
-			border-bottom: 1px solid #f0f0f0; /* Slight separator */
-		}
-
-			.trip-card-custom .ant-card-cover img {
-				width: 100%;
-				height: 100%;
-				object-fit: cover;
-				transition: transform 0.3s ease;
-			}
-
-		.trip-card-custom:hover .ant-card-cover img {
-			transform: scale(1.05);
-		}
-
-		.trip-card-custom .ant-card-actions {
-			margin-top: auto;
-			border-top: 1px solid #f0f0f0;
-			background: #fafafa;
-		}
-
-			.trip-card-custom .ant-card-actions > li {
-				margin: 6px 0;
-			}
-			<div class="trip-info-item families-preview">
-    <div class="family-icons">
-        @foreach (var (family, index) in Trip.Families.Select((value, i) => (value, i)))
-        {
-            if (index < 3)
-            {
-                <div class="family-icon" title="@family.Name">
-                    @if (!string.IsNullOrEmpty(family.ProfileImage))
-                    {
-                        <img src="@family.ProfileImage" alt="@family.Name" class="family-avatar" />
-                    }
-                    else
-                    {
-                        <span class="family-avatar fallback">@family.Name.Substring(0, 1)</span>
-                    }
-                </div>
-            }
-            else if (index == 3)
-            {
-                <div class="family-icon more-icon" title="@($"{Trip.Families.Count - 3} خانواده دیگر")">
-                    <span class="family-avatar fallback">+@((Trip.Families.Count - 3))</span>
-                </div>
-                break;
-            }
-        }
-    </div>
-</div>
-
-    .family-icons {
-        display: flex;
-        gap: 6px;
-        align-items: center;
-    }
-
-    .family-icon {
-        position: relative;
-        width: 36px;
-        height: 36px;
-    }
-
-    .family-avatar {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        overflow: hidden;
-        background-color: #f0f0f0;
-        font-size: 14px;
-        font-weight: bold;
-        color: #555;
-    }
-
-    .family-avatar.fallback {
-        background-color: #ccc;
-    }
-
-    .family-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 50%;
-        display: block;
-    }
-
-    .more-icon .family-avatar {
-        background-color: #1890ff;
-        color: #fff;
-        font-weight: bold;
-    }
-
-
-	.more-icon {
-		background-color: #888;
-		color: #fff;
+	.trip-info-label {
+		font-weight: 600;
+		margin-left: 8px;
+		min-width: 90px;
+		color: #555;
 	}
 
-	.trip-card-custom .action-icon {
-		font-size: 18px; /* Slightly larger icons */
+	.trip-info-value {
+		flex: 1;
+		color: #333;
+	}
+
+	/* خانواده‌ها */
+	.family-icons {
+		display: flex;
+		gap: var(--gap-size);
+		align-items: center;
+	}
+
+	.family-icon {
+		width: 36px;
+		height: 36px;
+	}
+
+	.family-avatar {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+		overflow: hidden;
+		background-color: #f0f0f0;
+		font-size: 14px;
+		font-weight: bold;
+		color: #555;
+	}
+
+		.family-avatar.fallback {
+			background-color: #ccc;
+		}
+
+		.family-avatar img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			border-radius: 50%;
+			display: block;
+		}
+
+	.more-icon .family-avatar {
+		background-color: var(--primary-color);
+		color: #fff;
+		font-weight: bold;
+	}
+
+	/* آیکون‌های اکشن */
+	.action-icon {
+		font-size: 18px;
 		cursor: pointer;
 		transition: color 0.3s, transform 0.2s;
-		display: block; /* Ensures the whole icon area is clickable */
-		padding: 4px; /* Makes clickable area larger */
+		padding: 4px;
 	}
 
-		.trip-card-custom .action-icon:hover {
-			transform: translateY(-2px); /* Subtle hover effect */
+		.action-icon:hover {
+			transform: translateY(-2px);
 		}
 
-	.trip-card-custom .edit-icon:hover {
-		color: #1890ff; /* Ant Design Blue */
+	.edit-icon:hover {
+		color: var(--primary-color);
 	}
 
-	.trip-card-custom .expense-icon:hover {
-		color: #52c41a; /* Ant Design Green */
+	.expense-icon:hover {
+		color: var(--success-color);
 	}
 
-	.trip-card-custom .delete-icon:hover {
-		color: #f5222d; /* Ant Design Red */
+	.delete-icon:hover {
+		color: var(--danger-color);
 	}
 
+	/* توضیحات */
 	.trip-description {
 		color: #666;
-		max-height: 80px; /* Restrict height */
-		overflow-y: auto; /* Add scrollbar if content overflows */
+		max-height: 80px;
+		overflow-y: auto;
 		margin-top: 8px;
-		line-height: 1.6; /* Better readability for text */
+		line-height: 1.6;
 	}
 
 	.owner-info {
 		margin-top: 10px;
-		border-top: 1px dashed #f0f0f0; /* Subtle separator */
+		border-top: 1px dashed #f0f0f0;
 		padding-top: 8px;
 		color: #777;
 	}
 </style>
-
-	<Card Class="trip-card-custom" Actions="@Actions" Cover="@CoverTemplate" Hoverable="true">
+<Card Class="trip-card-custom" Actions="@Actions" Cover="@CoverTemplate" Hoverable="true">
 	<div class="trip-card-wrapper" @onclick="HandleCardClick">
 		<CardMeta Title="@Trip.Name">
 			<DescriptionTemplate>
 				<div class="owner-info">
-					<Text Type="TextElementType.Secondary"> <Text Strong>@Trip.OwnerFamilyName</Text></Text>
+					<Text Type="TextElementType.Secondary">
+						<Text Strong>@Trip.OwnerFamilyName</Text>
+					</Text>
 				</div>
 				<div class="trip-details">
-					<div class="trip-info-item">
-						<span class="trip-info-label">تاریخ شروع:</span>
-						<span class="trip-info-value">@Trip.StartDate.ToShamsi()</span>
-					</div>
-					<div class="trip-info-item">
-						<span class="trip-info-label">تاریخ پایان:</span>
-						<span class="trip-info-value">@(Trip.EndDate.HasValue ? Trip.EndDate.Value.ToShamsi() : "-")</span>
-					</div>
-
-
+					<TripInfoItem Label="تاریخ شروع:" Value="@Trip.StartDate.ToShamsi()" />
+					<TripInfoItem Label="تاریخ پایان:" Value="@(Trip.EndDate.HasValue ? Trip.EndDate.Value.ToShamsi() : "-")" />
 
 					@if (!string.IsNullOrWhiteSpace(Trip.Description))
 					{
-						<div class="trip-info-item">
-							<span class="trip-info-label">توضیحات:</span>
-							<span class="trip-info-value trip-description">@Trip.Description</span>
-						</div>
+						<TripInfoItem Label="توضیحات:" Value="@Trip.Description" Class="trip-description" />
 					}
-				</div>
-				<div class="trip-info-item families-preview">
-					<div class="family-icons">
-						@foreach (var (family, index) in Trip.Families.Select((value, i) => (value, i)))
-						{
-							if (index < 3)
+
+					<div class="trip-info-item families-preview">
+						<div class="family-icons">
+							@foreach (var (family, index) in Trip.Families.Select((value, i) => (value, i)))
 							{
-								<div class="family-icon" title="@family.Name">
-									@if (!string.IsNullOrEmpty(family.ProfileImage))
-									{
-										<img src="@family.ProfileImage" alt="@family.Name" class="family-avatar" />
-									}
-									else
-									{
-										<span class="family-avatar fallback">@family.Name.Substring(0, 1)</span>
-									}
-								</div>
+								if (index < 3)
+								{
+									<FamilyIcon Family="@family" />
+								}
+								else if (index == 3)
+								{
+									<MoreFamiliesIcon Count="@(Trip.Families.Count - 3)" />
+									break;
+								}
 							}
-							else if (index == 3)
-							{
-								<div class="family-icon more-icon" title="@($"{Trip.Families.Count - 3} خانواده دیگر")">
-									<span class="family-avatar fallback">+@((Trip.Families.Count - 3))</span>
-								</div>
-								break;
-							}
-						}
+						</div>
 					</div>
 				</div>
 			</DescriptionTemplate>
 		</CardMeta>
-		</div>
-	</Card>
+	</div>
+</Card>
 
 @code {
 	[Parameter] public TripDTO Trip { get; set; }
 	[Parameter] public EventCallback OnEdit { get; set; }
 	[Parameter] public EventCallback OnDelete { get; set; }
-	[Parameter] public EventCallback OnClick { get; set; } // For card body click
+	[Parameter] public EventCallback OnClick { get; set; }
 	[Parameter] public EventCallback OnExpenses { get; set; }
 
 	private RenderFragment CoverTemplate => builder =>
 	{
-	builder.OpenElement(0, "div");
-	builder.AddAttribute(1, "class", "cover-with-avatar");
+		builder.OpenElement(0, "div");
+		builder.AddAttribute(1, "class", "cover-with-avatar");
 
-	builder.OpenElement(2, "img");
-	builder.AddAttribute(3, "alt", $"تصویر سفر {Trip.Name}");
-	builder.AddAttribute(4, "src", string.IsNullOrWhiteSpace(Trip.TripProfileImage)
-		? "/images/default-trip-cover.jpg"
-		: Trip.TripProfileImage);
-	builder.CloseElement(); // img
+		builder.OpenElement(2, "img");
+		builder.AddAttribute(3, "alt", $"تصویر سفر {Trip.Name}");
+		builder.AddAttribute(4, "src", string.IsNullOrWhiteSpace(Trip.TripProfileImage)
+			? "/images/default-trip-cover.jpg"
+			: Trip.TripProfileImage);
+		builder.CloseElement();
 
-	builder.OpenElement(5, "div");
-	builder.AddAttribute(6, "class", "cover-avatar");
-	builder.AddContent(7, AvatarTemplate);
-	builder.CloseElement(); // div.cover-avatar
+		builder.OpenElement(5, "div");
+		builder.AddAttribute(6, "class", "cover-avatar");
+		builder.AddContent(7, AvatarTemplate);
+		builder.CloseElement();
 
-	builder.CloseElement(); // div.cover-with-avatar
+		builder.CloseElement();
 	};
 
 	private RenderFragment AvatarTemplate => builder =>
 	{
-	builder.OpenComponent<Avatar>(0);
+		builder.OpenComponent<Avatar>(0);
+		builder.AddAttribute(1, "Style", $"width: var(--avatar-size); height: var(--avatar-size); font-size: calc(var(--avatar-size) / 2);");
+		builder.AddAttribute(2, "Shape", AvatarShape.Circle);
 
-	var size = 72;
+		if (!string.IsNullOrWhiteSpace(Trip.OwnerFamilyProfile))
+		{
+			builder.AddAttribute(3, "Src", Trip.OwnerFamilyProfile);
+		}
+		else if (!string.IsNullOrWhiteSpace(Trip.OwnerFamilyName))
+		{
+			var initials = Trip.OwnerFamilyName.Length >= 2
+				? Trip.OwnerFamilyName.Substring(0, 2).ToUpper()
+				: Trip.OwnerFamilyName.ToUpper();
 
-	builder.AddAttribute(1, "Style", $"width: {size}px; height: {size}px; font-size: {size / 2}px;");
+			builder.AddAttribute(4, "Text", initials);
+			builder.AddAttribute(5, "Style", $"background-color: #87d068;");
+		}
+		else
+		{
+			builder.AddAttribute(6, "Icon", "user");
+		}
 
-	builder.AddAttribute(2, "Shape", AvatarShape.Circle);
-
-	if (!string.IsNullOrWhiteSpace(Trip.OwnerFamilyProfile))
-	{
-		builder.AddAttribute(3, "Src", Trip.OwnerFamilyProfile);
-	}
-	else if (!string.IsNullOrWhiteSpace(Trip.OwnerFamilyName))
-	{
-		var initials = Trip.OwnerFamilyName.Length >= 2
-			? Trip.OwnerFamilyName.Substring(0, 2).ToUpper()
-			: Trip.OwnerFamilyName.ToUpper();
-
-		builder.AddAttribute(4, "Text", initials);
-		builder.AddAttribute(5, "Style", $"background-color: #87d068; width: {size}px; height: {size}px; font-size: {size / 2}px;");
-	}
-	else
-	{
-		builder.AddAttribute(6, "Icon", "user");
-	}
-
-	builder.CloseComponent();
+		builder.CloseComponent();
 	};
-
-
 
 	private RenderFragment[] Actions => new RenderFragment[]
 	{
-        // Edit Icon
-        builder => {
-			builder.OpenComponent<Tooltip>(0);
-
-			builder.AddAttribute(2, "ChildContent", (RenderFragment)(childBuilder => {
-				childBuilder.OpenComponent<Icon>(3);
-				childBuilder.AddAttribute(4, "Type", "edit");
-				childBuilder.AddAttribute(5, "Class", "action-icon edit-icon");
-				childBuilder.AddAttribute(6, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, async (e) => {
-
-					await OnEdit.InvokeAsync();
-				}));
-				childBuilder.CloseComponent();
-			}));
-
-			builder.CloseComponent();
-		},
-        // Expenses Icon
-        builder => {
-			builder.OpenComponent<Tooltip>(0);
-
-			builder.AddAttribute(2, "ChildContent", (RenderFragment)(childBuilder => {
-				childBuilder.OpenComponent<Icon>(3);
-				childBuilder.AddAttribute(4, "Type", "dollar");
-				childBuilder.AddAttribute(5, "Class", "action-icon expense-icon");
-				childBuilder.AddAttribute(6, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, async (e) => {
-
-					await OnExpenses.InvokeAsync();
-				}));
-				childBuilder.CloseComponent();
-			}));
-			builder.CloseComponent();
-		},
-        // Delete Icon
-        builder => {
-			builder.OpenComponent<Tooltip>(0);
-			builder.AddAttribute(2, "ChildContent", (RenderFragment)(childBuilder => {
-				childBuilder.OpenComponent<Icon>(3);
-				childBuilder.AddAttribute(4, "Type", "delete");
-				childBuilder.AddAttribute(5, "Class", "action-icon delete-icon");
-				childBuilder.AddAttribute(6, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, async (e) => {
-
-					await OnDelete.InvokeAsync();
-				}));
-				childBuilder.CloseComponent();
-			}));
-			builder.CloseComponent();
-		}
+		ActionTemplate("edit", "edit-icon", OnEdit),
+		ActionTemplate("dollar", "expense-icon", OnExpenses),
+		ActionTemplate("delete", "delete-icon", OnDelete)
 	};
 
-	private async Task HandleCardClick()
+	private RenderFragment ActionTemplate(string iconType, string cssClass, EventCallback callback) => builder =>
 	{
-		await OnClick.InvokeAsync();
-	}
+		builder.OpenComponent<Tooltip>(0);
+		builder.AddAttribute(2, "ChildContent", (RenderFragment)(childBuilder =>
+		{
+			childBuilder.OpenComponent<Icon>(3);
+			childBuilder.AddAttribute(4, "Type", iconType);
+			childBuilder.AddAttribute(5, "Class", $"action-icon {cssClass}");
+			childBuilder.AddAttribute(6, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, async (e) => await callback.InvokeAsync()));
+			childBuilder.CloseComponent();
+		}));
+		builder.CloseComponent();
+	};
+
+	private async Task HandleCardClick() => await OnClick.InvokeAsync();
 }

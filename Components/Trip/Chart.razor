@@ -1,135 +1,316 @@
 ﻿@page "/trips/{TripId:int}"
 @using AntDesign
 @using AntDesign.TableModels
-@using AntDesign.Charts
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<style>
+    .chart-container {
+        position: relative;
+        height: 400px;
+        width: 100%;
+    }
+
+    .receipt-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .upload-btn {
+        color: #1890ff;
+        cursor: pointer;
+        transition: color 0.3s;
+    }
+
+        .upload-btn:hover {
+            color: #40a9ff;
+            text-decoration: underline;
+        }
+</style>
+
+<PageTitle>تسویه حساب سفر</PageTitle>
 
 <Row Gutter="16" Justify="RowJustify.Center">
-    <Col Span="10">
-        <Card Title="جدول شرح بدهی‌ها" Bordered="true">
-            <Table TItem="DebtRecordDto"
-                   DataSource="@Debts"
-                   RowKey="d => d.Id"
-                   Bordered="true">
-                <ColumnDefinitions Context="row">
-                    <PropertyColumn Property="d => d.FromFamilyName" Title="خانواده بدهکار" />
-                    <PropertyColumn Property="d => d.ToFamilyName" Title="خانواده بستانکار" />
-                    <PropertyColumn Property="d => d.ParticipantCount" Title="نفرات" />
-                    <PropertyColumn Property="d => d.AmountWithToman" Title="مبلغ (تومان)" />
-                    <PropertyColumn Property="d => d.AccountNumber" Title="شماره کارت" />
-                    <PropertyColumn Title="توضیحات" Property="@(d => $"{d.FromFamilyName} باید به {d.ToFamilyName} {d.AmountWithToman} تومان پرداخت کند.")" />
-                    <ActionColumn Title="عملیات">
-                        <Space Size="SpaceSize.Middle">
+    <Col Xs="24" Lg="12">
+    <Card Title="جدول شرح بدهی‌ها" Bordered="true">
+        <Table TItem="DebtRecordDto"
+               DataSource="@Debts"
+               RowKey="d => d.Id"
+               Bordered="true"
+               Size="TableSize.Middle">
+            <ColumnDefinitions Context="row">
+                <PropertyColumn Property="d => d.FromFamilyName" Title="خانواده بدهکار" />
+                <PropertyColumn Property="d => d.ToFamilyName" Title="خانواده بستانکار" />
+                <PropertyColumn Property="d => d.ParticipantCount" Title="نفرات" />
+                <PropertyColumn Property="d => d.AmountWithToman" Title="مبلغ (تومان)">
+                    <Template>
+                        <Tag Color="TagColor.Blue">@row.AmountWithToman.ToString()</Tag>
+                    </Template>
+                </PropertyColumn>
+                <PropertyColumn Property="d => d.AccountNumber" Title="شماره کارت">
+                    <Template>
+                        <Text Code>@row.AccountNumber</Text>
+                    </Template>
+                </PropertyColumn>
+                <ActionColumn Title="عملیات">
+                    <Space Size="SpaceSize.Middle">
                             @if (row.IsPaid)
                             {
-                                <SpaceItem>
-                                    <a @onclick="() => ShowReceiptAsync(row.Id)">نمایش فیش</a>
-                                </SpaceItem>
+                            <SpaceItem>
+                                <Button Type="@ButtonType.Link"
+                                        Icon="@IconType.Outline.Eye"
+                                        Size=" ButtonSize.Small"
+                                        OnClick="() => ShowReceiptAsync(row.Id)">
+                                    نمایش فیش
+                                </Button>
+                            </SpaceItem>
                             }
                             else
                             {
-                                <SpaceItem>
-                                    <label style="cursor: pointer;">
-                                        <span>آپلود فیش</span>
-                                        <InputFile OnChange="e => UploadReceiptAsync(e, row.Id)" style="display: none;" />
-                                    </label>
-                                </SpaceItem>
+                            <SpaceItem>
+                                <label class="upload-btn">
+                                    <Icon Type="@IconType.Outline.Upload" />
+                                    آپلود فیش
+                                    <InputFile OnChange="e => UploadReceiptAsync(e, row.Id)"
+                                               style="display: none;"
+                                               accept="image/*" />
+                                </label>
+                            </SpaceItem>
                             }
-                        </Space>
-                    </ActionColumn>
-                </ColumnDefinitions>
-            </Table>
-        </Card>
+                    </Space>
+                </ActionColumn>
+            </ColumnDefinitions>
+        </Table>
+    </Card>
     </Col>
 
-    <Col Span="12">
-        <Card Title="نمودار پرداختی‌ها و سهم هر خانواده">
-            @if (ChartData != null)
+    <Col Xs="24" Lg="12">
+    <Card Title="نمودار پرداختی‌ها و سهم هر خانواده" Bordered="true">
+            @if (_isLoading)
             {
-
+            <div style="text-align: center; padding: 50px;">
+                <Spin Size="SpinSize.Large" />
+            </div>
             }
-        </Card>
+            else
+            {
+            <div class="chart-container">
+                <canvas id="settlementChart"></canvas>
+            </div>
+            }
+    </Card>
     </Col>
 </Row>
 
-<Modal @bind-Visible="@IsReceiptModalVisible" Title="تصویر فیش پرداخت" Width="800">
-    <img src="@ReceiptImageSrc" class="img-fluid rounded shadow" />
+<Modal @bind-Visible="@IsReceiptModalVisible"
+       Title="تصویر فیش پرداخت"
+       Width="800"
+       Footer="null">
+    <img src="@ReceiptImageSrc" class="receipt-image" alt="فیش پرداخت" />
 </Modal>
-<AntDesign.Charts.Column Config="_chartConfig" />
+
 @code {
     [Parameter] public int TripId { get; set; }
     [Inject] private IDebtRecordService _debtRecordService { get; set; }
     [Inject] private ISettlementService _settlementService { get; set; }
+    [Inject] private IMessageService _message { get; set; }
 
     private List<DebtRecordDto> Debts = new();
-    private List<ChartEntry> ChartData;
-    private ColumnConfig _chartConfig;
     private string ReceiptImageSrc = "";
     private bool IsReceiptModalVisible = false;
-    
-    // Unused pagination and query models
-    private QueryModel<DebtRecordDto> _lastQueryModel = new(1, 10, 1, null, null);
+    private SettlementReportDto? _settlementReport;
+    private bool _isLoading = true;
+    private bool _chartDrawn = false;
+    private IJSObjectReference? _chartModule;
 
     protected override async Task OnInitializedAsync()
     {
-        var report = await _settlementService.GetTripSettlementAsync(TripId);
+        await LoadData();
+    }
 
-        if (report is not null)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
         {
-            Debts = report.OptimizedDebts;
-            ChartData = new List<ChartEntry>();
+            // Import JavaScript module
+            _chartModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/chartHelper.js");
+        }
 
-            foreach (var fam in report.Families)
+        // Draw chart if data is available and chart hasn't been drawn yet
+        if (!_chartDrawn && _settlementReport != null && !_isLoading)
+        {
+            await DrawChart();
+            _chartDrawn = true;
+        }
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _isLoading = true;
+            _chartDrawn = false;
+
+            _settlementReport = await _settlementService.GetTripSettlementAsync(TripId);
+
+            if (_settlementReport is not null)
             {
-                ChartData.Add(new ChartEntry { FamilyName = fam.FamilyName, Amount = fam.TotalPaid, Category = "پرداختی" });
-                ChartData.Add(new ChartEntry { FamilyName = fam.FamilyName, Amount = fam.TotalShare, Category = "سهم" });
+                Debts = _settlementReport.OptimizedDebts;
             }
-            
-            // Create the configuration object for the chart
-            _chartConfig = new ColumnConfig
+        }
+        catch (Exception ex)
+        {
+            await _message.Error($"خطا در بارگذاری داده‌ها: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged(); // Force re-render
+        }
+    }
+
+    private async Task DrawChart()
+    {
+        if (_settlementReport?.Families == null || !_settlementReport.Families.Any())
+            return;
+
+        try
+        {
+            var labels = _settlementReport.Families.Select(f => f.FamilyName).ToArray();
+            var paidData = _settlementReport.Families.Select(f => (double)f.TotalPaid).ToArray();
+            var shareData = _settlementReport.Families.Select(f => (double)f.TotalShare).ToArray();
+
+            var chartData = new
             {
-                Title = new AntDesign.Charts. Title
+                labels = labels,
+                datasets = new[]
                 {
-                    Visible = true,
-                    Text = report.TripName
-                },
-                ForceFit = true,
-                Data = ChartData,
-                XField = nameof(ChartEntry.FamilyName),
-                YField = nameof(ChartEntry.Amount),
-                SeriesField = nameof(ChartEntry.Category), // Use SeriesField for stacking
-                IsGroup = true, // Use IsGroup = true to show bars side-by-side
-                Height = 400
+                    new
+                    {
+                        label = "پرداختی",
+                        data = paidData,
+                        backgroundColor = "rgba(54, 162, 235, 0.8)",
+                        borderColor = "rgba(54, 162, 235, 1)",
+                        borderWidth = 1
+                    },
+                    new
+                    {
+                        label = "سهم",
+                        data = shareData,
+                        backgroundColor = "rgba(255, 99, 132, 0.8)",
+                        borderColor = "rgba(255, 99, 132, 1)",
+                        borderWidth = 1
+                    }
+                }
             };
+
+            var options = new
+            {
+                responsive = true,
+                maintainAspectRatio = false,
+                plugins = new
+                {
+                    title = new
+                    {
+                        display = true,
+                        text = _settlementReport.TripName,
+                        font = new { size = 16 }
+                    },
+                    legend = new
+                    {
+                        position = "top"
+                    }
+                },
+                scales = new
+                {
+                    y = new
+                    {
+                        beginAtZero = true,
+                        ticks = new
+                        {
+                            // Format numbers with Persian locale
+                            callback = "@@function(value) { return value.toLocaleString('fa-IR') + ' تومان'; }"
+                        }
+                    }
+                }
+            };
+
+            if (_chartModule != null)
+            {
+                await _chartModule.InvokeVoidAsync("createBarChart", "settlementChart", chartData, options);
+            }
+            else
+            {
+                // Fallback to global method
+                await JSRuntime.InvokeVoidAsync("chartHelper.createBarChart", "settlementChart", chartData, options);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error drawing chart: {ex.Message}");
         }
     }
 
     private async Task ShowReceiptAsync(int debtId)
     {
-        var result = await _debtRecordService.GetPaymentReceipt(debtId);
-        if (!string.IsNullOrWhiteSpace(result))
+        try
         {
-            ReceiptImageSrc = $"data:image/jpeg;base64,{result}";
-            IsReceiptModalVisible = true;
+            var result = await _debtRecordService.GetPaymentReceipt(debtId);
+            if (!string.IsNullOrWhiteSpace(result))
+            {
+                ReceiptImageSrc = $"data:image/jpeg;base64,{result}";
+                IsReceiptModalVisible = true;
+            }
+            else
+            {
+                await _message.Warning("فیش پرداختی یافت نشد");
+            }
+        }
+        catch (Exception ex)
+        {
+            await _message.Error($"خطا در نمایش فیش: {ex.Message}");
         }
     }
 
     private async Task UploadReceiptAsync(InputFileChangeEventArgs e, int debtId)
     {
-        var file = e.File;
-        using var stream = file.OpenReadStream(long.MaxValue);
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-        var base64 = Convert.ToBase64String(ms.ToArray());
+        try
+        {
+            var file = e.File;
 
-        await _debtRecordService.UpdatePaymentReceipt(debtId, base64);
-        await OnInitializedAsync(); // Reload data to reflect changes
+            // Check file size (max 5MB)
+            if (file.Size > 5 * 1024 * 1024)
+            {
+                await _message.Warning("حجم فایل نباید بیشتر از 5 مگابایت باشد");
+                return;
+            }
+
+            using var stream = file.OpenReadStream(5 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var base64 = Convert.ToBase64String(ms.ToArray());
+
+            await _debtRecordService.UpdatePaymentReceipt(debtId, base64);
+            await _message.Success("فیش پرداخت با موفقیت آپلود شد");
+
+            // Reload data and redraw chart
+            _chartDrawn = false;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            await _message.Error($"خطا در آپلود فیش: {ex.Message}");
+        }
     }
 
-    // Model for chart data
-    public class ChartEntry
+    public async ValueTask DisposeAsync()
     {
-        public string FamilyName { get; set; }
-        public decimal Amount { get; set; }
-        public string Category { get; set; }
+        if (_chartModule != null)
+        {
+            await _chartModule.InvokeVoidAsync("destroyChart", "settlementChart");
+            await _chartModule.DisposeAsync();
+        }
     }
 }
