@@ -8,7 +8,7 @@ public class TripDTO
 
     [Required(ErrorMessage = "نام سفر الزامی است")]
     [StringLength(100)]
-    public string Name { get; set; }
+    public string Title { get; set; }
     public string TripProfileImage { get; set; } // Avatar
 
     [StringLength(500)]
@@ -19,6 +19,7 @@ public class TripDTO
 
     public DateTime? EndDate { get; set; }
     public int OwnerFamilyId { get; set; }
+    public decimal Budget { get; set; }
     public string OwnerFamilyProfile { get; set; }
     public string OwnerFamilyName { get; set; } // For the owner's name
 

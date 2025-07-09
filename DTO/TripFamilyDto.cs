@@ -5,7 +5,7 @@ public class TripFamilyDto
     public int FamilyId { get; set; }
     public int Id { get; set; }
     public int TripId { get; set; }
-    public string TripName{ get; set; }
+    public string TripTitle{ get; set; }
 
     public string FamilyName { get; set; }
     public int MemberCount { get; set; } // Total members in family

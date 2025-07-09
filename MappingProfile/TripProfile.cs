@@ -8,11 +8,13 @@ public partial class TripProfile : Profile
         CreateMap<CreateTripDto, Trip>();
         CreateMap<CreateTripDto, TripDTO>();
         // Trip mappings
-        CreateMap<Trip, TripDTO>().ForMember(dest => dest.FamilyIds, opt => opt.MapFrom(src => src.Families.Select(f => f.FamilyId)));
+        CreateMap<Trip, TripDTO>()
+            .ForMember(dest => dest.FamilyIds, opt => opt.MapFrom(src => src.Families.Select(f => f.FamilyId)))
+              .ForMember(dest => dest.Budget, opt => opt.MapFrom(src => src.Expenses.Sum(x=>x.Amount)));
         CreateMap<DebtRecord, DebtRecordDto>()
             .ForMember(dest => dest.FromFamilyName, opt => opt.MapFrom(src => src.FromFamily.Name))
             .ForMember(dest => dest.ToFamilyName, opt => opt.MapFrom(src => src.ToFamily.Name))
-            .ForMember(dest => dest.TripName, opt => opt.MapFrom(src => src.Trip.Name))
+            .ForMember(dest => dest.TripName, opt => opt.MapFrom(src => src.Trip.Title))
         ;
 
 
@@ -26,7 +28,7 @@ public partial class TripProfile : Profile
         CreateMap<TripFamily, TripFamilyDto>()
             .ForMember(dest => dest.FamilyName, opt => opt.MapFrom(src => src.Family.Name))
             .ForMember(dest => dest.AccountNumber, opt => opt.MapFrom(src => src.Family.AccountNumber))
-            .ForMember(dest => dest.TripName, opt => opt.MapFrom(src => src.Trip.Name))
+            .ForMember(dest => dest.TripTitle, opt => opt.MapFrom(src => src.Trip.Title))
             .ForMember(dest => dest.TripId, opt => opt.MapFrom(src => src.Trip.Id));
 
         // Expense mappings

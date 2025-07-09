@@ -3,7 +3,7 @@
 <Modal Title="@Title" Visible="@Visible" OnOk="OnSave" OnCancel="@(() => OnCancel.InvokeAsync())">
     <Form Model="@TripModel">
         <FormItem Label="نام سفر">
-            <Input @bind-value="@TripModel.Name" />
+            <Input @bind-value="@TripModel.Title" />
         </FormItem>
         <FormItem Label="تاریخ شروع">
             <DatePicker @bind-value="@TripModel.StartDate" />
