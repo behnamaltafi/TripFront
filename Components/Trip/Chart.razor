@@ -1,315 +1,529 @@
-﻿@page "/trips/{TripId:int}"
-@using AntDesign
-@using AntDesign.TableModels
-@inject IJSRuntime JSRuntime
+﻿@using AntDesign
 @implements IAsyncDisposable
 
+<div class="chart-container">
+    <!-- Chart Header -->
+    <div class="chart-header">
+        <div class="chart-title-section">
+            <h3 class="chart-title">
+                <Icon Type="@IconType.Outline.BarChart" Class="chart-icon" />
+                نمودار تسویه حساب
+            </h3>
+            <p class="chart-subtitle">وضعیت بدهی و طلب خانواده‌ها</p>
+        </div>
+        <div class="chart-actions">
+            <Button Type="@ButtonType.Text"
+                    Icon="@IconType.Outline.Reload"
+                    OnClick="@RefreshChart"
+                    Class="refresh-btn">
+                بروزرسانی
+            </Button>
+        </div>
+    </div>
+
+    <!-- Chart Stats -->
+    <div class="chart-stats">
+        <div class="chart-stat-item positive">
+            <Icon Type="@IconType.Outline.ArrowUp" Class="stat-arrow" />
+            <div class="stat-info">
+                <span class="stat-label">مجموع طلب</span>
+                <span class="stat-value">@TotalCredit.ToString("N0") تومان</span>
+            </div>
+        </div>
+        <div class="chart-stat-item negative">
+            <Icon Type="@IconType.Outline.ArrowDown" Class="stat-arrow" />
+            <div class="stat-info">
+                <span class="stat-label">مجموع بدهی</span>
+                <span class="stat-value">@TotalDebt.ToString("N0") تومان</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Canvas -->
+    <div class="chart-wrapper">
+        @if (IsLoading)
+        {
+            <div class="chart-loading">
+                <Spin Size="@SpinSize.Large">
+                    <div class="loading-content">
+                        <Icon Type="@IconType.Outline.Loading3Quarters" Spin />
+                        <p>در حال بارگذاری نمودار...</p>
+                    </div>
+                </Spin>
+            </div>
+        }
+        else
+        {
+            <div class="chart-canvas-wrapper">
+                <canvas id="debtChart" class="debt-chart"></canvas>
+            </div>
+        }
+    </div>
+
+    <!-- Chart Legend -->
+    <div class="chart-legend">
+        <div class="legend-item">
+            <span class="legend-color positive"></span>
+            <span class="legend-label">طلبکار</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color negative"></span>
+            <span class="legend-label">بدهکار</span>
+        </div>
+    </div>
+
+    <!-- Family Details -->
+    @if (FamilyDebts.Any())
+    {
+        <div class="family-details">
+            <h4 class="details-title">جزئیات خانواده‌ها</h4>
+            <div class="family-cards">
+                @foreach (var family in FamilyDebts.OrderByDescending(f => Math.Abs(f.Amount)))
+                {
+                    <div class="family-card @(family.Amount >= 0 ? "creditor" : "debtor")">
+                        <div class="family-header">
+                            <div class="family-info">
+                                <div class="family-avatar">
+                                    <Icon Type="@(family.Amount >= 0 ? IconType.Outline.Plus : IconType.Outline.Minus)" />
+                                </div>
+                                <span class="family-name">@family.ToFamilyName</span>
+                            </div>
+                            <div class="family-balance">
+                                <span class="balance-amount">@Math.Abs(family.Amount).ToString("N0")</span>
+                                <span class="balance-label">@(family.Amount >= 0 ? "طلبکار" : "بدهکار")</span>
+                            </div>
+                        </div>
+
+                        @if (family.Amount < 0)
+                        {
+                            <div class="family-actions">
+                                <Upload Accept="image/*"
+                                        ShowUploadList="false"
+                                       >
+                                    <Button Type="@ButtonType.Default"
+                                            Icon="@IconType.Outline.Upload"
+                                            Size="@ButtonSize.Small"
+                                            Class="upload-btn">
+                                        آپلود رسید
+                                    </Button>
+                                </Upload>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
 <style>
+    /* Chart Container */
     .chart-container {
-        position: relative;
-        height: 400px;
-        width: 100%;
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    .receipt-image {
-        max-width: 100%;
-        height: auto;
+    /* Chart Header */
+    .chart-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chart-title-section {
+        flex: 1;
+    }
+
+    .chart-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .chart-icon {
+        font-size: 28px;
+    }
+
+    .chart-subtitle {
+        font-size: 14px;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    .refresh-btn {
+        color: white !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 8px !important;
+    }
+
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.3) !important;
+        }
+
+    /* Chart Stats */
+    .chart-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        padding: 24px;
+        background: #fafafa;
+        border-bottom: 1px solid #e8e8e8;
+    }
+
+    .chart-stat-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: white;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+        .chart-stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+    .stat-arrow {
+        font-size: 24px;
+        padding: 12px;
         border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-stat-item.positive .stat-arrow {
+        background: rgba(82, 196, 26, 0.1);
+        color: #52c41a;
+    }
+
+    .chart-stat-item.negative .stat-arrow {
+        background: rgba(255, 77, 79, 0.1);
+        color: #ff4d4f;
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #8c8c8c;
+    }
+
+    .stat-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #262626;
+        margin-top: 4px;
+    }
+
+    /* Chart Wrapper */
+    .chart-wrapper {
+        padding: 24px;
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chart-loading {
+        text-align: center;
+    }
+
+    .chart-canvas-wrapper {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .debt-chart {
+        max-height: 400px !important;
+    }
+
+    /* Chart Legend */
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+        padding: 16px 24px;
+        border-top: 1px solid #e8e8e8;
+        border-bottom: 1px solid #e8e8e8;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+    }
+
+        .legend-color.positive {
+            background: #52c41a;
+        }
+
+        .legend-color.negative {
+            background: #ff4d4f;
+        }
+
+    .legend-label {
+        font-size: 14px;
+        color: #595959;
+    }
+
+    /* Family Details */
+    .family-details {
+        padding: 24px;
+    }
+
+    .details-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 16px;
+        color: #262626;
+    }
+
+    .family-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+    }
+
+    .family-card {
+        background: #fafafa;
+        border-radius: 12px;
+        padding: 16px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+        .family-card.creditor {
+            border-color: #52c41a20;
+        }
+
+        .family-card.debtor {
+            border-color: #ff4d4f20;
+        }
+
+        .family-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+    .family-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .family-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .family-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: white;
+    }
+
+    .family-card.creditor .family-avatar {
+        background: linear-gradient(135deg, #52c41a, #73d13d);
+    }
+
+    .family-card.debtor .family-avatar {
+        background: linear-gradient(135deg, #ff4d4f, #ff7875);
+    }
+
+    .family-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #262626;
+    }
+
+    .family-balance {
+        text-align: right;
+    }
+
+    .balance-amount {
+        font-size: 20px;
+        font-weight: 700;
+        display: block;
+    }
+
+    .family-card.creditor .balance-amount {
+        color: #52c41a;
+    }
+
+    .family-card.debtor .balance-amount {
+        color: #ff4d4f;
+    }
+
+    .balance-label {
+        font-size: 12px;
+        color: #8c8c8c;
+    }
+
+    .family-actions {
+        padding-top: 12px;
+        border-top: 1px solid #e8e8e8;
     }
 
     .upload-btn {
-        color: #1890ff;
-        cursor: pointer;
-        transition: color 0.3s;
+        width: 100%;
+        border-radius: 8px !important;
     }
 
-        .upload-btn:hover {
-            color: #40a9ff;
-            text-decoration: underline;
+    /* Mobile Responsive */
+    @@media (max-width: 768px) {
+        .chart-header {
+            padding: 20px 16px;
+            flex-direction: column;
+            gap: 16px;
         }
+
+        .chart-title {
+            font-size: 20px;
+        }
+
+        .chart-stats {
+            grid-template-columns: 1fr;
+            padding: 16px;
+        }
+
+        .chart-wrapper {
+            padding: 16px;
+        }
+
+        .family-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .chart-legend {
+            padding: 12px 16px;
+            gap: 24px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .chart-stat-item {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .stat-info {
+            align-items: center;
+        }
+    }
+
+    /* Dark Mode Support */
+    @@media (prefers-color-scheme: dark) {
+        .chart-container {
+            background: #1f1f1f;
+        }
+
+        .chart-stats {
+            background: #141414;
+        }
+
+        .chart-stat-item,
+        .family-card {
+            background: #262626;
+        }
+
+        .details-title,
+        .family-name,
+        .stat-value {
+            color: #f0f0f0;
+        }
+
+        .chart-legend,
+        .family-actions {
+            border-color: #303030;
+        }
+    }
 </style>
-
-<PageTitle>تسویه حساب سفر</PageTitle>
-
-<Row Gutter="16" Justify="RowJustify.Center">
-    <Col Xs="24" Lg="12">
-    <Card Title="جدول شرح بدهی‌ها" Bordered="true">
-        <Table TItem="DebtRecordDto"
-               DataSource="@Debts"
-               RowKey="d => d.Id"
-               Bordered="true"
-               Size="TableSize.Middle">
-            <ColumnDefinitions Context="row">
-                <PropertyColumn Property="d => d.FromFamilyName" Title="خانواده بدهکار" />
-                <PropertyColumn Property="d => d.ToFamilyName" Title="خانواده بستانکار" />
-                <PropertyColumn Property="d => d.ParticipantCount" Title="نفرات" />
-                <PropertyColumn Property="d => d.AmountWithToman" Title="مبلغ (تومان)">
-                    <Template>
-                        <Tag Color="TagColor.Blue">@row.AmountWithToman.ToString()</Tag>
-                    </Template>
-                </PropertyColumn>
-                <PropertyColumn Property="d => d.AccountNumber" Title="شماره کارت">
-                    <Template>
-                        <Text Code>@row.AccountNumber</Text>
-                    </Template>
-                </PropertyColumn>
-                <ActionColumn Title="عملیات">
-                    <Space Size="SpaceSize.Middle">
-                            @if (row.IsPaid)
-                            {
-                            <SpaceItem>
-                                <Button Type="@ButtonType.Link"
-                                        Icon="@IconType.Outline.Eye"
-                                        Size=" ButtonSize.Small"
-                                        OnClick="() => ShowReceiptAsync(row.Id)">
-                                    نمایش فیش
-                                </Button>
-                            </SpaceItem>
-                            }
-                            else
-                            {
-                            <SpaceItem>
-                                <label class="upload-btn">
-                                    <Icon Type="@IconType.Outline.Upload" />
-                                    آپلود فیش
-                                    <InputFile OnChange="e => UploadReceiptAsync(e, row.Id)"
-                                               style="display: none;"
-                                               accept="image/*" />
-                                </label>
-                            </SpaceItem>
-                            }
-                    </Space>
-                </ActionColumn>
-            </ColumnDefinitions>
-        </Table>
-    </Card>
-    </Col>
-
-    <Col Xs="24" Lg="12">
-    <Card Title="نمودار پرداختی‌ها و سهم هر خانواده" Bordered="true">
-            @if (_isLoading)
-            {
-            <div style="text-align: center; padding: 50px;">
-                <Spin Size="SpinSize.Large" />
-            </div>
-            }
-            else
-            {
-            <div class="chart-container">
-                <canvas id="settlementChart"></canvas>
-            </div>
-            }
-    </Card>
-    </Col>
-</Row>
-
-<Modal @bind-Visible="@IsReceiptModalVisible"
-       Title="تصویر فیش پرداخت"
-       Width="800"
-       Footer="null">
-    <img src="@ReceiptImageSrc" class="receipt-image" alt="فیش پرداخت" />
-</Modal>
 
 @code {
     [Parameter] public int TripId { get; set; }
-    [Inject] private IDebtRecordService _debtRecordService { get; set; }
-    [Inject] private ISettlementService _settlementService { get; set; }
-    [Inject] private IMessageService _message { get; set; }
+    [Parameter] public List<DebtRecordDto> FamilyDebts { get; set; } = new();
 
-    private List<DebtRecordDto> Debts = new();
-    private string ReceiptImageSrc = "";
-    private bool IsReceiptModalVisible = false;
-    private SettlementReportDto? _settlementReport;
-    private bool _isLoading = true;
-    private bool _chartDrawn = false;
+    private bool IsLoading { get; set; }
+    private decimal TotalCredit => FamilyDebts.Where(f => f.Amount >= 0).Sum(f => f.Amount);
+    private decimal TotalDebt => FamilyDebts.Where(f => f.Amount < 0).Sum(f => Math.Abs(f.Amount));
+
     private IJSObjectReference? _chartModule;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData();
-    }
+    private bool _chartDrawn = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // Import JavaScript module
-            _chartModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/chartHelper.js");
+            // _chartModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/chart.js");
         }
 
-        // Draw chart if data is available and chart hasn't been drawn yet
-        if (!_chartDrawn && _settlementReport != null && !_isLoading)
+        if (!_chartDrawn && FamilyDebts.Any() && _chartModule != null)
         {
             await DrawChart();
             _chartDrawn = true;
         }
     }
 
-    private async Task LoadData()
-    {
-        try
-        {
-            _isLoading = true;
-            _chartDrawn = false;
-
-            _settlementReport = await _settlementService.GetTripSettlementAsync(TripId);
-
-            if (_settlementReport is not null)
-            {
-                Debts = _settlementReport.OptimizedDebts;
-            }
-        }
-        catch (Exception ex)
-        {
-            await _message.Error($"خطا در بارگذاری داده‌ها: {ex.Message}");
-        }
-        finally
-        {
-            _isLoading = false;
-            StateHasChanged(); // Force re-render
-        }
-    }
-
     private async Task DrawChart()
     {
-        if (_settlementReport?.Families == null || !_settlementReport.Families.Any())
-            return;
+        var labels = FamilyDebts.Select(f => f.ToFamilyName).ToArray();
+        var data = FamilyDebts.Select(f => f.Amount).ToArray();
+        var colors = FamilyDebts.Select(f => f.Amount >= 0 ? "#52c41a" : "#ff4d4f").ToArray();
 
-        try
-        {
-            var labels = _settlementReport.Families.Select(f => f.FamilyName).ToArray();
-            var paidData = _settlementReport.Families.Select(f => (double)f.TotalPaid).ToArray();
-            var shareData = _settlementReport.Families.Select(f => (double)f.TotalShare).ToArray();
-
-            var chartData = new
-            {
-                labels = labels,
-                datasets = new[]
-                {
-                    new
-                    {
-                        label = "پرداختی",
-                        data = paidData,
-                        backgroundColor = "rgba(54, 162, 235, 0.8)",
-                        borderColor = "rgba(54, 162, 235, 1)",
-                        borderWidth = 1
-                    },
-                    new
-                    {
-                        label = "سهم",
-                        data = shareData,
-                        backgroundColor = "rgba(255, 99, 132, 0.8)",
-                        borderColor = "rgba(255, 99, 132, 1)",
-                        borderWidth = 1
-                    }
-                }
-            };
-
-            var options = new
-            {
-                responsive = true,
-                maintainAspectRatio = false,
-                plugins = new
-                {
-                    title = new
-                    {
-                        display = true,
-                        text = _settlementReport.TripName,
-                        font = new { size = 16 }
-                    },
-                    legend = new
-                    {
-                        position = "top"
-                    }
-                },
-                scales = new
-                {
-                    y = new
-                    {
-                        beginAtZero = true,
-                        ticks = new
-                        {
-                            // Format numbers with Persian locale
-                            callback = "@@function(value) { return value.toLocaleString('fa-IR') + ' تومان'; }"
-                        }
-                    }
-                }
-            };
-
-            if (_chartModule != null)
-            {
-                await _chartModule.InvokeVoidAsync("createBarChart", "settlementChart", chartData, options);
-            }
-            else
-            {
-                // Fallback to global method
-                await JSRuntime.InvokeVoidAsync("chartHelper.createBarChart", "settlementChart", chartData, options);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error drawing chart: {ex.Message}");
-        }
+        await _chartModule.InvokeVoidAsync("drawDebtChart", "debtChart", labels, data, colors);
     }
 
-    private async Task ShowReceiptAsync(int debtId)
+    private async Task RefreshChart()
     {
-        try
-        {
-            var result = await _debtRecordService.GetPaymentReceipt(debtId);
-            if (!string.IsNullOrWhiteSpace(result))
-            {
-                ReceiptImageSrc = $"data:image/jpeg;base64,{result}";
-                IsReceiptModalVisible = true;
-            }
-            else
-            {
-                await _message.Warning("فیش پرداختی یافت نشد");
-            }
-        }
-        catch (Exception ex)
-        {
-            await _message.Error($"خطا در نمایش فیش: {ex.Message}");
-        }
+        IsLoading = true;
+        await LoadData();
+        _chartDrawn = false;
+        IsLoading = false;
     }
 
-    private async Task UploadReceiptAsync(InputFileChangeEventArgs e, int debtId)
+    private async Task LoadData()
     {
-        try
-        {
-            var file = e.File;
+        // Load your data here
+        await Task.CompletedTask;
+    }
 
-            // Check file size (max 5MB)
-            if (file.Size > 5 * 1024 * 1024)
-            {
-                await _message.Warning("حجم فایل نباید بیشتر از 5 مگابایت باشد");
-                return;
-            }
-
-            using var stream = file.OpenReadStream(5 * 1024 * 1024);
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            var base64 = Convert.ToBase64String(ms.ToArray());
-
-            await _debtRecordService.UpdatePaymentReceipt(debtId, base64);
-            await _message.Success("فیش پرداخت با موفقیت آپلود شد");
-
-            // Reload data and redraw chart
-            _chartDrawn = false;
-            await LoadData();
-        }
-        catch (Exception ex)
-        {
-            await _message.Error($"خطا در آپلود فیش: {ex.Message}");
-        }
+    private async Task UploadReceipt(UploadInfo args, int familyId)
+    {
+        // Implement receipt upload logic
+        await Task.CompletedTask;
     }
 
     public async ValueTask DisposeAsync()
     {
         if (_chartModule != null)
         {
-            await _chartModule.InvokeVoidAsync("destroyChart", "settlementChart");
+            await _chartModule.InvokeVoidAsync("destroyChart", "debtChart");
             await _chartModule.DisposeAsync();
         }
     }

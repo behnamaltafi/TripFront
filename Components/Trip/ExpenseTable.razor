@@ -3,77 +3,661 @@
 @using AutoMapper
 @using FilterPagingEfCore.Extenstion
 @using FilterPagingEfCore.Filter
-@using FilterPagingEfCore.Paging
-@using Microsoft.AspNetCore.Components.Web
 @using TripFront.Components.FrontUtility
+@using FilterPagingEfCore.Paging
 
-<Table TItem="ExpenseDTO"
-DataSource="@Expenses"
-RowKey="e => e.Id"
-Bordered="true"
-Loading="@IsLoading"
-Total="@TotalCount"
-PageSize="@PageSize"
-OnChange="OnTableChange">
+<div class="expense-container">
+    <!-- Header Section -->
+    <div class="expense-header">
+        <div class="header-content">
+            <h2 class="header-title">
+                <Icon Type="@IconType.Outline.DollarCircle" Class="header-icon" />
+                مدیریت هزینه‌ها
+            </h2>
+            <p class="header-subtitle">ثبت و مدیریت هزینه‌های سفر</p>
+        </div>
+        <Button Type="@ButtonType.Primary"
+                Size="@ButtonSize.Large"
+                Icon="@IconType.Outline.Plus"
+                OnClick="@ShowAddModal"
+                Class="add-expense-btn">
+            <span class="btn-text">هزینه جدید</span>
+        </Button>
+    </div>
 
-    <TitleTemplate>
-        <Flex Justify="FlexJustify.End" Gap="@("10")">
-            <Button Type="ButtonType.Primary" Icon="plus" OnClick="ShowAddModal">افزودن هزینه جدید</Button>
-        </Flex>
-    </TitleTemplate>
+    <!-- Stats Cards -->
+    <div class="expense-stats">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper primary">
+                <Icon Type="@IconType.Outline.Calculator" />
+            </div>
+            <div class="stat-content">
+                <span class="stat-value">@Expenses.Sum(e => e.Amount).ToString("N0")</span>
+                <span class="stat-label">مجموع هزینه‌ها</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon-wrapper success">
+                <Icon Type="@IconType.Outline.FileText" />
+            </div>
+            <div class="stat-content">
+                <span class="stat-value">@Expenses.Count</span>
+                <span class="stat-label">تعداد هزینه</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon-wrapper warning">
+                <Icon Type="@IconType.Outline.Team" />
+            </div>
+            <div class="stat-content">
+                <span class="stat-value">@Families.Count</span>
+                <span class="stat-label">خانواده‌ها</span>
+            </div>
+        </div>
+    </div>
 
-    <ColumnDefinitions Context="row">
-        <PropertyColumn Property="r => r.FamilyName" Title="نام" Filterable />
-        <PropertyColumn Property="r => r.Description" Title="توضیحات" Filterable />
-        <PropertyColumn Property="r => r.Amount" Title="هزینه" Sortable Filterable />
-        <ActionColumn Title="عملیات">
-            <Space Size="SpaceSize.Middle">
-                <SpaceItem>
-                    <a @onclick="() => Edit(row.Id)">ویرایش</a>
-                </SpaceItem>
-                <SpaceItem>
-                    <a @onclick="() => DeleteAsync(row.Id)">حذف</a>
-                </SpaceItem>
-            </Space>
-        </ActionColumn>
-    </ColumnDefinitions>
-</Table>
+    <!-- Main Content -->
+    <div class="expense-content">
+        @if (IsLoading)
+        {
+            <div class="loading-state">
+                <Spin Size="@SpinSize.Large">
+                    <div class="loading-text">
+                        <Icon Type="@IconType.Outline.Loading3Quarters" Spin Class="loading-icon" />
+                        <p>در حال بارگذاری هزینه‌ها...</p>
+                    </div>
+                </Spin>
+            </div>
+        }
+        else if (!Expenses.Any())
+        {
+            <div class="empty-state">
+                <Empty Description="@Empty"
+                       Class="custom-empty">
+                    <ChildContent>
+                        <Button Type="@ButtonType.Primary"
+                                Icon="@IconType.Outline.Plus"
+                                OnClick="@ShowAddModal">
+                            اولین هزینه را ثبت کنید
+                        </Button>
+                    </ChildContent>
+                </Empty>
+            </div>
+        }
+        else
+        {
+            <!-- Expense List -->
+            <div class="expense-list">
+                @foreach (var expense in Expenses)
+                {
+                    <div class="expense-card">
+                        <div class="expense-card-header">
+                            <div class="expense-family">
+                                <div class="family-avatar">
+                                    <Icon Type="@IconType.Outline.User" />
+                                </div>
+                                <span class="family-name">@expense.FamilyName</span>
+                            </div>
+                            <div class="expense-amount">
+                                <span class="amount-value">@expense.Amount.ToString("N0")</span>
+                                <span class="amount-currency">تومان</span>
+                            </div>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(expense.Description))
+                        {
+                            <div class="expense-description">
+                                <Icon Type="@IconType.Outline.FileText" Class="desc-icon" />
+                                <span>@expense.Description</span>
+                            </div>
+                        }
+                        
+                        <div class="expense-actions">
+                            <Button Type="@ButtonType.Text"
+                                    Icon="@IconType.Outline.Edit"
+                                    OnClick="@(() => Edit(expense.Id))"
+                                    Class="action-btn edit">
+                                ویرایش
+                            </Button>
+                            <Popconfirm Title="آیا از حذف این هزینه اطمینان دارید؟"
+                                        OnConfirm="@(() => DeleteAsync(expense.Id))"
+                                        OkText="بله"
+                                        CancelText="خیر">
+                                <Button Type="@ButtonType.Text"
+                                        Danger
+                                        Icon="@IconType.Outline.Delete"
+                                        Class="action-btn delete">
+                                    حذف
+                                </Button>
+                            </Popconfirm>
+                        </div>
+                    </div>
+                }
+            </div>
 
-<Modal Title="افزودن هزینه جدید"
-Visible="@IsAddModalVisible"
-OnOk="Save"
-OnCancel="CloseAddModal"
-OkText="@OK"
-CancelText="@Cancel"
-DestroyOnClose="true">
+            <!-- Pagination -->
+            @if (TotalCount > PageSize)
+            {
+                <div class="expense-pagination">
+                    <Pagination Current="@CurrentPage"
+                                PageSize="@PageSize"
+                                Total="@TotalCount"
+                                ShowSizeChanger="false"
+                           />
 
-    <Form Model="@Model" Layout="FormLayout.Vertical">
-        <FormItem Label="خانواده پرداخت‌کننده">
-            <Select DataSource="@Families"
-            Value="@SelectedFamilyId"
-            ValueChanged="@((int? value) => OnFamilyChanged(value))"
-            ItemValue="p => p.Id"
-            ItemLabel="p => p.Name"
-            EnableSearch="true"
-            Placeholder="انتخاب خانواده"
-            OnFocus="@Focus"
-            OnSearch="async (value) => await Search(value)"
-            AutoClearSearchValue="false" />
-        </FormItem>
+                </div>
+            }
+        }
+    </div>
 
-        <FormItem Label="مبلغ" Required>
-            <Input Number @bind-Value="Model.Amount" />
-        </FormItem>
+    <!-- Add/Edit Modal -->
+    <Modal Title="@(Model.Id == 0 ? "ثبت هزینه جدید" : "ویرایش هزینه")"
+           Visible="@IsAddModalVisible"
+           OnOk="@Save"
+           OnCancel="@CloseAddModal"
+           OkText="@OK"
+           CancelText="@Cancel"
+           Width="500"
+           Class="expense-modal">
+        <Form Model="@Model" Class="expense-form">
+            <FormItem Label="خانواده پرداخت‌کننده" Required>
+                <Select DataSource="@Families"
+                        Value="@SelectedFamilyId"
+                        ValueChanged="@((int? value) => OnFamilyChanged(value))"
+                        ItemValue="p => p.Id"
+                        ItemLabel="p => p.Name"
+                        EnableSearch="true"
+                        Placeholder="انتخاب خانواده"
+                        OnFocus="@Focus"
+                        Size="@InputSize.Large"
+                        Class="form-select"
+                        OnSearch="async (value) => await Search(value)"
+                        AutoClearSearchValue="false" />
+               
+            </FormItem>
 
-        <FormItem Label="توضیحات">
-            <Input Type="InputType.Text"  @bind-value="Model.Description" Rows="3" />
-        </FormItem>
-    </Form>
-</Modal>
+            <FormItem Label="مبلغ (تومان)" Required>
+                <Input Number @bind-Value="@Model.Amount"
+                             Min="0"
+                       
+                             Size="@InputSize.Large"
+                             Class="form-input-number" />
+            </FormItem>
+
+            <FormItem Label="توضیحات">
+                <TextArea @bind-Value="@Model.Description"
+                          Rows="3"
+                          MaxLength="200"
+                          ShowCount
+                          Size="@InputSize.Large"
+                          Placeholder="توضیحات اختیاری..."
+                          Class="form-textarea" />
+            </FormItem>
+        </Form>
+    </Modal>
+</div>
+
+<style>
+    /* Import Vazir Font */
+    @@import url('https://fonts.googleapis.com/css2?family=Vazir:wght@300;400;500;600;700&display=swap');
+
+    /* Expense Container */
+    .expense-container {
+        font-family: 'Vazir', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        min-height: 100%;
+        background: #f5f7fa;
+        border-radius: 24px;
+        overflow: hidden;
+    }
+
+    /* Header Section */
+    .expense-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 32px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .header-content {
+        flex: 1;
+    }
+
+    .header-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-icon {
+        font-size: 32px;
+    }
+
+    .header-subtitle {
+        font-size: 16px;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    .add-expense-btn {
+        height: 48px !important;
+        padding: 0 24px !important;
+        font-size: 16px !important;
+        font-weight: 500;
+        border-radius: 12px !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+    .add-expense-btn:hover {
+        background: rgba(255, 255, 255, 0.3) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Stats Cards */
+    .expense-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        padding: 24px;
+        background: white;
+        border-bottom: 1px solid #e8e8e8;
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px;
+        background: #fafafa;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .stat-icon-wrapper.primary {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+    }
+
+    .stat-icon-wrapper.success {
+        background: rgba(82, 196, 26, 0.1);
+        color: #52c41a;
+    }
+
+    .stat-icon-wrapper.warning {
+        background: rgba(250, 173, 20, 0.1);
+        color: #faad14;
+    }
+
+    .stat-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #262626;
+        line-height: 1.2;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #8c8c8c;
+        margin-top: 4px;
+    }
+
+    /* Main Content */
+    .expense-content {
+        padding: 24px;
+        background: white;
+        min-height: 400px;
+    }
+
+    /* Loading & Empty States */
+    .loading-state,
+    .empty-state {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 300px;
+    }
+
+    .loading-text {
+        text-align: center;
+    }
+
+    .loading-icon {
+        font-size: 48px;
+        color: #667eea;
+        margin-bottom: 16px;
+    }
+
+    /* Expense List */
+    .expense-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .expense-card {
+        background: #fafafa;
+        border-radius: 16px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+
+    .expense-card:hover {
+        background: white;
+        border-color: #e8e8e8;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .expense-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .expense-family {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .family-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+    }
+
+    .family-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #262626;
+    }
+
+    .expense-amount {
+        text-align: right;
+    }
+
+    .amount-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #667eea;
+        display: block;
+    }
+
+    .amount-currency {
+        font-size: 14px;
+        color: #8c8c8c;
+    }
+
+    .expense-description {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 12px;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        color: #595959;
+        font-size: 14px;
+    }
+
+    .desc-icon {
+        color: #8c8c8c;
+        margin-top: 2px;
+    }
+
+    .expense-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        padding-top: 12px;
+        border-top: 1px solid #e8e8e8;
+    }
+
+    .action-btn {
+        padding: 6px 16px !important;
+        border-radius: 8px !important;
+        font-size: 14px !important;
+        transition: all 0.3s ease;
+    }
+
+    .action-btn.edit:hover {
+        background: rgba(102, 126, 234, 0.1) !important;
+        color: #667eea !important;
+    }
+
+    .action-btn.delete:hover {
+        background: rgba(255, 77, 79, 0.1) !important;
+    }
+
+    /* Pagination */
+    .expense-pagination {
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #e8e8e8;
+        display: flex;
+        justify-content: center;
+    }
+
+    /* Modal Styling */
+    .expense-modal .ant-modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px 24px;
+    }
+
+    .expense-modal .ant-modal-title {
+        color: white;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .expense-modal .ant-modal-close {
+        color: white;
+    }
+
+    .expense-modal .ant-modal-body {
+        padding: 24px;
+    }
+
+    .expense-form .ant-form-item {
+        margin-bottom: 20px;
+    }
+
+    .expense-form .ant-form-item-label > label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #595959;
+    }
+
+    /* Form Controls */
+    .form-select,
+    .form-input-number,
+    .form-textarea {
+        width: 100% !important;
+    }
+
+    .ant-select-lg,
+    .ant-input-number-lg,
+    .ant-input-affix-wrapper-lg {
+        height: 48px !important;
+        font-size: 16px !important;
+        border-radius: 12px !important;
+        border: 2px solid #e8e8e8 !important;
+    }
+
+    .ant-input-textarea textarea {
+        font-size: 16px !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+        border: 2px solid #e8e8e8 !important;
+    }
+
+    .ant-select:hover .ant-select-selector,
+    .ant-input-number:hover,
+    .ant-input-textarea:hover textarea {
+        border-color: #667eea !important;
+    }
+
+    .ant-select-focused .ant-select-selector,
+    .ant-input-number-focused,
+    .ant-input-textarea-focused textarea {
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+    }
+
+    /* Mobile Responsive */
+    @@media (max-width: 768px) {
+        .expense-header {
+            padding: 24px 16px;
+        }
+
+        .header-title {
+            font-size: 24px;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+        }
+
+        .add-expense-btn .btn-text {
+            display: none;
+        }
+
+        .add-expense-btn {
+            width: 48px !important;
+            height: 48px !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+        }
+
+        .expense-stats {
+            grid-template-columns: 1fr;
+            padding: 16px;
+            gap: 12px;
+        }
+
+        .expense-content {
+            padding: 16px;
+        }
+
+        .expense-card {
+            padding: 16px;
+        }
+
+        .expense-card-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .expense-amount {
+            text-align: left;
+            padding: 12px 0;
+            border-top: 1px solid #e8e8e8;
+            border-bottom: 1px solid #e8e8e8;
+            width: 100%;
+        }
+
+        .expense-actions {
+            justify-content: center;
+        }
+
+        .expense-modal {
+            max-width: calc(100vw - 32px) !important;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .stat-card {
+            flex-direction: column;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .amount-value {
+            font-size: 20px;
+        }
+    }
+
+    /* Dark Mode Support */
+    @@media (prefers-color-scheme: dark) {
+        .expense-container {
+            background: #141414;
+        }
+
+        .expense-stats,
+        .expense-content {
+            background: #1f1f1f;
+        }
+
+        .stat-card,
+        .expense-card {
+            background: #262626;
+        }
+
+        .expense-card:hover {
+            background: #2f2f2f;
+        }
+
+        .expense-description {
+            background: #1f1f1f;
+        }
+
+        .family-name,
+        .stat-value {
+            color: #f0f0f0;
+        }
+
+        .expense-card-header,
+        .expense-actions {
+            border-color: #303030;
+        }
+    }
+</style>
+
 @code {
+    // Your existing code remains the same
     [Inject] private IExpenseService _expenseService { get; set; }
     [Inject] private ITripService _tripService{ get; set; }
     [Inject] private IMapper _mapper { get; set; }
+    [Inject] private IMessageService _message { get; set; }
 
     [Parameter] public int TripId { get; set; }
     [Parameter] public List<FamilyDTO> Families { get; set; } = new();
@@ -83,8 +667,9 @@ DestroyOnClose="true">
     private int? SelectedFamilyId { get; set; }
     private bool IsAddModalVisible { get; set; }
 
-    private string OK => "ثبت";
+    private string OK => Model.Id == 0 ? "ثبت" : "ذخیره تغییرات";
     private string Cancel => "انصراف";
+    private string Empty => "هنوز هزینه‌ای ثبت نشده است";
 
     private int CurrentPage { get; set; } = 1;
     private int PageSize { get; set; } = 10;
@@ -102,7 +687,7 @@ DestroyOnClose="true">
     private async Task RefreshTableAsync()
     {
         // Use the last query or a default one
-        await LoadExpensesAsync(_lastQueryModel ?? new QueryModel<ExpenseDTO>(1,1,1,null,null));
+        await LoadExpensesAsync(_lastQueryModel ?? new QueryModel<ExpenseDTO>(1, 1, 1, null, null));
     }
 
     private async Task LoadExpensesAsync(QueryModel<ExpenseDTO> queryModel)
@@ -122,6 +707,15 @@ DestroyOnClose="true">
         {
             IsLoading = false;
         }
+    }
+    private string ShowTotalText(int total)
+    {
+        return $"مجموع {total} هزینه";
+    }
+
+    private async Task OnPageChanged(int page, int pageSize)
+    {
+        await OnTableChange(new QueryModel<ExpenseDTO>(page, pageSize, TotalCount, null, null));
     }
     private void ShowAddModal()
     {
@@ -231,5 +825,3 @@ DestroyOnClose="true">
 
     }
 }
-
-
