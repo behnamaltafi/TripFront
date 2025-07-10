@@ -1,14 +1,17 @@
 ﻿using System.Globalization;
-
-public static class DateTimeExtensions
+namespace TripFront
 {
-    public static string ToShamsi(this DateTime date)
+    public static class DateTimeExtensions
     {
-        PersianCalendar pc = new PersianCalendar();
-        int year = pc.GetYear(date);
-        int month = pc.GetMonth(date);
-        int day = pc.GetDayOfMonth(date);
+        public static string ToShamsi(this DateTime date)
+        {
+            PersianCalendar pc = new PersianCalendar();
+            int year = pc.GetYear(date);
+            int month = pc.GetMonth(date);
+            int day = pc.GetDayOfMonth(date);
 
-        return $"{year:0000}/{month:00}/{day:00}";
+            return $"{year:0000}/{month:00}/{day:00}";
+        }
     }
 }
+

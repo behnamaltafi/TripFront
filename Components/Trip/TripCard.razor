@@ -1,5 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
 @using AntDesign
+@using TripFront
+
 
 <div class="trip-card-modern" @onclick="HandleCardClick">
     <div class="card-image-container">
@@ -15,7 +17,7 @@
                             Icon="@IconType.Outline.Edit"
                             Class="action-btn edit-btn"
                             OnClick="@OnEdit"
-                            />
+                            OnClickStopPropagation />
                 </Tooltip>
                 
                 <Tooltip Title="هزینه‌ها">
@@ -24,6 +26,7 @@
                             Icon="@IconType.Outline.DollarCircle"
                             Class="action-btn expense-btn"
                             OnClick="@OnExpenses"
+                            OnClickStopPropagation
                            />
                 </Tooltip>
                 
@@ -32,8 +35,8 @@
                             OkText="بله"
                             CancelText="خیر"
                             Placement="@Placement.TopRight">
-                    <Tooltip Title="حذف">
-                        <Button Type="@ButtonType.Text" 
+                    <Tooltip   Title="حذف" >
+                        <Button       OnClickStopPropagation Type="@ButtonType.Text" 
                                 Shape="@ButtonShape.Circle"
                                 Icon="@IconType.Outline.Delete"
                                 Class="action-btn delete-btn"
@@ -48,14 +51,7 @@
                 @GetTripStatus()
             </Tag>
         </div>
-        
-        <div class="owner-avatar">
-            <Avatar Size="AvatarSize.Large"
-                    Src="@GetOwnerAvatar()"
-                    Text="@GetOwnerInitials()"
-                    Icon="@IconType.Outline.User"
-                    Class="avatar-shadow" />
-        </div>
+
     </div>
     
     <div class="card-content">
@@ -63,7 +59,7 @@
             <h3 class="card-title">@Trip.Title</h3>
             <div class="card-owner">
                 <Icon Type="@IconType.Outline.User" />
-                <span>@Trip.OwnerFamilyName</span>
+                 <span> @Trip.OwnerFamilyName</span>
             </div>
         </div>
         
@@ -75,14 +71,14 @@
         <div class="card-meta">
             <div class="meta-item">
                 <Icon Type="@IconType.Outline.Calendar" />
-                <span>@Trip.StartDate.ToString("yyyy/MM/dd")</span>
+                <span>@Trip.StartDate.ToShamsi()</span>
             </div>
             
             @if (Trip.EndDate.HasValue)
             {
                 <div class="meta-item">
                     <Icon Type="@IconType.Outline.ArrowLeft" />
-                    <span>@Trip.EndDate.Value.ToString("yyyy/MM/dd")</span>
+                    <span>@Trip.EndDate.Value.ToShamsi()</span>
                 </div>
             }
             
@@ -388,7 +384,7 @@
     
     .trip-progress {
         flex: 1;
-        max-width: 100px;
+        max-width: 80%;
     }
     
     /* Responsive Design */
@@ -536,7 +532,7 @@
     {
         if (progress < 30) return "#52c41a";
         if (progress < 70) return "#1890ff";
-        return "#faad14";
+        return "#e72929";
     }
 
     private async Task HandleCardClick() => await OnClick.InvokeAsync();
