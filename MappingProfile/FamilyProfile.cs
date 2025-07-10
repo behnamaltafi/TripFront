@@ -21,7 +21,6 @@ public partial class TripProfile
  .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Family.Name))
  .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.FamilyId))
  .ForMember(dest => dest.AccountNumber, opt => opt.MapFrom(src => src.Family.AccountNumber))
- .ForMember(dest => dest.ProfileImage, opt => opt.MapFrom(src => src.Family.ProfileImage))
  
  .ReverseMap();
 

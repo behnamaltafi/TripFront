@@ -2,7 +2,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
-
 @inherits LayoutComponentBase
 
 <Layout Class="app-layout">
@@ -10,7 +9,7 @@
         <div class="header-content">
             <div class="logo-section">
                 <Icon Type="@IconType.Outline.Compass" Theme="IconThemeType.Outline" Class="logo-icon" />
-                <span class="app-title">دنگچی</span>
+                <span class="app-title">دونگچی</span>
             </div>
 
             <div class="header-actions">
@@ -43,7 +42,7 @@
                         </Menu>
                     </Overlay>
                     <ChildContent>
-                        <Avatar Size="AvatarSize.Large" Src="https://i.pravatar.cc/150?img=3" Class="user-avatar" />
+                        <Avatar Size="AvatarSize.Large" Src="@GetprofileImage()" Class="user-avatar" />
                     </ChildContent>
                 </Dropdown>
             </div>
@@ -67,153 +66,154 @@
 
 <style>
     :root {
-        --primary-color: #1890ff;
-        --secondary-color: #52c41a;
-        --danger-color: #ff4d4f;
-        --warning-color: #faad14;
-        --header-height: 64px;
-        --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
-        --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-        --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    --primary-color: #1890ff;
+    --secondary-color: #52c41a;
+    --danger-color: #ff4d4f;
+    --warning-color: #faad14;
+    --header-height: 64px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
     }
 
     * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
     }
 
     .app-layout {
-        min-height: 100vh;
-        background: #f5f7fa;
+    min-height: 100vh;
+    background: #f5f7fa;
     }
 
     .app-header {
-        background: white !important;
-        padding: 0 !important;
-        height: var(--header-height);
-        box-shadow: var(--shadow-sm);
-        position: fixed;
-        width: 100%;
-        top: 0;
-        z-index: 1000;
+    background: white !important;
+    padding: 0 !important;
+    height: var(--header-height);
+    box-shadow: var(--shadow-sm);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
     }
 
     .header-content {
-        max-width: 1400px;
-        margin: 0 auto;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
     }
 
     .logo-section {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     }
 
     .logo-icon {
-        font-size: 32px;
-        color: var(--primary-color);
+    font-size: 32px;
+    color: var(--primary-color);
     }
 
     .app-title {
-        font-size: 24px;
-        font-weight: 600;
-        color: #1a1a1a;
-        font-family: 'Vazir', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1a1a1a;
+    font-family: 'Vazir', sans-serif;
     }
 
     .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
     }
 
     .header-btn {
-        font-size: 20px;
-        color: #666;
-        transition: all 0.3s ease;
+    font-size: 20px;
+    color: #666;
+    transition: all 0.3s ease;
     }
 
-        .header-btn:hover {
-            color: var(--primary-color);
-            transform: scale(1.1);
-        }
+    .header-btn:hover {
+    color: var(--primary-color);
+    transform: scale(1.1);
+    }
 
     .notification-badge {
-        margin-right: 8px;
+    margin-right: 8px;
     }
 
     .user-avatar {
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
     }
 
-        .user-avatar:hover {
-            transform: scale(1.05);
-            border-color: var(--primary-color);
-            box-shadow: var(--shadow-md);
-        }
+    .user-avatar:hover {
+    transform: scale(1.05);
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+    }
 
     .profile-menu {
-        min-width: 180px;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: var(--shadow-lg);
+    min-width: 180px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
     }
 
-        .profile-menu .ant-menu-item {
-            font-family: 'Vazir', sans-serif;
-            transition: all 0.3s ease;
-        }
+    .profile-menu .ant-menu-item {
+    font-family: 'Vazir', sans-serif;
+    transition: all 0.3s ease;
+    }
 
-            .profile-menu .ant-menu-item:hover {
-                background: #f0f5ff;
-                color: var(--primary-color);
-            }
+    .profile-menu .ant-menu-item:hover {
+    background: #f0f5ff;
+    color: var(--primary-color);
+    }
 
     .logout-item:hover {
-        background: #fff1f0 !important;
-        color: var(--danger-color) !important;
+    background: #fff1f0 !important;
+    color: var(--danger-color) !important;
     }
 
     .main-content {
-        margin-top: var(--header-height);
-        min-height: calc(100vh - var(--header-height));
-        background: transparent;
+    margin-top: var(--header-height);
+    min-height: calc(100vh - var(--header-height));
+    background: transparent;
     }
 
     .error-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 400px;
-        color: var(--danger-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    color: var(--danger-color);
     }
 
     .error-icon {
-        font-size: 48px;
-        margin-bottom: 16px;
+    font-size: 48px;
+    margin-bottom: 16px;
     }
 
     @@media (max-width: 768px) {
-        .app-title {
-            font-size: 20px;
-        }
+    .app-title {
+    font-size: 20px;
+    }
 
-        .header-content {
-            padding: 0 16px;
-        }
+    .header-content {
+    padding: 0 16px;
+    }
     }
 </style>
 
 @code {
+    [Inject] private IFamilyService _familyService{ get; set; }
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -233,6 +233,10 @@
     private void NavigateToFriends()
     {
         Navigation.NavigateTo("/friends");
+    }
+    private string GetprofileImage()
+    {
+        return _familyService.GetprofileImage();
     }
 
     private async Task Logout()

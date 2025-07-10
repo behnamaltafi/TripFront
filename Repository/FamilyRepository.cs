@@ -11,5 +11,12 @@ public class FamilyRepository : GenericRepository<Family, int>, IFamilyRepositor
         _context = context;
         _mapper = mapper;
     }
-   
+
+
+    public async Task<string> GetProfileByFamilyId(int id)
+    {
+        return await _context.Set<Family>().Where(x => x.Id == id).Select(x => x.ProfileImage).FirstOrDefaultAsync();
+    }
+
+
 }

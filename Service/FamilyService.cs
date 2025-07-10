@@ -5,18 +5,38 @@ using FilterPagingEfCore.Paging;
 public class FamilyService : IFamilyService
 {
     private readonly IFamilyRepository _familyRepository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMapper _mapper;
 
-    public FamilyService(IFamilyRepository familyRepository, IMapper mapper)
+    public FamilyService(IFamilyRepository familyRepository, IMapper mapper, IHttpContextAccessor httpContextAccessor)
     {
         _familyRepository = familyRepository;
         _mapper = mapper;
+        _httpContextAccessor = httpContextAccessor;
     }
-
+    public int GetFamilyId()
+    {
+        var familyId = _httpContextAccessor.HttpContext?.User.FindFirst("familyId")?.Value;
+        if (familyId == null)
+            throw new UnauthorizedAccessException();
+        return int.Parse(familyId);
+    }
+    public  string GetprofileImage()
+    {
+        var profileImage = _httpContextAccessor.HttpContext?.User.FindFirst("profileImage")?.Value;
+        if (profileImage == null)
+            throw new UnauthorizedAccessException();
+        return profileImage;
+    }
     public async Task<FamilyDTO> Find(int id)
     {
         var family = await _familyRepository.Find<FamilyDTO>(id);
         return family;
+    }
+    public async Task<string> GetProfileByFamilyId(int id)
+    {
+        var profileImage = await _familyRepository.GetProfileByFamilyId(id);
+        return profileImage;
     }
     public async Task<FamilyDTO> GetByUserIdAsync(string userId)
     {

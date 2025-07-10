@@ -24,9 +24,11 @@ public class CustomClaimsPrincipalFactory : UserClaimsPrincipalFactory<Applicati
 
         // Always fetch and attach familyId dynamically (but NOT save to DB)
         var family = await _familyService.GetByUserIdAsync(user.Id);
+        var familyProfileImage = await _familyService.GetProfileByFamilyId(family.Id);
         if (family != null)
         {
             identity.AddClaim(new Claim("familyId", family.Id.ToString()));
+            identity.AddClaim(new Claim("profileImage", familyProfileImage));
         }
 
         return identity;

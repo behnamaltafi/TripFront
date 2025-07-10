@@ -4,536 +4,537 @@
 
 
 <div class="trip-card-modern" @onclick="HandleCardClick">
-    <div class="card-image-container">
-        <img src="@GetTripImage()" 
-             alt="@Trip.Title" 
-             class="card-image" />
-        
-        <div class="card-overlay">
-            <div class="card-actions">
-                <Tooltip Title="ویرایش">
-                    <Button Type="@ButtonType.Text" 
-                            Shape="@ButtonShape.Circle"
-                            Icon="@IconType.Outline.Edit"
-                            Class="action-btn edit-btn"
-                            OnClick="@OnEdit"
-                            OnClickStopPropagation />
-                </Tooltip>
-                
-                <Tooltip Title="هزینه‌ها">
-                    <Button Type="@ButtonType.Text" 
-                            Shape="@ButtonShape.Circle"
-                            Icon="@IconType.Outline.DollarCircle"
-                            Class="action-btn expense-btn"
-                            OnClick="@OnExpenses"
-                            OnClickStopPropagation
-                           />
-                </Tooltip>
-                
-                <Popconfirm Title="آیا از حذف این سفر اطمینان دارید؟"
-                            OnConfirm="@OnDelete"
-                            OkText="بله"
-                            CancelText="خیر"
-                            Placement="@Placement.TopRight">
-                    <Tooltip   Title="حذف" >
-                        <Button       OnClickStopPropagation Type="@ButtonType.Text" 
-                                Shape="@ButtonShape.Circle"
-                                Icon="@IconType.Outline.Delete"
-                                Class="action-btn delete-btn"
-                               />
-                    </Tooltip>
-                </Popconfirm>
-            </div>
-        </div>
-        
-        <div class="card-badge">
-            <Tag Color="@GetStatusColor()" Class="status-tag">
-                @GetTripStatus()
-            </Tag>
-        </div>
+	<div class="card-image-container">
+		<img src="@GetTripImage()"
+		alt="@Trip.Title"
+		class="card-image" />
 
-    </div>
-    
-    <div class="card-content">
-        <div class="card-header">
-            <h3 class="card-title">@Trip.Title</h3>
-            <div class="card-owner">
-                <Icon Type="@IconType.Outline.User" />
-                 <span> @Trip.OwnerFamilyName</span>
-            </div>
-        </div>
-        
-        @if (!string.IsNullOrWhiteSpace(Trip.Description))
-        {
-            <p class="card-description">@Trip.Description</p>
-        }
-        
-        <div class="card-meta">
-            <div class="meta-item">
-                <Icon Type="@IconType.Outline.Calendar" />
-                <span>@Trip.StartDate.ToShamsi()</span>
-            </div>
-            
-            @if (Trip.EndDate.HasValue)
-            {
-                <div class="meta-item">
-                    <Icon Type="@IconType.Outline.ArrowLeft" />
-                    <span>@Trip.EndDate.Value.ToShamsi()</span>
-                </div>
-            }
-            
-            <div class="meta-item">
-                <Icon Type="@IconType.Outline.Calendar" />
-                <span>@GetTripDuration() روز</span>
-            </div>
-        </div>
-        
-        @if (Trip.Budget!=0)
-        {
-            <div class="card-budget">
-                <Icon Type="@IconType.Outline.DollarCircle" />
-                <span class="budget-amount">@Trip.Budget.ToString("N0")</span>
-                <span class="budget-label">تومان</span>
-            </div>
-        }
-        
-        <div class="card-footer">
-            <div class="family-avatars">
-                @foreach (var (family, index) in Trip.Families.Select((value, i) => (value, i)))
-                {
-                    if (index < 4)
-                    {
-                        <Avatar Size="AvatarSize.Small"
-                                Src="@family.ProfileImage"
-                                Text="@GetFamilyInitials(family)"
-                                Class="family-avatar-item"
-                                Style="@($"margin-left: {(index > 0 ? -8 : 0)}px; z-index: {4 - index};")" />
-                    }
-                }
-                
-                @if (Trip.Families.Count > 4)
-                {
-                    <Avatar Size="AvatarSize.Small"
-                            Text="@($"+{Trip.Families.Count - 4}")"
-                            Class="family-avatar-more"
-                            Style="margin-left: -8px; z-index: 0; background: var(--primary-color); color: white;" />
-                }
-            </div>
-            
-            <div class="trip-progress">
-                @{
-                    var progress = CalculateTripProgress();
-                }
-                <Progress Percent="@progress" 
-                          ShowInfo="false"
-                          StrokeColor="@GetProgressColor(progress)"
-                          Size="@ProgressSize.Small" />
-            </div>
-        </div>
-    </div>
+		<div class="card-overlay">
+			<div class="card-actions">
+				<Tooltip Title="ویرایش">
+					<Button Type="@ButtonType.Text"
+					Shape="@ButtonShape.Circle"
+					Icon="@IconType.Outline.Edit"
+					Class="action-btn edit-btn"
+					OnClick="@OnEdit"
+					OnClickStopPropagation />
+				</Tooltip>
+
+				<Tooltip Title="هزینه‌ها">
+					<Button Type="@ButtonType.Text"
+					Shape="@ButtonShape.Circle"
+					Icon="@IconType.Outline.DollarCircle"
+					Class="action-btn expense-btn"
+					OnClick="@OnExpenses"
+					OnClickStopPropagation />
+				</Tooltip>
+
+				<Popconfirm Title="آیا از حذف این سفر اطمینان دارید؟"
+				OnConfirm="@OnDelete"
+				OkText="بله"
+				CancelText="خیر"
+				Placement="@Placement.TopRight">
+					<Tooltip Title="حذف">
+						<Button OnClickStopPropagation Type="@ButtonType.Text"
+						Shape="@ButtonShape.Circle"
+						Icon="@IconType.Outline.Delete"
+						Class="action-btn delete-btn" />
+					</Tooltip>
+				</Popconfirm>
+			</div>
+		</div>
+
+		<div class="card-badge">
+			<Tag Color="@GetStatusColor()" Class="status-tag">
+				@GetTripStatus()
+			</Tag>
+		</div>
+
+	</div>
+
+	<div class="card-content">
+		<div class="card-header">
+			<h3 class="card-title">@Trip.Title</h3>
+			<div class="card-owner">
+				<Icon Type="@IconType.Outline.User" />
+				<span> @Trip.OwnerFamilyName</span>
+			</div>
+		</div>
+
+		@if (!string.IsNullOrWhiteSpace(Trip.Description))
+		{
+			<p class="card-description">@Trip.Description</p>
+		}
+
+		<div class="card-meta">
+			<div class="meta-item">
+				<Icon Type="@IconType.Outline.Calendar" />
+				<span>@Trip.StartDate.ToShamsi()</span>
+			</div>
+
+			@if (Trip.EndDate.HasValue)
+			{
+				<div class="meta-item">
+					<Icon Type="@IconType.Outline.ArrowRight" />
+					<span>@Trip.EndDate.Value.ToShamsi()</span>
+				</div>
+			}
+
+			<div class="meta-item">
+				<Icon Type="@IconType.Outline.Calendar" />
+				<span>@GetTripDuration() روز</span>
+			</div>
+		</div>
+
+		@if (Trip.Budget != 0)
+		{
+			<div class="card-budget">
+				<Icon Type="@IconType.Outline.DollarCircle" />
+				<span class="budget-amount">@Trip.Budget.ToString("N0")</span>
+				<span class="budget-label">تومان</span>
+			</div>
+		}
+
+		<div class="card-footer">
+			<div class="family-avatars">
+				@foreach (var (family, index) in Trip.Families.Select((value, i) => (value, i)))
+				{
+					if (index < 4)
+					{
+						<Avatar Size="AvatarSize.Small"
+						Src="@GetFamilyImage(family.Id).Result"
+						Text="@GetFamilyInitials(family)"
+						Class="family-avatar-item"
+						Style="@($"margin-left: {(index > 0 ? -8 : 0)}px; z-index: {4 - index};")" />
+					}
+				}
+
+				@if (Trip.Families.Count > 4)
+				{
+					<Avatar Size="AvatarSize.Small"
+					Text="@($"+{Trip.Families.Count - 4}")"
+					Class="family-avatar-more"
+					Style="margin-left: -8px; z-index: 0; background: var(--primary-color); color: white;" />
+				}
+			</div>
+
+			<div class="trip-progress">
+				@{
+					var progress = CalculateTripProgress();
+				}
+				<Progress Percent="@progress"
+				ShowInfo="false"
+				StrokeColor="@GetProgressColor(progress)"
+				Size="@ProgressSize.Small" />
+			</div>
+		</div>
+	</div>
 </div>
 
 <style>
-    /* Modern Card Design */
-    .trip-card-modern {
-        background: var(--card-background, #ffffff);
-        border-radius: 16px;
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-    }
-    
-    .trip-card-modern:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-    }
-    
-    /* Image Section */
-    .card-image-container {
-        position: relative;
-        height: 200px;
-        overflow: hidden;
-    }
-    
-    .card-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-    
-    .trip-card-modern:hover .card-image {
-        transform: scale(1.05);
-    }
-    
-    /* Overlay for Actions */
-    .card-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to bottom, 
-            rgba(0, 0, 0, 0) 0%, 
-            rgba(0, 0, 0, 0.3) 100%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    
-    .trip-card-modern:hover .card-overlay {
-        opacity: 1;
-    }
-    
-    .card-actions {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        display: flex;
-        gap: 8px;
-        opacity: 0;
-        transform: translateY(-10px);
-        transition: all 0.3s ease;
-    }
-    
-    .trip-card-modern:hover .card-actions {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
-    .action-btn {
-        background: rgba(255, 255, 255, 0.9) !important;
-        backdrop-filter: blur(10px);
-        border: none;
-        width: 36px !important;
-        height: 36px !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-    }
-    
-    .action-btn:hover {
-        background: rgba(255, 255, 255, 1) !important;
-        transform: scale(1.1);
-    }
-    
-    .edit-btn:hover {
-        color: var(--primary-color, #1890ff);
-    }
-    
-    .expense-btn:hover {
-        color: var(--success-color, #52c41a);
-    }
-    
-    .delete-btn:hover {
-        color: var(--danger-color, #ff4d4f);
-    }
-    
-    /* Status Badge */
-    .card-badge {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-    }
-    
-    .status-tag {
-        backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.9);
-        border: none;
-        font-weight: 500;
-        padding: 4px 12px;
-    }
-    
-    /* Owner Avatar */
-    .owner-avatar {
-        position: absolute;
-        bottom: -24px;
-        right: 20px;
-        z-index: 5;
-    }
-    
-    .avatar-shadow {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        border: 3px solid white;
-    }
-    
-    /* Content Section */
-    .card-content {
-        padding: 24px 20px 20px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .card-header {
-        margin-bottom: 12px;
-    }
-    
-    .card-title {
-        font-size: 18px;
-        font-weight: 600;
-        margin: 0 0 4px;
-        color: var(--text-primary, #262626);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    
-    .card-owner {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 14px;
-        color: var(--text-secondary, #8c8c8c);
-    }
-    
-    .card-owner .anticon {
-        font-size: 12px;
-    }
-    
-    .card-description {
-        font-size: 14px;
-        color: var(--text-secondary, #8c8c8c);
-        margin: 0 0 16px;
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        line-height: 1.5;
-    }
-    
-    /* Meta Information */
-    .card-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        margin-bottom: 16px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid var(--border-color, #f0f0f0);
-    }
-    
-    .meta-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 13px;
-        color: var(--text-secondary, #8c8c8c);
-    }
-    
-    .meta-item .anticon {
-        font-size: 14px;
-        color: var(--primary-color, #1890ff);
-    }
-    
-    /* Budget */
-    .card-budget {
-        display: flex;
-        align-items: baseline;
-        gap: 4px;
-        margin-bottom: 16px;
-        font-size: 14px;
-    }
-    
-    .card-budget .anticon {
-        font-size: 16px;
-        color: var(--success-color, #52c41a);
-    }
-    
-    .budget-amount {
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--text-primary, #262626);
-    }
-    
-    .budget-label {
-        font-size: 12px;
-        color: var(--text-secondary, #8c8c8c);
-    }
-    
-    /* Footer */
-    .card-footer {
-        margin-top: auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-    }
-    
-    .family-avatars {
-        display: flex;
-        align-items: center;
-    }
-    
-    .family-avatar-item {
-        border: 2px solid white;
-        transition: transform 0.2s ease;
-    }
-    
-    .family-avatar-item:hover {
-        transform: translateY(-2px);
-        z-index: 10 !important;
-    }
-    
-    .family-avatar-more {
-        border: 2px solid white;
-        font-size: 11px;
-        font-weight: 600;
-    }
-    
-    .trip-progress {
-        flex: 1;
-        max-width: 80%;
-    }
-    
-    /* Responsive Design */
-    @@media (max-width: 768px) {
-        .card-image-container {
-            height: 160px;
-        }
-        
-        .card-content {
-            padding: 20px 16px 16px;
-        }
-        
-        .card-title {
-            font-size: 16px;
-        }
-        
-        .card-meta {
-            gap: 12px;
-        }
-        
-        .meta-item {
-            font-size: 12px;
-        }
-    }
-    
-    /* Dark Mode */
-    @@media (prefers-color-scheme: dark) {
-        .trip-card-modern {
-            background: #1f1f1f;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        
-        .trip-card-modern:hover {
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
-        }
-        
-        .action-btn {
-            background: rgba(40, 40, 40, 0.9) !important;
-            color: #f0f0f0;
-        }
-        
-        .action-btn:hover {
-            background: rgba(60, 60, 60, 1) !important;
-        }
-        
-        .status-tag {
-            background: rgba(40, 40, 40, 0.9);
-        }
-    }
+	/* Modern Card Design */
+	.trip-card-modern {
+	background: var(--card-background, #ffffff);
+	border-radius: 16px;
+	overflow: hidden;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	}
+
+	.trip-card-modern:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+	}
+
+	/* Image Section */
+	.card-image-container {
+	position: relative;
+	height: 200px;
+	overflow: hidden;
+	}
+
+	.card-image {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 0.3s ease;
+	}
+
+	.trip-card-modern:hover .card-image {
+	transform: scale(1.05);
+	}
+
+	/* Overlay for Actions */
+	.card-overlay {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 100%);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	}
+
+	.trip-card-modern:hover .card-overlay {
+	opacity: 1;
+	}
+
+	.card-actions {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	display: flex;
+	gap: 8px;
+	opacity: 0;
+	transform: translateY(-10px);
+	transition: all 0.3s ease;
+	}
+
+	.trip-card-modern:hover .card-actions {
+	opacity: 1;
+	transform: translateY(0);
+	}
+
+	.action-btn {
+	background: rgba(255, 255, 255, 0.9) !important;
+	backdrop-filter: blur(10px);
+	border: none;
+	width: 36px !important;
+	height: 36px !important;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.2s ease;
+	}
+
+	.action-btn:hover {
+	background: rgba(255, 255, 255, 1) !important;
+	transform: scale(1.1);
+	}
+
+	.edit-btn:hover {
+	color: var(--primary-color, #1890ff);
+	}
+
+	.expense-btn:hover {
+	color: var(--success-color, #52c41a);
+	}
+
+	.delete-btn:hover {
+	color: var(--danger-color, #ff4d4f);
+	}
+
+	/* Status Badge */
+	.card-badge {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	}
+
+	.status-tag {
+	backdrop-filter: blur(10px);
+	background: rgba(255, 255, 255, 0.9);
+	border: none;
+	font-weight: 500;
+	padding: 4px 12px;
+	}
+
+	/* Owner Avatar */
+	.owner-avatar {
+	position: absolute;
+	bottom: -24px;
+	right: 20px;
+	z-index: 5;
+	}
+
+	.avatar-shadow {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	border: 3px solid white;
+	}
+
+	/* Content Section */
+	.card-content {
+	padding: 24px 20px 20px;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	}
+
+	.card-header {
+	margin-bottom: 12px;
+	}
+
+	.card-title {
+	font-size: 18px;
+	font-weight: 600;
+	margin: 0 0 4px;
+	color: var(--text-primary, #262626);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	}
+
+	.card-owner {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 14px;
+	color: var(--text-secondary, #8c8c8c);
+	}
+
+	.card-owner .anticon {
+	font-size: 12px;
+	}
+
+	.card-description {
+	font-size: 14px;
+	color: var(--text-secondary, #8c8c8c);
+	margin: 0 0 16px;
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	line-height: 1.5;
+	}
+
+	/* Meta Information */
+	.card-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-bottom: 16px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid var(--border-color, #f0f0f0);
+	}
+
+	.meta-item {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	font-size: 14px;
+	color: var(--text-secondary, #8c8c8c);
+	}
+
+	.meta-item .anticon {
+	font-size: 19px;
+	color: var(--primary-color, #1890ff);
+	}
+
+	/* Budget */
+	.card-budget {
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+	margin-bottom: 16px;
+	font-size: 14px;
+	}
+
+	.card-budget .anticon {
+	font-size: 16px;
+	color: var(--success-color, #52c41a);
+	}
+
+	.budget-amount {
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--text-primary, #262626);
+	}
+
+	.budget-label {
+	font-size: 12px;
+	color: var(--text-secondary, #8c8c8c);
+	}
+
+	/* Footer */
+	.card-footer {
+	margin-top: auto;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	}
+
+	.family-avatars {
+	display: flex;
+	align-items: center;
+	}
+
+	.family-avatar-item {
+	border: 2px solid white;
+	transition: transform 0.2s ease;
+	}
+
+	.family-avatar-item:hover {
+	transform: translateY(-2px);
+	z-index: 10 !important;
+	}
+
+	.family-avatar-more {
+	border: 2px solid white;
+	font-size: 11px;
+	font-weight: 600;
+	}
+
+	.trip-progress {
+	flex: 1;
+	max-width: 80%;
+	}
+
+	/* Responsive Design */
+	@@media (max-width: 768px) {
+	.card-image-container {
+	height: 160px;
+	}
+
+	.card-content {
+	padding: 20px 16px 16px;
+	}
+
+	.card-title {
+	font-size: 16px;
+	}
+
+	.card-meta {
+	gap: 12px;
+	}
+
+	.meta-item {
+	font-size: 12px;
+	}
+	}
+
+	/* Dark Mode */
+	@@media (prefers-color-scheme: dark) {
+	.trip-card-modern {
+	background: #1f1f1f;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+	}
+
+	.trip-card-modern:hover {
+	box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+	}
+
+	.action-btn {
+	background: rgba(40, 40, 40, 0.9) !important;
+	color: #f0f0f0;
+	}
+
+	.action-btn:hover {
+	background: rgba(60, 60, 60, 1) !important;
+	}
+
+	.status-tag {
+	background: rgba(40, 40, 40, 0.9);
+	}
+	}
 </style>
 
 @code {
-    [Parameter] public TripDTO Trip { get; set; }
-    [Parameter] public EventCallback OnEdit { get; set; }
-    [Parameter] public EventCallback OnDelete { get; set; }
-    [Parameter] public EventCallback OnClick { get; set; }
-    [Parameter] public EventCallback OnExpenses { get; set; }
+	[Parameter] public TripDTO Trip { get; set; }
+	[Parameter] public EventCallback OnEdit { get; set; }
+	[Parameter] public EventCallback OnDelete { get; set; }
+	[Parameter] public EventCallback OnClick { get; set; }
+	[Parameter] public EventCallback OnExpenses { get; set; }
+	[Inject] private IFamilyService _familyService { get; set; }
 
-    private string GetTripImage()
-    {
-        if (!string.IsNullOrWhiteSpace(Trip.TripProfileImage))
-        {
-            return Trip.TripProfileImage;
-        }
-        
-        // Generate a consistent random image based on trip ID
-        var categories = new[] { "nature", "city", "beach", "mountain", "travel" };
-        var category = categories[Trip.Id % categories.Length];
-        return $"https://source.unsplash.com/random/400x300?{category},{Trip.Id}";
-    }
+	private string GetTripImage()
+	{
+		if (!string.IsNullOrWhiteSpace(Trip.TripProfileImage))
+		{
+			return Trip.TripProfileImage;
+		}
 
-    private string GetOwnerAvatar()
-    {
-        return !string.IsNullOrWhiteSpace(Trip.OwnerFamilyProfile) 
-            ? Trip.OwnerFamilyProfile 
-            : null;
-    }
+		// Generate a consistent random image based on trip ID
+		var categories = new[] { "nature", "city", "beach", "mountain", "travel" };
+		var category = categories[Trip.Id % categories.Length];
+		return $"https://source.unsplash.com/random/400x300?{category},{Trip.Id}";
+	}
 
-    private string GetOwnerInitials()
-    {
-        if (string.IsNullOrWhiteSpace(Trip.OwnerFamilyName))
-            return "?";
-            
-        var names = Trip.OwnerFamilyName.Split(' ');
-        if (names.Length >= 2)
-            return $"{names[0][0]}{names[1][0]}".ToUpper();
-            
-        return Trip.OwnerFamilyName.Substring(0, Math.Min(2, Trip.OwnerFamilyName.Length)).ToUpper();
-    }
+	private string GetOwnerAvatar()
+	{
+		return !string.IsNullOrWhiteSpace(Trip.OwnerFamilyProfile)
+			? Trip.OwnerFamilyProfile
+			: null;
+	}
 
-    private string GetFamilyInitials(FamilyDTO family)
-    {
-        if (string.IsNullOrWhiteSpace(family.Name))
-            return "?";
-            
-        var names = family.Name.Split(' ');
-        if (names.Length >= 2)
-            return $"{names[0][0]}{names[1][0]}".ToUpper();
-            
-        return family.Name.Substring(0, Math.Min(2, family.Name.Length)).ToUpper();
-    }
+	private string GetOwnerInitials()
+	{
+		if (string.IsNullOrWhiteSpace(Trip.OwnerFamilyName))
+			return "?";
 
-    private string GetTripStatus()
-    {
-        var now = DateTime.Now;
-        if (Trip.StartDate > now) return "پیش رو";
-        if (Trip.EndDate.HasValue && Trip.EndDate.Value < now) return "تکمیل شده";
-        return "در حال انجام";
-    }
+		var names = Trip.OwnerFamilyName.Split(' ');
+		if (names.Length >= 2)
+			return $"{names[0][0]}{names[1][0]}".ToUpper();
 
-    private string GetStatusColor()
-    {
-        var now = DateTime.Now;
-        if (Trip.StartDate > now) return "blue";
-        if (Trip.EndDate.HasValue && Trip.EndDate.Value < now) return "default";
-        return "green";
-    }
+		return Trip.OwnerFamilyName.Substring(0, Math.Min(2, Trip.OwnerFamilyName.Length)).ToUpper();
+	}
 
-    private int GetTripDuration()
-    {
-        if (Trip.EndDate.HasValue)
-        {
-            return (Trip.EndDate.Value - Trip.StartDate).Days + 1;
-        }
-        return 1;
-    }
+	private string GetFamilyInitials(FamilyDTO family)
+	{
+		if (string.IsNullOrWhiteSpace(family.Name))
+			return "?";
 
-    private double CalculateTripProgress()
-    {
-        var now = DateTime.Now;
-        
-        if (now < Trip.StartDate)
-            return 0;
-            
-        if (!Trip.EndDate.HasValue || now > Trip.EndDate.Value)
-            return 100;
-            
-        var totalDays = (Trip.EndDate.Value - Trip.StartDate).TotalDays;
-        var elapsedDays = (now - Trip.StartDate).TotalDays;
-        
-        return Math.Round((elapsedDays / totalDays) * 100, 0);
-    }
+		var names = family.Name.Split(' ');
+		if (names.Length >= 2)
+			return $"{names[0][0]}{names[1][0]}".ToUpper();
 
-    private string GetProgressColor(double progress)
-    {
-        if (progress < 30) return "#52c41a";
-        if (progress < 70) return "#1890ff";
-        return "#e72929";
-    }
+		return family.Name.Substring(0, Math.Min(2, family.Name.Length)).ToUpper();
+	}
+	private async Task<string> GetFamilyImage(int familyId)
+	{
+		return await _familyService.GetProfileByFamilyId(familyId);
+	}
 
-    private async Task HandleCardClick() => await OnClick.InvokeAsync();
+	private string GetTripStatus()
+	{
+		var now = DateTime.Now;
+		if (Trip.StartDate > now) return "پیش رو";
+		if (Trip.EndDate.HasValue && Trip.EndDate.Value < now) return "تکمیل شده";
+		return "در حال انجام";
+	}
+
+	private string GetStatusColor()
+	{
+		var now = DateTime.Now;
+		if (Trip.StartDate > now) return "blue";
+		if (Trip.EndDate.HasValue && Trip.EndDate.Value < now) return "default";
+		return "green";
+	}
+
+	private int GetTripDuration()
+	{
+		if (Trip.EndDate.HasValue)
+		{
+			return (Trip.EndDate.Value - Trip.StartDate).Days + 1;
+		}
+		return 1;
+	}
+
+	private double CalculateTripProgress()
+	{
+		var now = DateTime.Now;
+
+		if (now < Trip.StartDate)
+			return 0;
+
+		if (!Trip.EndDate.HasValue || now > Trip.EndDate.Value)
+			return 100;
+
+		var totalDays = (Trip.EndDate.Value - Trip.StartDate).TotalDays;
+		var elapsedDays = (now - Trip.StartDate).TotalDays;
+
+		return Math.Round((elapsedDays / totalDays) * 100, 0);
+	}
+
+	private string GetProgressColor(double progress)
+	{
+		if (progress < 30) return "#52c41a";
+		if (progress < 70) return "#1890ff";
+		return "#e72929";
+	}
+
+	private async Task HandleCardClick() => await OnClick.InvokeAsync();
 }
