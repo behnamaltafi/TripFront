@@ -1,10 +1,8 @@
+using System.Reflection;
 using BusinessExceptionStructure;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
-using System.Reflection;
-using System.Security.Cryptography;
 using TripFront.Components;
 using TripFront.Components.Account;
 using TripFront.Data;
@@ -27,16 +25,12 @@ builder.Services.AddScoped<ITripRepository, TripRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<ISettlementService, SettlementService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
-builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
-builder.Services.AddScoped<IFriendRequestRepository, FriendRequestRepository>();
-builder.Services.AddScoped<IFriendRequestService, FriendRequestService>();
-builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 builder.Services.AddScoped<IDebtRecordService, DebtRecordService>();
 builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<IDebtRecordRepository, DebtRecordRepository>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-//builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, CustomClaimsPrincipalFactory>();
+
 
 
 
@@ -49,7 +43,7 @@ builder.Services.AddAuthentication(options =>
 
 var connectionString = builder.Configuration.GetConnectionString("AppDbConnection") ?? throw new BusinessException("Connection string 'AppDbConnection' not found.");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString), contextLifetime: ServiceLifetime.Transient);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)

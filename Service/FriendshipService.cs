@@ -4,60 +4,44 @@ using FilterPagingEfCore.Paging;
 public class FriendshipService : IFriendshipService
 {
     private readonly IFriendshipRepository _repository;
+    private readonly IFamilyService _familyService;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    public FriendshipService(IFriendshipRepository repository, IHttpContextAccessor httpContextAccessor)
+    public FriendshipService(IFriendshipRepository repository, IHttpContextAccessor httpContextAccessor, IFamilyService familyService)
     {
         _repository = repository;
         _httpContextAccessor = httpContextAccessor;
+        _familyService = familyService;
     }
 
-    public async Task<bool> AreFriendsAsync(int familyId1, int familyId2)
+    public async Task AddFriendshipAsync(FamilyFriendship friendship)
     {
-        var friendship = await _repository.GetFriendshipAsync(familyId1, familyId2);
-        return friendship != null;
+        await _repository.AddFriendshipAsync(friendship);
     }
 
-    public async Task CreateFriendshipAsync(int familyId1, int familyId2)
+    public async Task<bool> AreFriendsAsync(int targetFamilyId)
     {
-        if (familyId1 == familyId2)
-            throw new BusinessException("A family cannot be friends with itself.");
-
-        var existing = await _repository.GetFriendshipAsync(familyId1, familyId2);
-        if (existing != null)
-            throw new BusinessException("Families are already friends.");
-
-        var friendship = new FamilyFriendship
-        {
-            FamilyId1 = Math.Min(familyId1, familyId2),
-            FamilyId2 = Math.Max(familyId1, familyId2),
-     
-        };
-
-        await _repository.Add(friendship);
-        await _repository.Save();
+        var currentFamilyId = _familyService.GetFamilyId();
+        return await _repository.AreFriendsAsync(currentFamilyId, targetFamilyId);
     }
 
-    public async Task RemoveFriendshipAsync(int familyId1, int familyId2)
+    public async Task<PagingResult<FamilyDTO>> GetFriendsAsync(PagingParam pagingParam, int familyId)
     {
-        var friendship = await _repository.GetFriendshipAsync(familyId1, familyId2);
-        if (friendship == null)
-            throw new BusinessException("Friendship does not exist.");
-
-        await _repository.Remove(friendship);
-        await _repository.Save();
-    }
-
-    public async Task<PagingResult<FamilyDTO>> GetFriendsAsync(PagingParam pagingParam)
-    {
-        var familyId = GetFamilyId();
         return await _repository.GetFriendsAsync(pagingParam, familyId);
+
     }
-    public int GetFamilyId()
+
+    public async Task<FamilyFriendship> GetFriendshipAsync(int targetFamilyId)
     {
-        var familyId = _httpContextAccessor.HttpContext?.User.FindFirst("familyId")?.Value;
-        if (familyId == null)
-            throw new UnauthorizedAccessException();
-        return int.Parse(familyId);
+        var currentFamilyId = _familyService.GetFamilyId();
+
+        return await _repository.GetFriendshipAsync(currentFamilyId, targetFamilyId);
+
+    }
+
+    public async Task RemoveFriendshipAsync(FamilyFriendship friendship)
+    {
+        await _repository.RemoveFriendshipAsync(friendship);
+
     }
 }
 

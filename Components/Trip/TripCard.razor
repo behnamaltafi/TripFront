@@ -99,10 +99,11 @@
 			<div class="family-avatars">
 				@foreach (var (family, index) in Trip.Families.Select((value, i) => (value, i)))
 				{
+		
 					if (index < 4)
 					{
 						<Avatar Size="AvatarSize.Small"
-						Src="@GetFamilyImage(family.Id).Result"
+						Src="@familyImages.GetValueOrDefault(family.Id, "")"
 						Text="@GetFamilyInitials(family)"
 						Class="family-avatar-item"
 						Style="@($"margin-left: {(index > 0 ? -8 : 0)}px; z-index: {4 - index};")" />
@@ -433,6 +434,7 @@
 </style>
 
 @code {
+	private Dictionary<int, string> familyImages = new();
 	[Parameter] public TripDTO Trip { get; set; }
 	[Parameter] public EventCallback OnEdit { get; set; }
 	[Parameter] public EventCallback OnDelete { get; set; }
@@ -529,6 +531,17 @@
 		return Math.Round((elapsedDays / totalDays) * 100, 0);
 	}
 
+	protected override async Task OnInitializedAsync()
+	{
+
+		foreach (var family in Trip.Families.Take(4))
+		{
+			familyImages[family.Id] = await GetFamilyImage(family.Id);
+		}
+
+
+		
+	}
 	private string GetProgressColor(double progress)
 	{
 		if (progress < 30) return "#52c41a";

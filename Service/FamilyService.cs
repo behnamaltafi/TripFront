@@ -33,6 +33,11 @@ public class FamilyService : IFamilyService
         var family = await _familyRepository.Find<FamilyDTO>(id);
         return family;
     }
+    public async Task<FamilyInfo> GetFamilyInfo(int id)
+    {
+        var family = await _familyRepository.Find<FamilyInfo>(id);
+        return family;
+    }
     public async Task<string> GetProfileByFamilyId(int id)
     {
         var profileImage = await _familyRepository.GetProfileByFamilyId(id);

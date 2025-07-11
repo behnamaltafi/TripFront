@@ -1,4 +1,6 @@
-﻿public class ExpenseParticipant:BaseEntity<int>
+﻿using TripFront.Models;
+
+public class ExpenseParticipant:BaseEntity<int>
 {
     public int ExpenseId { get; set; }
     public Expense Expense { get; set; }

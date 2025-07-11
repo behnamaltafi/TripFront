@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TripFront.Data;
+using TripFront.Models;
 
 public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
@@ -22,7 +23,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<TripFamily> TripFamilies { get; set; }
     public DbSet<ExpenseParticipant> ExpenseParticipants { get; set; }
     public DbSet<FamilyFriendship> FamilyFriendships { get; set; }
-    public DbSet<FriendRequest> FriendRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -36,36 +36,47 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims");
         builder.Entity<IdentityUserToken<string>>().ToTable("UserToken");
         // Friendships
-        builder.Entity<FamilyFriendship>()
-            .HasOne(f => f.Family1)
-            .WithMany(f => f.FriendshipsA)
-            .HasForeignKey(f => f.FamilyId1)
+
+        // Configure the relationship from Family side
+        builder.Entity<FamilyFriendship>().HasOne(ff => ff.Family)
+            .WithMany(f => f.SentFriendshipRequests)
+            .HasForeignKey(ff => ff.FamilyId)
+            .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete cycles
+
+        // Configure the relationship from FriendFamily side
+        builder.Entity<FamilyFriendship>().HasOne(ff => ff.FriendFamily)
+            .WithMany(f => f.ReceivedFriendshipRequests)
+            .HasForeignKey(ff => ff.FriendFamilyId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Additional configurations
+        builder.Entity<FamilyFriendship>().Property(ff => ff.FriendshipDate)
+            .HasDefaultValueSql("GETUTCDATE()"); // SQL Server
+                                                 // For PostgreSQL: .HasDefaultValueSql("CURRENT_TIMESTAMP")
+
+        builder.Entity<FamilyFriendship>().Property(ff => ff.Status)
+            .HasDefaultValue(FriendshipStatus.Pending)
+            .HasConversion<int>(); // Store enum as int
+
+        builder.Entity<FamilyFriendship>().Property(ff => ff.RequestMessage)
+            .HasMaxLength(500);
+
+        // Index for performance
+        builder.Entity<FamilyFriendship>().HasIndex(ff => ff.Status);
+        builder.Entity<FamilyFriendship>().HasIndex(ff => ff.FriendshipDate);
+
+        builder.Entity<FamilyInterest>().HasOne(fi => fi.Family)
+           .WithMany(f => f.FamilyInterests)
+           .HasForeignKey(fi => fi.FamilyId);
+
+        builder.Entity<FamilyInterest>().HasOne(fi => fi.Interest)
+           .WithMany(i => i.FamilyInterests)
+           .HasForeignKey(fi => fi.InterestId);
         builder.Entity<Trip>()
        .HasOne(t => t.OwnerFamily)
        .WithMany()
        .HasForeignKey(t => t.OwnerFamilyId)
        .OnDelete(DeleteBehavior.NoAction); // or NoAction
-
-        builder.Entity<FamilyFriendship>()
-            .HasOne(f => f.Family2)
-            .WithMany(f => f.FriendshipsB)
-        
-            .HasForeignKey(f => f.FamilyId2)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // Friend Requests
-        builder.Entity<FriendRequest>()
-            .HasOne(r => r.SenderFamily)
-            .WithMany(f => f.SentFriendRequests)
-            .HasForeignKey(r => r.SenderFamilyId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.Entity<FriendRequest>()
-            .HasOne(r => r.ReceiverFamily)
-            .WithMany(f => f.ReceivedFriendRequests)
-            .HasForeignKey(r => r.ReceiverFamilyId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         // Configure relationships
         builder.Entity<TripFamily>()

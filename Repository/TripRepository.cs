@@ -6,13 +6,14 @@ using Microsoft.EntityFrameworkCore;
 public class TripRepository : GenericRepository<Trip, int>, ITripRepository
 {
     private readonly AppDbContext _context;
-    private readonly IFriendshipService _friendshipService;
+    private readonly IFamilyService _familyService;
     private readonly IMapper _mapper;
 
-    public TripRepository(AppDbContext context, IFriendshipService friendshipService, IMapper mapper) : base(context, mapper)
+    public TripRepository(AppDbContext context, IFamilyService familyService, IMapper mapper) : base(context, mapper)
     {
+
         _context = context;
-        _friendshipService = friendshipService;
+        _familyService = familyService;
         _mapper = mapper;
     }
     public async Task<TripFamily> GetTripFamilyAsync(int tripId, int familyId)
@@ -88,7 +89,7 @@ public class TripRepository : GenericRepository<Trip, int>, ITripRepository
 
     public async Task<List<Trip>> GetTripsForFamilyAsync()
     {
-        var familyId = _friendshipService.GetFamilyId();
+        var familyId = _familyService.GetFamilyId();
         return await _context.Trips
             .Where(t => t.Families.Any(f => f.FamilyId == familyId))
             .Include(t => t.Families).ThenInclude(tf => tf.Family)

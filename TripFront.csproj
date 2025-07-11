@@ -29,6 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Folder Include="Components\Friend\" />
 		<Folder Include="Migrations\" />
 		<Folder Include="Dll\" />
 		<Folder Include="wwwroot\bootstrap\" />

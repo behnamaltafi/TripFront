@@ -1,4 +1,4 @@
-﻿@page "/trips"
+﻿@page "/"
 @using AntDesign
 @using AutoMapper
 @using FilterPagingEfCore.Extenstion
@@ -6,7 +6,6 @@
 @using FilterPagingEfCore.Paging
 @inject ITripService _tripService
 @inject IExpenseService _expenseService
-@inject IFamilyService _familyService
 @inject IMapper _mapper
 @inject IMessageService Message
 @rendermode InteractiveServer
@@ -751,7 +750,8 @@
 </style>
 
 @code {
-    // Previous code remains the same with additions
+
+    [Inject] private IFamilyService _familyService { get; set; }
     private List<TripDTO> trips = new();
     private List<TripDTO> filteredTrips = new();
     private TripDTO currentTrip = new();

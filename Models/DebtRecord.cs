@@ -1,4 +1,6 @@
-﻿public class DebtRecord: BaseEntity<int>
+﻿using TripFront.Models;
+
+public class DebtRecord: BaseEntity<int>
 {
 
     public Family FromFamily { get; set; }

@@ -1,4 +1,6 @@
-﻿public class Trip : BaseEntity<int>
+﻿using TripFront.Models;
+
+public class Trip : BaseEntity<int>
 {
 
     public string Title { get; set; }

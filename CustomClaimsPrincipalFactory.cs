@@ -28,7 +28,7 @@ public class CustomClaimsPrincipalFactory : UserClaimsPrincipalFactory<Applicati
         if (family != null)
         {
             identity.AddClaim(new Claim("familyId", family.Id.ToString()));
-            identity.AddClaim(new Claim("profileImage", familyProfileImage));
+            identity.AddClaim(new Claim("profileImage", ""));
         }
 
         return identity;

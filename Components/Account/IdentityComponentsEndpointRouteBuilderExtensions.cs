@@ -10,7 +10,7 @@ using TripFront.Components.Account.Pages;
 using TripFront.Components.Account.Pages.Manage;
 using TripFront.Data;
 
-namespace Microsoft.AspNetCore.Routing
+namespace TripFront.Components.Account
 {
     internal static class IdentityComponentsEndpointRouteBuilderExtensions
     {

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using TripFront.Models;
 
 public class FamilyRepository : GenericRepository<Family, int>, IFamilyRepository
 {

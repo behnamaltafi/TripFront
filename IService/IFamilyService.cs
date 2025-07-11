@@ -11,5 +11,7 @@ public interface IFamilyService
     Task Update(UpdateFamilyDTO familyDto);
     string GetprofileImage();
     Task<string> GetProfileByFamilyId(int id);
+    int GetFamilyId();
+    Task<FamilyInfo> GetFamilyInfo(int id);
 }
 

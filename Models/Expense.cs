@@ -1,4 +1,6 @@
-﻿public class Expense:BaseEntity<int>
+﻿using TripFront.Models;
+
+public class Expense:BaseEntity<int>
 {
 
     public string Description { get; set; }

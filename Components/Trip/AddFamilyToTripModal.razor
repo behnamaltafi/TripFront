@@ -2,188 +2,190 @@
 @using AutoMapper
 
 <Modal Title="مدیریت خانواده‌های سفر"
-Visible="@Visible"
-OnCancel="HandleCancel"
-Footer="null"
-Width="800"
-Class="trip-modal">
-    <Table TItem="TripFamilyDto" DataSource="@FamiliesInTrip" RowKey="f => f.FamilyId" Bordered="true">
+	   Visible="@Visible"
+	   OnCancel="HandleCancel"
+	   Footer="null"
+	   Width="800"
+	   Class="trip-modal">
+	<Table TItem="TripFamilyDto" DataSource="@FamiliesInTrip" RowKey="f => f.FamilyId" Bordered="true">
 
 
-        <ColumnDefinitions Context="row">
-            <PropertyColumn Property="r => r.FamilyName" Title="نام" Filterable />
-            <PropertyColumn Property="r => r.MemberCount" Title="تعداد اعضا" Filterable />
-            <ActionColumn Title="عملیات">
-                <Space Size="SpaceSize.Middle">
-                    <SpaceItem>
-                        <a @onclick="() => EditFamily(row)">ویرایش</a>
-                    </SpaceItem>
-                    <SpaceItem>
-                        <a @onclick="@(() =>  RemoveTripFamily(row.Id))">حذف</a>
-                    </SpaceItem>
-                </Space>
-            </ActionColumn>
-        </ColumnDefinitions>
+		<ColumnDefinitions Context="row">
+			<PropertyColumn Property="r => r.FamilyName" Title="نام" Filterable />
+			<PropertyColumn Property="r => r.MemberCount" Title="تعداد اعضا" Filterable />
+			<ActionColumn Title="عملیات">
+				<Space Size="SpaceSize.Middle">
+					<SpaceItem>
+						<a @onclick="() => EditFamily(row)">ویرایش</a>
+					</SpaceItem>
+					<SpaceItem>
+						<a @onclick="@(() =>  RemoveTripFamily(row.Id))">حذف</a>
+					</SpaceItem>
+				</Space>
+			</ActionColumn>
+		</ColumnDefinitions>
 
-    </Table>
+	</Table>
 
-    <Card Title="@((IsEdit ? "ویرایش خانواده" : "افزودن خانواده جدید"))" Class="form-card">
-        <Form Model="@TripFamilies" Layout="FormLayout.Vertical">
-            <FormItem Label="خانواده">
-                <Select DataSource="@FriendFamilies"
-                Value="@SelectedFamilyId"
-                ValueChanged="@((int? value) => OnFamilyChanged(value))"
-                Disabled="@IsEdit"
-                ItemValue="p => p.Id"
-                ItemLabel="p => p.Name"
-                EnableSearch="true"
-                Placeholder="انتخاب عضو" />
-            </FormItem>
+	<Card Title="@((IsEdit ? "ویرایش خانواده" : "افزودن خانواده جدید"))" Class="form-card">
+		<Form Model="@TripFamilies" Layout="FormLayout.Vertical">
+			<FormItem Label="خانواده">
+				<Select DataSource="@FriendFamilies"
+						Value="@SelectedFamilyId"
+						ValueChanged="@((int? value) => OnFamilyChanged(value))"
+						Disabled="@IsEdit"
+						ItemValue="p => p.Id"
+						ItemLabel="p => p.Name"
+						EnableSearch="true"
+						Placeholder="انتخاب عضو" />
+			</FormItem>
 
-            <FormItem Label="تعداد اعضا">
-                <Input Type="InputType.Number" @bind-Value="@ParticipantCount" Min="1" />
-            </FormItem>
+			<FormItem Label="تعداد اعضا">
+				<Input Type="InputType.Number" @bind-Value="@ParticipantCount" Min="1" />
+			</FormItem>
 
-            <FormItem>
-                <Space>
-                    <Button Type="ButtonType.Primary"
-                    OnClick="@AddOrUpdateFamily"
-                    Disabled="@(SelectedFamilyId == 0 || ParticipantCount < 1)">
-                        @(IsEdit ? "ثبت ویرایش" : "افزودن")
-                    </Button>
+			<FormItem>
+				<Space>
+					<Button Type="ButtonType.Primary"
+							OnClick="@AddOrUpdateFamily"
+							Disabled="@(SelectedFamilyId == 0 || ParticipantCount < 1)">
+						@(IsEdit ? "ثبت ویرایش" : "افزودن")
+					</Button>
 
-                    @if (IsEdit)
-                    {
-                        <Button Type="ButtonType.Default" OnClick="CancelEdit" Danger>لغو</Button>
-                    }
-                </Space>
-            </FormItem>
-        </Form>
-    </Card>
+					@if (IsEdit)
+					{
+						<Button Type="ButtonType.Default" OnClick="CancelEdit" Danger>لغو</Button>
+					}
+				</Space>
+			</FormItem>
+		</Form>
+	</Card>
 </Modal>
 
 <style>
-    .trip-modal .ant-modal-body {
-    padding: 24px;
-    background-color: #fafafa;
-    }
+	.trip-modal .ant-modal-body {
+		padding: 24px;
+		background-color: #fafafa;
+	}
 
-    .form-card {
-    margin-top: 24px;
-    background-color: #fff;
-    border: 1px solid #f0f0f0;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    padding: 16px;
-    }
+	.form-card {
+		margin-top: 24px;
+		background-color: #fff;
+		border: 1px solid #f0f0f0;
+		border-radius: 8px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+		padding: 16px;
+	}
 
-    .ant-table-wrapper {
-    margin-bottom: 16px;
-    }
+	.ant-table-wrapper {
+		margin-bottom: 16px;
+	}
 </style>
 
 @code {
-    [Inject] private ITripService _tripService { get; set; }
-    [Inject] private IMapper _mapper { get; set; }
-    [Inject] private IFriendshipService _friendshipService { get; set; }
-    [Inject] private IMessageService Message { get; set; }
+	[Inject] private ITripService _tripService { get; set; }
+	[Inject] private IMapper _mapper { get; set; }
+	[Inject] private IFriendshipService _friendshipService { get; set; }
+	[Inject] private IFamilyService _familyService { get; set; }
+	[Inject] private IMessageService Message { get; set; }
 
-    [Parameter] public bool Visible { get; set; }
-    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
-    [Parameter] public int TripId { get; set; }
+	[Parameter] public bool Visible { get; set; }
+	[Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+	[Parameter] public int TripId { get; set; }
 
-    private List<TripFamilyDto> FamiliesInTrip { get; set; } = new();
-    private List<FamilyDTO> FriendFamilies { get; set; } = new();
-    private TripFamily TripFamilies { get; set; } = new();
+	private List<TripFamilyDto> FamiliesInTrip { get; set; } = new();
+	private List<FamilyDTO> FriendFamilies { get; set; } = new();
+	private TripFamily TripFamilies { get; set; } = new();
 
-    private int SelectedFamilyId { get; set; }
-    private int ParticipantCount { get; set; } = 1;
-    private bool IsEdit { get; set; } = false;
-    private bool IsLoading { get; set; }
+	private int SelectedFamilyId { get; set; }
+	private int ParticipantCount { get; set; } = 1;
+	private bool IsEdit { get; set; } = false;
+	private bool IsLoading { get; set; }
 
-    protected override async Task OnParametersSetAsync()
-    {
-        await LoadFamiliesInTrip();
+	protected override async Task OnParametersSetAsync()
+	{
+		await LoadFamiliesInTrip();
 
-    }
+	}
 
 
 
-    private async Task LoadFamiliesInTrip()
-    {
-        IsLoading = true;
-        FamiliesInTrip = (await _tripService.GetTripFamilyAsync(PagingParamFactory.CreateAllRecords(), TripId)).Items;
-        IsLoading = false;
-    }
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadFriendFamilies();
-    }
-    private async Task LoadFriendFamilies()
-    {
-        FriendFamilies = (await _friendshipService.GetFriendsAsync(PagingParamFactory.CreateAllRecords())).Items;
-    }
+	private async Task LoadFamiliesInTrip()
+	{
+		IsLoading = true;
+		FamiliesInTrip = (await _tripService.GetTripFamilyAsync(PagingParamFactory.CreateAllRecords(), TripId)).Items;
+		IsLoading = false;
+	}
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadFriendFamilies();
+	}
+	private async Task LoadFriendFamilies()
+	{
+		var currentFamilyId = _familyService.GetFamilyId();
+		FriendFamilies = (await _friendshipService.GetFriendsAsync(PagingParamFactory.CreateAllRecords(), currentFamilyId)).Items;
+	}
 
-    private async Task AddOrUpdateFamily()
-    {
-        var exists = FamiliesInTrip.Any(x => x.FamilyId == SelectedFamilyId);
+	private async Task AddOrUpdateFamily()
+	{
+		var exists = FamiliesInTrip.Any(x => x.FamilyId == SelectedFamilyId);
 
-        var family = new TripFamily
-        {
-            TripId = TripId,
-            FamilyId = SelectedFamilyId,
-            MemberCount = ParticipantCount
-        };
+		var family = new TripFamily
+			{
+				TripId = TripId,
+				FamilyId = SelectedFamilyId,
+				MemberCount = ParticipantCount
+			};
 
-        if (exists)
-        {
-            await _tripService.UpdateTripFamily(family);
-            await Message.Success("ویرایش انجام شد");
-        }
-        else
-        {
-            await _tripService.AddFamilyToTripAsync(family);
-            await Message.Success("خانواده اضافه شد");
-        }
+		if (exists)
+		{
+			await _tripService.UpdateTripFamily(family);
+			await Message.Success("ویرایش انجام شد");
+		}
+		else
+		{
+			await _tripService.AddFamilyToTripAsync(family);
+			await Message.Success("خانواده اضافه شد");
+		}
 
-        await LoadFamiliesInTrip();
-        ResetForm();
-    }
+		await LoadFamiliesInTrip();
+		ResetForm();
+	}
 
-    private void OnFamilyChanged(int? value)
-    {
-        SelectedFamilyId = value ?? 0;
-    }
+	private void OnFamilyChanged(int? value)
+	{
+		SelectedFamilyId = value ?? 0;
+	}
 
-    private void EditFamily(TripFamilyDto family)
-    {
-        SelectedFamilyId = family.FamilyId;
-        ParticipantCount = family.MemberCount;
-        IsEdit = true;
-    }
+	private void EditFamily(TripFamilyDto family)
+	{
+		SelectedFamilyId = family.FamilyId;
+		ParticipantCount = family.MemberCount;
+		IsEdit = true;
+	}
 
-    private async Task RemoveTripFamily(int tripFamilyId)
-    {
-        await _tripService.RemoveTripFamily(tripFamilyId);
-        await Message.Success("خانواده حذف شد");
-        await LoadFamiliesInTrip();
-    }
+	private async Task RemoveTripFamily(int tripFamilyId)
+	{
+		await _tripService.RemoveTripFamily(tripFamilyId);
+		await Message.Success("خانواده حذف شد");
+		await LoadFamiliesInTrip();
+	}
 
-    private void CancelEdit()
-    {
-        ResetForm();
-    }
+	private void CancelEdit()
+	{
+		ResetForm();
+	}
 
-    private void ResetForm()
-    {
-        SelectedFamilyId = 0;
-        ParticipantCount = 1;
-        IsEdit = false;
-    }
+	private void ResetForm()
+	{
+		SelectedFamilyId = 0;
+		ParticipantCount = 1;
+		IsEdit = false;
+	}
 
-    private async Task HandleCancel()
-    {
-        await VisibleChanged.InvokeAsync(false);
-        ResetForm();
-    }
+	private async Task HandleCancel()
+	{
+		await VisibleChanged.InvokeAsync(false);
+		ResetForm();
+	}
 }

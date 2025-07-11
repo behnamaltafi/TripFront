@@ -1,5 +1,6 @@
 ﻿// مدل‌های پایه
 using AutoMapper;
+using TripFront.Models;
 
 public partial class TripProfile
 {
@@ -8,9 +9,17 @@ public partial class TripProfile
         public FamilyProfile()
         {
             CreateMap<Family, FamilyDTO>();
-            CreateMap<FamilyFriendship ,FamilyDTO>() 
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Family2.Name))
-                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Family2.Id));
+
+            CreateMap<Family, FamilyInfo>()
+              .ForMember(dest => dest.Trips, opt => opt.MapFrom(src => src.TripFamilies.Count()))
+              .ForMember(dest => dest.Interests, opt => opt.MapFrom(src => src.FamilyInterests.Select(x=>x.Interest.Title).ToList()))
+              .ForMember(dest => dest.Budget, opt => opt.MapFrom(src =>
+                  src.TripFamilies
+                      .SelectMany(tf => tf.Trip.Expenses)
+                      .Where(e => e.FamilyId == src.Id)
+                      .Sum(e => e.Amount)))
+              .ForMember(dest => dest.Friends, opt => opt.MapFrom(src => src.ReceivedFriendshipRequests.Count(f => f.Status == FriendshipStatus.Accepted) + src.SentFriendshipRequests.Count(f => f.Status == FriendshipStatus.Accepted)));
+
             CreateMap<FamilyDTO, TripFamilyDto>();
 
 
@@ -29,10 +38,7 @@ public partial class TripProfile
             CreateMap<AddFamilyDTO, Family>();
             CreateMap<UpdateFamilyDTO, Family>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<FriendRequest, FriendRequest>();
-            CreateMap<FriendRequest, FriendRequestDTO>()
-                            .ForMember(dest => dest.ReceiverFamilyTitle, opt => opt.MapFrom(src => src.ReceiverFamily.Name))
-                            .ForMember(dest => dest.SenderFamilyTitle, opt => opt.MapFrom(src => src.SenderFamily.Name));
+          
 
 
         }

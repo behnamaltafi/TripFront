@@ -1,4 +1,6 @@
-﻿public class TripFamily : BaseEntity<int>
+﻿using TripFront.Models;
+
+public class TripFamily : BaseEntity<int>
 {
     public int TripId { get; set; }
     public Trip Trip { get; set; }

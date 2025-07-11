@@ -5,14 +5,15 @@ using FilterPagingEfCore.Paging;
 public class TripService : ITripService
 {
     private readonly ITripRepository _tripRepository;
-    private readonly IFriendshipService _friendshipService;
-    private readonly IMapper _mapper;
 
-    public TripService(ITripRepository tripRepository, IMapper mapper, IFriendshipService friendshipService)
+    private readonly IMapper _mapper;
+    private readonly IFamilyService _familyService;
+
+    public TripService(ITripRepository tripRepository, IMapper mapper,IFamilyService familyService )
     {
         _tripRepository = tripRepository;
         _mapper = mapper;
-        _friendshipService = friendshipService;
+        _familyService = familyService;
     }
     public async Task<PagingResult<TripFamilyDto>> GetTripFamilyAsync(PagingParam pagingParam, int tripId)
     {
@@ -22,7 +23,7 @@ public class TripService : ITripService
     public async Task<TripDTO> CreateTripAsync(CreateTripDto tripDto)
     {
         var trip = _mapper.Map<Trip>(tripDto);
-        var familyId = _friendshipService.GetFamilyId();
+        var familyId = _familyService.GetFamilyId();
         trip.OwnerFamilyId = familyId;
         await _tripRepository.Add(trip);
         await _tripRepository.Save();
@@ -54,13 +55,13 @@ public class TripService : ITripService
     }
     public async Task RemoveTripFamily(int tripFamilyId)
     {
-        var familyId = _friendshipService.GetFamilyId();
+        var familyId = _familyService.GetFamilyId();
 
         await _tripRepository.RemoveTripFamily(tripFamilyId);
     }
     public async Task<PagingResult<TripDTO>> GetTripsForFamilyAsync(PagingParam pagingParam)
     {
-        var familyId = _friendshipService.GetFamilyId();
+        var familyId = _familyService.GetFamilyId();
         var trips = await _tripRepository.FindAllPaging<TripDTO>(pagingParam, x => x.Families.Any(f => f.FamilyId == familyId));
 
         return trips;

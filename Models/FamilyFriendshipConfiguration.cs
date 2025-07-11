@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Sale.Infrastructure.DataBase.Configuration
+namespace TripFront.Models
 {
     public class FamilyFriendshipConfiguration : IEntityTypeConfiguration<FamilyFriendship>
     {

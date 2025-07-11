@@ -1,175 +1,155 @@
 ﻿@page "/profile"
 @using AntDesign
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using TripFront.Data
  @rendermode InteractiveServer
 @inject IMessageService Message
 <div class="profile-container">
-    <!-- Profile Header Card -->
-    <div class="profile-header-card">
-        <div class="profile-cover-wrapper">
-            <div class="profile-cover" style="background-image: url('https://source.unsplash.com/random/1200x400?nature,travel');">
-                <div class="cover-overlay"></div>
-            </div>
-            <Button Class="change-cover-btn" Icon="@IconType.Outline.Camera" Size="ButtonSize.Small">
-                تغییر کاور
-            </Button>
-        </div>
-        
-        <div class="profile-info-section">
-            <div class="avatar-wrapper">
-                <Avatar Size="AvatarSize.Default" Src="@profileModel.AvatarUrl" Class="profile-avatar" />
-                <Button Class="change-avatar-btn" Shape="@ButtonShape.Circle" Icon="@IconType.Outline.Camera" Size="ButtonSize.Small" />
-            </div>
-            
-            <div class="profile-details">
-                <h1 class="profile-name">@profileModel.FullName</h1>
-                <p class="profile-bio">@profileModel.Bio</p>
-                <div class="profile-location">
-                    <Icon Type="@IconType.Outline.Environment" /> @profileModel.City
-                </div>
-            </div>
-            
-            <Button Type="@ButtonType.Primary" 
-                    Icon="@IconType.Outline.Edit" 
-                    Class="edit-profile-btn" 
-                    OnClick="EnableEdit"
-                    Shape="@ButtonShape.Round">
-                ویرایش پروفایل
-            </Button>
-        </div>
-        
-        <!-- Stats Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <Icon Type="@IconType.Outline.Compass" Class="stat-icon" />
-                <div class="stat-content">
-                    <span class="stat-value">@profileModel.TripsCount</span>
-                    <span class="stat-label">سفر</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <Icon Type="@IconType.Outline.Team" Class="stat-icon" />
-                <div class="stat-content">
-                    <span class="stat-value">@profileModel.FriendsCount</span>
-                    <span class="stat-label">دوست</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <Icon Type="@IconType.Outline.Picture" Class="stat-icon" />
-                <div class="stat-content">
-                    <span class="stat-value">@profileModel.PhotosCount</span>
-                    <span class="stat-label">عکس</span>
-                </div>
-            </div>
-        </div>
-    </div>
+	<!-- Profile Header Card -->
+	<div class="profile-header-card">
+		<div class="profile-cover-wrapper">
+			<div class="profile-cover" style="background-image: url('https://source.unsplash.com/random/1200x400?nature,travel');">
+				<div class="cover-overlay"></div>
+			</div>
+			<Button Class="change-cover-btn" Icon="@IconType.Outline.Camera" Size="ButtonSize.Small">
+				تغییر کاور
+			</Button>
+		</div>
 
-    <!-- Content Tabs -->
-    <div class="profile-content">
-        <Tabs DefaultActiveKey="1" Class="custom-tabs" TabBarGutter="32">
-            <TabPane Tab="اطلاعات شخصی" Key="1">
-                <div class="tab-content">
-                    <Form Model="@profileModel" 
-                          Layout="@FormLayout.Vertical"
-                          OnFinish="OnFinish"
-                          OnFinishFailed="OnFinishFailed"
-                          Class="profile-form">
-                        
-                        <!-- Personal Info Section -->
-                        <div class="form-section">
-                            <h3 class="section-title">
-                                <Icon Type="@IconType.Outline.User" /> اطلاعات پایه
-                            </h3>
-                            <Row Gutter="16">
-                                <AntDesign.Col Xs="24" Sm="12">
-                                    <FormItem Label="نام" Rules=@(new FormValidationRule[] { new FormValidationRule { Required = true, Message = "لطفا نام خود را وارد کنید" } })>
-                                        <Input @bind-Value="@context.FirstName" 
-                                               Disabled="@(!isEditing)" 
-                                               Size="@InputSize.Large"
-                                                />
-                                    </FormItem>
-                                </AntDesign.Col>
-                                <AntDesign.Col Xs="24" Sm="12">
-                                    <FormItem Label="نام خانوادگی" Rules=@(new FormValidationRule[] { new FormValidationRule { Required = true, Message = "لطفا نام خانوادگی خود را وارد کنید" } })>
-                                        <Input @bind-Value="@context.LastName" 
-                                               Disabled="@(!isEditing)"
-                                               Size="@InputSize.Large" />
-                                    </FormItem>
-                                </AntDesign.Col>
-                            </Row>
-                        </div>
+		<div class="profile-info-section">
+			<div class="avatar-wrapper">
+				<Avatar Size="AvatarSize.Default" Src="@profileModel.AvatarUrl" Class="profile-avatar" />
+				<Button Class="change-avatar-btn" Shape="@ButtonShape.Circle" Icon="@IconType.Outline.Camera" Size="ButtonSize.Small" />
+			</div>
 
-                        <!-- Contact Section -->
-                        <div class="form-section">
-                            <h3 class="section-title">
-                                <Icon Type="@IconType.Outline.Contacts" /> اطلاعات تماس
-                            </h3>
-                            <Row Gutter="16">
-                                <AntDesign.Col Xs="24" Sm="12">
-                                    <FormItem Label="ایمیل" Rules=@(new FormValidationRule[] { 
-                                        new FormValidationRule { Required = true, Message = "لطفا ایمیل خود را وارد کنید" },
-                                        new FormValidationRule { Type = FormFieldType.Email, Message = "فرمت ایمیل صحیح نیست" }
-                                    })>
-                                        <Input @bind-Value="@context.Email" 
-                                               Disabled="@(!isEditing)"
-                                               Size="@InputSize.Large"
-                                               />
-                                    </FormItem>
-                                </AntDesign.Col>
-                                <AntDesign.Col Xs="24" Sm="12">
-                                    <FormItem Label="شماره تماس" Rules=@(new FormValidationRule[] { 
-                                        new FormValidationRule { Required = true, Message = "لطفا شماره تماس خود را وارد کنید" },
-                                        new FormValidationRule { Pattern = "^09[0-9]{9}$", Message = "شماره تماس باید با 09 شروع شود و 11 رقم باشد" }
-                                    })>
-                                        <Input @bind-Value="@context.PhoneNumber" 
-                                               Disabled="@(!isEditing)"
-                                               Size="@InputSize.Large"
-                                              />
-                                    </FormItem>
-                                </AntDesign.Col>
-                            </Row>
-                        </div>
+			<div class="profile-details">
+				<h1 class="profile-name">@profileModel.FullName</h1>
+				<p class="profile-bio">@profileModel.Bio</p>
 
-                        <!-- Bio Section -->
-                        <div class="form-section">
-                            <h3 class="section-title">
-                                <Icon Type="@IconType.Outline.FileText" /> درباره من
-                            </h3>
-                            <FormItem>
-                                <TextArea @bind-Value="@context.Bio" 
-                                          Rows="4" 
-                                          Disabled="@(!isEditing)"
-                                          ShowCount
-                                          MaxLength="200"
-                                          Placeholder="چند خط درباره خودتان بنویسید..." />
-                            </FormItem>
-                        </div>
+			</div>
 
-                        <!-- Additional Info Section -->
-                        <div class="form-section">
-                            <h3 class="section-title">
-                                <Icon Type="@IconType.Outline.InfoCircle" /> اطلاعات تکمیلی
-                            </h3>
-                            <Row Gutter="16">
-                                <AntDesign.Col Xs="24" Sm="12">
-                                    <FormItem Label="شهر">
-                                        <Input @bind-Value="@context.City" 
-                                               Disabled="@(!isEditing)"
-                                               Size="@InputSize.Large"
-                                              />
-                                    </FormItem>
-                                </AntDesign.Col>
-                                <AntDesign.Col Xs="24" Sm="12">
-                                    <FormItem Label="تاریخ تولد">
-                                        <DatePicker @bind-Value="@context.BirthDate" 
-                                                    Disabled="@(!isEditing)" 
-                                                    Style="width: 100%;"
-                                                    Size="InputSize.Large" />
-                                    </FormItem>
-                                </AntDesign.Col>
-                            </Row>
+			<Button Type="@ButtonType.Primary"
+			Icon="@IconType.Outline.Edit"
+			Class="edit-profile-btn"
+			OnClick="EnableEdit"
+			Shape="@ButtonShape.Round">
+				ویرایش پروفایل
+			</Button>
+		</div>
 
-                @*             <FormItem Label="علاقه‌مندی‌ها">
+		<!-- Stats Cards -->
+		<div class="stats-grid">
+			<div class="stat-card">
+				<Icon Type="@IconType.Outline.Compass" Class="stat-icon" />
+				<div class="stat-content">
+					<span class="stat-value">@profileModel.TripsCount</span>
+					<span class="stat-label">سفر</span>
+				</div>
+			</div>
+			<div class="stat-card">
+				<Icon Type="@IconType.Outline.Team" Class="stat-icon" />
+				<div class="stat-content">
+					<span class="stat-value">@profileModel.FriendsCount</span>
+					<span class="stat-label">دوست</span>
+				</div>
+			</div>
+			<div class="stat-card">
+				<Icon Type="@IconType.Outline.Picture" Class="stat-icon" />
+				<div class="stat-content">
+					<span class="stat-value">@profileModel.PhotosCount</span>
+					<span class="stat-label">عکس</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Content Tabs -->
+	<div class="profile-content">
+		<Tabs DefaultActiveKey="1" Class="custom-tabs" TabBarGutter="32">
+			<TabPane Tab="اطلاعات شخصی" Key="1">
+				<div class="tab-content">
+					<Form Model="@profileModel"
+					Layout="@FormLayout.Vertical"
+					OnFinish="OnFinish"
+					OnFinishFailed="OnFinishFailed"
+					Class="profile-form">
+
+						<!-- Personal Info Section -->
+						<div class="form-section">
+							<h3 class="section-title">
+								<Icon Type="@IconType.Outline.User" /> اطلاعات پایه
+							</h3>
+							<Row Gutter="16">
+								<AntDesign.Col Xs="24" Sm="12">
+									<FormItem Label="نام" Rules=@(new FormValidationRule[] { new FormValidationRule { Required = true, Message = "لطفا نام خود را وارد کنید" } })>
+										<Input @bind-Value="@context.FirstName"
+										Disabled="@(!isEditing)"
+										Size="@InputSize.Large" />
+									</FormItem>
+								</AntDesign.Col>
+								<AntDesign.Col Xs="24" Sm="12">
+									<FormItem Label="نام خانوادگی" Rules=@(new FormValidationRule[] { new FormValidationRule { Required = true, Message = "لطفا نام خانوادگی خود را وارد کنید" } })>
+										<Input @bind-Value="@context.LastName"
+										Disabled="@(!isEditing)"
+										Size="@InputSize.Large" />
+									</FormItem>
+								</AntDesign.Col>
+							</Row>
+						</div>
+
+						<!-- Contact Section -->
+						<div class="form-section">
+							<h3 class="section-title">
+								<Icon Type="@IconType.Outline.Contacts" /> اطلاعات تماس
+							</h3>
+							<Row Gutter="16">
+								<AntDesign.Col Xs="24" Sm="12">
+									<FormItem Label="ایمیل" Rules=@(new FormValidationRule[] {
+											  new FormValidationRule { Required = true, Message = "لطفا ایمیل خود را وارد کنید" },
+											  new FormValidationRule { Type = FormFieldType.Email, Message = "فرمت ایمیل صحیح نیست" }
+											  })>
+										<Input @bind-Value="@context.Email"
+										Disabled="@(!isEditing)"
+										Size="@InputSize.Large" />
+									</FormItem>
+								</AntDesign.Col>
+								<AntDesign.Col Xs="24" Sm="12">
+									<FormItem Label="شماره تماس" Rules=@(new FormValidationRule[] {
+											  new FormValidationRule { Required = true, Message = "لطفا شماره تماس خود را وارد کنید" },
+											  new FormValidationRule { Pattern = "^09[0-9]{9}$", Message = "شماره تماس باید با 09 شروع شود و 11 رقم باشد" }
+											  })>
+										<Input @bind-Value="@context.PhoneNumber"
+										Disabled="@(!isEditing)"
+										Size="@InputSize.Large" />
+									</FormItem>
+								</AntDesign.Col>
+							</Row>
+						</div>
+
+						<!-- Bio Section -->
+						<div class="form-section">
+							<h3 class="section-title">
+								<Icon Type="@IconType.Outline.FileText" /> درباره من
+							</h3>
+							<FormItem>
+								<TextArea @bind-Value="@context.Bio"
+								Rows="4"
+								Disabled="@(!isEditing)"
+								ShowCount
+								MaxLength="200"
+								Placeholder="چند خط درباره خودتان بنویسید..." />
+							</FormItem>
+						</div>
+
+						<!-- Additional Info Section -->
+						<div class="form-section">
+							<h3 class="section-title">
+								<Icon Type="@IconType.Outline.InfoCircle" /> اطلاعات تکمیلی
+							</h3>
+
+
+							@*             <FormItem Label="علاقه‌مندی‌ها">
                                 <Select Mode="multiple"
                                         @bind-Values="@context.Interests"
                                         Placeholder="علاقه‌مندی‌های خود را انتخاب کنید"
@@ -183,902 +163,907 @@
                                     <SelectOption Value="photography">📸 عکاسی</SelectOption>
                                 </Select>
                             </FormItem> *@
-                        </div>
+						</div>
 
-                        <!-- Action Buttons -->
-                        @if (isEditing)
-                        {
-                            <div class="form-actions">
-                                <Button Type="@ButtonType.Primary" 
-                                        HtmlType="submit" 
-                                        Loading="@loading"
-                                        Size="@ButtonSize.Large"
-                                        Icon="@IconType.Outline.Save">
-                                    ذخیره تغییرات
-                                </Button>
-                                <Button OnClick="CancelEdit"
-                                        Size="@ButtonSize.Large">
-                                    انصراف
-                                </Button>
-                            </div>
-                        }
-                    </Form>
-                </div>
-            </TabPane>
-            
-            <TabPane Tab="امنیت" Key="2">
-                <div class="tab-content">
-                    <!-- Password Change Section -->
-                    <div class="security-section">
-                        <h3 class="section-title">
-                            <Icon Type="@IconType.Outline.Lock" /> تغییر رمز عبور
-                        </h3>
-                        <Form Model="@securityModel" Layout="@FormLayout.Vertical" Class="security-form">
-                            <FormItem Label="رمز عبور فعلی">
-                                <InputPassword @bind-Value="@context.CurrentPassword" 
-                                               Size="@InputSize.Large"
-                                               Placeholder="رمز عبور فعلی خود را وارد کنید" />
-                            </FormItem>
-                            <FormItem Label="رمز عبور جدید">
-                                <InputPassword @bind-Value="@context.NewPassword"
-                                               Size="@InputSize.Large"
-                                               Placeholder="رمز عبور جدید را وارد کنید" />
-                            </FormItem>
-                            <FormItem Label="تکرار رمز عبور جدید">
-                                <InputPassword @bind-Value="@context.ConfirmPassword"
-                                               Size="@InputSize.Large"
-                                               Placeholder="رمز عبور جدید را مجددا وارد کنید" />
-                            </FormItem>
-                            <FormItem>
-                                <Button Type="@ButtonType.Primary" 
-                                        OnClick="ChangePassword"
-                                        Size="@ButtonSize.Large"
-                                        Icon="@IconType.Outline.Key">
-                                    تغییر رمز عبور
-                                </Button>
-                            </FormItem>
-                        </Form>
-                    </div>
+						<!-- Action Buttons -->
+						@if (isEditing)
+						{
+							<div class="form-actions">
+								<Button Type="@ButtonType.Primary"
+								HtmlType="submit"
+								Loading="@loading"
+								Size="@ButtonSize.Large"
+								Icon="@IconType.Outline.Save">
+									ذخیره تغییرات
+								</Button>
+								<Button OnClick="CancelEdit"
+								Size="@ButtonSize.Large">
+									انصراف
+								</Button>
+							</div>
+						}
+					</Form>
+				</div>
+			</TabPane>
 
-                    <!-- Two Factor Auth Section -->
-                    <div class="security-section">
-                        <h3 class="section-title">
-                            <Icon Type="@IconType.Outline.Safety" /> احراز هویت دو مرحله‌ای
-                        </h3>
-                        <div class="two-factor-card">
-                            <div class="two-factor-info">
-                                <Icon Type="@IconType.Outline.Safety" Class="security-icon" />
-                                <div>
-                                    <h4>افزایش امنیت حساب کاربری</h4>
-                                    <p>با فعال‌سازی این قابلیت، علاوه بر رمز عبور، کد تایید نیز برای ورود نیاز خواهید داشت.</p>
-                                </div>
-                            </div>
-                            <Switch @bind-Checked="@twoFactorEnabled" 
-                                    OnChange="OnTwoFactorChange"
-                                    CheckedChildren="فعال"
-                                    UnCheckedChildren="غیرفعال" />
-                        </div>
-                    </div>
-                </div>
-            </TabPane>
+			<TabPane Tab="امنیت" Key="2">
+				<div class="tab-content">
+					<!-- Password Change Section -->
+					<div class="security-section">
+						<h3 class="section-title">
+							<Icon Type="@IconType.Outline.Lock" /> تغییر رمز عبور
+						</h3>
+						<Form Model="@securityModel" Layout="@FormLayout.Vertical" Class="security-form">
+							<FormItem Label="رمز عبور فعلی">
+								<InputPassword @bind-Value="@context.CurrentPassword"
+								Size="@InputSize.Large"
+								Placeholder="رمز عبور فعلی خود را وارد کنید" />
+							</FormItem>
+							<FormItem Label="رمز عبور جدید">
+								<InputPassword @bind-Value="@context.NewPassword"
+								Size="@InputSize.Large"
+								Placeholder="رمز عبور جدید را وارد کنید" />
+							</FormItem>
+							<FormItem Label="تکرار رمز عبور جدید">
+								<InputPassword @bind-Value="@context.ConfirmPassword"
+								Size="@InputSize.Large"
+								Placeholder="رمز عبور جدید را مجددا وارد کنید" />
+							</FormItem>
+							<FormItem>
+								<Button Type="@ButtonType.Primary"
+								OnClick="ChangePassword"
+								Size="@ButtonSize.Large"
+								Icon="@IconType.Outline.Key">
+									تغییر رمز عبور
+								</Button>
+							</FormItem>
+						</Form>
+					</div>
 
-            <TabPane Tab="اعلان‌ها" Key="3">
-                <div class="tab-content">
-                    <div class="notification-section">
-                        <h3 class="section-title">
-                            <Icon Type="@IconType.Outline.Bell" /> تنظیمات اعلان‌ها
-                        </h3>
-                        <Form Model="@notificationModel" Layout="@FormLayout.Vertical">
-                            <div class="notification-list">
-                                <div class="notification-item">
-                                    <div class="notification-info">
-                                        <Icon Type="@IconType.Outline.Mail" Class="notification-icon" />
-                                        <div>
-                                            <h4>اعلان‌های ایمیل</h4>
-                                            <p>دریافت به‌روزرسانی‌ها از طریق ایمیل</p>
-                                        </div>
-                                    </div>
-                                    <Switch @bind-Checked="@context.EmailNotifications" />
-                                </div>
+					<!-- Two Factor Auth Section -->
+					<div class="security-section">
+						<h3 class="section-title">
+							<Icon Type="@IconType.Outline.Safety" /> احراز هویت دو مرحله‌ای
+						</h3>
+						<div class="two-factor-card">
+							<div class="two-factor-info">
+								<Icon Type="@IconType.Outline.Safety" Class="security-icon" />
+								<div>
+									<h4>افزایش امنیت حساب کاربری</h4>
+									<p>با فعال‌سازی این قابلیت، علاوه بر رمز عبور، کد تایید نیز برای ورود نیاز خواهید داشت.</p>
+								</div>
+							</div>
+							<Switch @bind-Checked="@twoFactorEnabled"
+							OnChange="OnTwoFactorChange"
+							CheckedChildren="فعال"
+							UnCheckedChildren="غیرفعال" />
+						</div>
+					</div>
+				</div>
+			</TabPane>
 
-                                <div class="notification-item">
-                                    <div class="notification-info">
-                                        <Icon Type="@IconType.Outline.Calendar" Class="notification-icon" />
-                                        <div>
-                                            <h4>یادآوری سفرها</h4>
-                                            <p>اطلاع‌رسانی قبل از شروع سفرها</p>
-                                        </div>
-                                    </div>
-                                    <Switch @bind-Checked="@context.TripReminders" />
-                                </div>
+			<TabPane Tab="اعلان‌ها" Key="3">
+				<div class="tab-content">
+					<div class="notification-section">
+						<h3 class="section-title">
+							<Icon Type="@IconType.Outline.Bell" /> تنظیمات اعلان‌ها
+						</h3>
+						<Form Model="@notificationModel" Layout="@FormLayout.Vertical">
+							<div class="notification-list">
+								<div class="notification-item">
+									<div class="notification-info">
+										<Icon Type="@IconType.Outline.Mail" Class="notification-icon" />
+										<div>
+											<h4>اعلان‌های ایمیل</h4>
+											<p>دریافت به‌روزرسانی‌ها از طریق ایمیل</p>
+										</div>
+									</div>
+									<Switch @bind-Checked="@context.EmailNotifications" />
+								</div>
 
-                                <div class="notification-item">
-                                    <div class="notification-info">
-                                        <Icon Type="@IconType.Outline.UserAdd" Class="notification-icon" />
-                                        <div>
-                                            <h4>درخواست‌های دوستی</h4>
-                                            <p>اطلاع از درخواست‌های دوستی جدید</p>
-                                        </div>
-                                    </div>
-                                    <Switch @bind-Checked="@context.FriendRequests" />
-                                </div>
+								<div class="notification-item">
+									<div class="notification-info">
+										<Icon Type="@IconType.Outline.Calendar" Class="notification-icon" />
+										<div>
+											<h4>یادآوری سفرها</h4>
+											<p>اطلاع‌رسانی قبل از شروع سفرها</p>
+										</div>
+									</div>
+									<Switch @bind-Checked="@context.TripReminders" />
+								</div>
 
-                                <div class="notification-item">
-                                    <div class="notification-info">
-                                        <Icon Type="@IconType.Outline.Gift" Class="notification-icon" />
-                                        <div>
-                                            <h4>دعوت‌نامه‌های سفر</h4>
-                                            <p>اطلاع از دعوت به سفرهای گروهی</p>
-                                        </div>
-                                    </div>
-                                    <Switch @bind-Checked="@context.TripInvitations" />
-                                </div>
-                            </div>
-                            
-                            <FormItem>
-                                <Button Type="@ButtonType.Primary" 
-                                        OnClick="SaveNotificationSettings"
-                                        Size="@ButtonSize.Large"
-                                        Icon="@IconType.Outline.Save">
-                                    ذخیره تنظیمات
-                                </Button>
-                            </FormItem>
-                        </Form>
-                    </div>
-                </div>
-            </TabPane>
-        </Tabs>
-    </div>
+								<div class="notification-item">
+									<div class="notification-info">
+										<Icon Type="@IconType.Outline.UserAdd" Class="notification-icon" />
+										<div>
+											<h4>درخواست‌های دوستی</h4>
+											<p>اطلاع از درخواست‌های دوستی جدید</p>
+										</div>
+									</div>
+									<Switch @bind-Checked="@context.FriendRequests" />
+								</div>
+
+								<div class="notification-item">
+									<div class="notification-info">
+										<Icon Type="@IconType.Outline.Gift" Class="notification-icon" />
+										<div>
+											<h4>دعوت‌نامه‌های سفر</h4>
+											<p>اطلاع از دعوت به سفرهای گروهی</p>
+										</div>
+									</div>
+									<Switch @bind-Checked="@context.TripInvitations" />
+								</div>
+							</div>
+
+							<FormItem>
+								<Button Type="@ButtonType.Primary"
+								OnClick="SaveNotificationSettings"
+								Size="@ButtonSize.Large"
+								Icon="@IconType.Outline.Save">
+									ذخیره تنظیمات
+								</Button>
+							</FormItem>
+						</Form>
+					</div>
+				</div>
+			</TabPane>
+		</Tabs>
+	</div>
 </div>
 
 <style>
-    /* Import Vazir Font */
-    @@import url('https://fonts.googleapis.com/css2?family=Vazir:wght@300;400;500;600;700&display=swap');
-
-    /* CSS Variables for Theming */
-    :root {
-        --primary-color: #1890ff;
-        --primary-dark: #096dd9;
-        --secondary-color: #52c41a;
-        --danger-color: #ff4d4f;
-        --warning-color: #faad14;
-        --text-primary: #262626;
-        --text-secondary: #8c8c8c;
-        --background: #f5f7fa;
-        --card-background: #ffffff;
-        --border-color: #e8e8e8;
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
-        --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
-        --radius-sm: 8px;
-        --radius-md: 12px;
-        --radius-lg: 16px;
-        --radius-xl: 24px;
-    }
-
-    /* Global Styles */
-    * {
-        font-family: 'Vazir', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
-
-    /* Container */
-    .profile-container {
-        min-height: 100vh;
-        background: var(--background);
-        padding-bottom: 32px;
-    }
-
-    /* Profile Header Card */
-    .profile-header-card {
-        background: var(--card-background);
-        border-radius: 0 0 var(--radius-xl) var(--radius-xl);
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
-        margin-bottom: 24px;
-    }
-
-    /* Cover Section */
-    .profile-cover-wrapper {
-        position: relative;
-        height: 280px;
-        overflow: hidden;
-    }
-
-    .profile-cover {
-        width: 100%;
-        height: 100%;
-        background-size: cover;
-        background-position: center;
-        transition: transform 0.3s ease;
-    }
-
-    .profile-cover:hover {
-        transform: scale(1.05);
-    }
-
-    .cover-overlay {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 120px;
-        background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
-    }
-
-    .change-cover-btn {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        background: rgba(255, 255, 255, 0.9);
-        border: none;
-        backdrop-filter: blur(10px);
-    }
-
-    /* Profile Info Section */
-    .profile-info-section {
-        padding: 0 24px 24px;
-        margin-top: -60px;
-        position: relative;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-end;
-        gap: 24px;
-    }
-
-    /* Avatar */
-    .avatar-wrapper {
-        position: relative;
-    }
-
-    .profile-avatar {
-        border: 4px solid var(--card-background);
-        box-shadow: var(--shadow-lg);
-        background: var(--card-background);
-    }
-
-    .change-avatar-btn {
-        position: absolute;
-        bottom: 4px;
-        right: 4px;
-        background: var(--primary-color);
-        border: 2px solid var(--card-background);
-        color: white;
-    }
-
-    .change-avatar-btn:hover {
-        background: var(--primary-dark);
-    }
-
-    /* Profile Details */
-    .profile-details {
-        flex: 1;
-        min-width: 200px;
-    }
-
-    .profile-name {
-        font-size: 28px;
-        font-weight: 700;
-        margin: 0 0 8px;
-        color: var(--text-primary);
-    }
-
-    .profile-bio {
-        font-size: 16px;
-        color: var(--text-secondary);
-        margin: 0 0 12px;
-        line-height: 1.6;
-    }
-
-    .profile-location {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        color: var(--text-secondary);
-        font-size: 14px;
-    }
-
-    /* Edit Button */
-    .edit-profile-btn {
-        margin-left: auto;
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 16px;
-        padding: 24px;
-        background: var(--background);
-        border-top: 1px solid var(--border-color);
-    }
-
-    .stat-card {
-        background: var(--card-background);
-        border-radius: var(--radius-md);
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .stat-icon {
-        font-size: 24px;
-        color: var(--primary-color);
-    }
-
-    .stat-content {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .stat-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--text-primary);
-        line-height: 1;
-    }
-
-    .stat-label {
-        font-size: 14px;
-        color: var(--text-secondary);
-        margin-top: 4px;
-    }
-
-    /* Content Area */
-    .profile-content {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 24px;
-    }
-
-    /* Custom Tabs */
-    .custom-tabs {
-        background: transparent;
-    }
-
-    .custom-tabs .ant-tabs-nav {
-        background: var(--card-background);
-        border-radius: var(--radius-lg);
-        padding: 8px;
-        margin-bottom: 24px;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .custom-tabs .ant-tabs-tab {
-        border-radius: var(--radius-sm);
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .custom-tabs .ant-tabs-tab:hover {
-        color: var(--primary-color);
-    }
-
-    .custom-tabs .ant-tabs-tab-active {
-        background: var(--primary-color);
-        color: white !important;
-    }
-
-    .custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
-        color: white;
-    }
-
-    .custom-tabs .ant-tabs-ink-bar {
-        display: none;
-    }
-
-    /* Tab Content */
-    .tab-content {
-        background: var(--card-background);
-        border-radius: var(--radius-lg);
-        padding: 32px;
-        box-shadow: var(--shadow-sm);
-    }
-
-    /* Form Sections */
-    .form-section {
-        margin-bottom: 32px;
-        padding-bottom: 32px;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .form-section:last-of-type {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-    }
-
-    .section-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .section-title .anticon {
-        color: var(--primary-color);
-    }
-
-    /* Form Styling */
-    .profile-form .ant-form-item {
-        margin-bottom: 20px;
-    }
-
-    .profile-form .ant-form-item-label > label {
-        font-weight: 500;
-        color: var(--text-primary);
-    }
-
-    .profile-form .ant-input,
-    .profile-form .ant-input-affix-wrapper,
-    .profile-form .ant-picker,
-    .profile-form .ant-select-selector {
-        border-radius: var(--radius-sm);
-        transition: all 0.3s ease;
-    }
-
-    .profile-form .ant-input:hover,
-    .profile-form .ant-input-affix-wrapper:hover,
-    .profile-form .ant-picker:hover,
-    .profile-form .ant-select:not(.ant-select-disabled):hover .ant-select-selector {
-        border-color: var(--primary-color);
-    }
-
-    .profile-form .ant-input:focus,
-    .profile-form .ant-input-affix-wrapper-focused,
-    .profile-form .ant-picker-focused,
-    .profile-form .ant-select-focused .ant-select-selector {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-    }
-
-    /* Form Actions */
-    .form-actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 32px;
-        padding-top: 32px;
-        border-top: 1px solid var(--border-color);
-    }
-
-    /* Security Section */
-    .security-section {
-        background: var(--background);
-        border-radius: var(--radius-md);
-        padding: 24px;
-        margin-bottom: 24px;
-    }
-
-    .security-section:last-child {
-        margin-bottom: 0;
-    }
-
-    .security-form {
-        max-width: 500px;
-    }
-
-    /* Two Factor Card */
-    .two-factor-card {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: var(--card-background);
-        border-radius: var(--radius-md);
-        padding: 20px;
-        border: 1px solid var(--border-color);
-    }
-
-    .two-factor-info {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex: 1;
-    }
-
-    .security-icon {
-        font-size: 32px;
-        color: var(--secondary-color);
-    }
-
-    .two-factor-info h4 {
-        margin: 0 0 4px;
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    .two-factor-info p {
-        margin: 0;
-        font-size: 14px;
-        color: var(--text-secondary);
-    }
-
-    /* Notification Section */
-    .notification-section {
-        max-width: 700px;
-    }
-
-    .notification-list {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    .notification-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: var(--background);
-        border-radius: var(--radius-md);
-        padding: 20px;
-        border: 1px solid var(--border-color);
-        transition: all 0.3s ease;
-    }
-
-    .notification-item:hover {
-        border-color: var(--primary-color);
-        box-shadow: var(--shadow-sm);
-    }
-
-    .notification-info {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-
-    .notification-icon {
-        font-size: 24px;
-        color: var(--primary-color);
-    }
-
-    .notification-info h4 {
-        margin: 0 0 4px;
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    .notification-info p {
-        margin: 0;
-        font-size: 14px;
-        color: var(--text-secondary);
-    }
-
-    /* Animations */
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .profile-header-card {
-        animation: fadeIn 0.6s ease-out;
-    }
-
-    .stat-card {
-        animation: fadeIn 0.6s ease-out;
-        animation-fill-mode: both;
-    }
-
-    .stat-card:nth-child(1) { animation-delay: 0.1s; }
-    .stat-card:nth-child(2) { animation-delay: 0.2s; }
-    .stat-card:nth-child(3) { animation-delay: 0.3s; }
-
-    /* Mobile Responsive */
-    @@media (max-width: 768px) {
-        .profile-cover-wrapper {
-            height: 200px;
-        }
-
-        .profile-info-section {
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 0 16px 16px;
-        }
-
-        .profile-details {
-            order: 2;
-        }
-
-        .edit-profile-btn {
-            order: 3;
-            width: 100%;
-            margin-left: 0;
-        }
-
-        .profile-name {
-            font-size: 24px;
-        }
-
-        .stats-grid {
-            padding: 16px;
-            grid-template-columns: 1fr;
-        }
-
-        .profile-content {
-            padding: 0 16px;
-        }
-
-        .tab-content {
-            padding: 20px;
-        }
-
-        .custom-tabs .ant-tabs-nav {
-            padding: 4px;
-        }
-
-        .section-title {
-            font-size: 16px;
-        }
-
-        .form-actions {
-            flex-direction: column;
-        }
-
-        .form-actions button {
-            width: 100%;
-        }
-
-        .two-factor-card {
-            flex-direction: column;
-            gap: 16px;
-            text-align: center;
-        }
-
-        .two-factor-info {
-            flex-direction: column;
-        }
-
-        .notification-item {
-            flex-direction: column;
-            gap: 16px;
-            text-align: center;
-        }
-
-        .notification-info {
-            flex-direction: column;
-        }
-    }
-
-    @@media (max-width: 480px) {
-        .profile-avatar {
-            width: 100px !important;
-            height: 100px !important;
-        }
-
-        .change-avatar-btn {
-            width: 32px !important;
-            height: 32px !important;
-        }
-
-        .stat-card {
-            padding: 16px;
-        }
-
-        .stat-icon {
-            font-size: 20px;
-        }
-
-        .stat-value {
-            font-size: 20px;
-        }
-    }
-
-    /* Dark Mode Support */
-    @@media (prefers-color-scheme: dark) {
-        :root {
-            --text-primary: #f0f0f0;
-            --text-secondary: #bfbfbf;
-            --background: #141414;
-            --card-background: #1f1f1f;
-            --border-color: #303030;
-        }
-
-        .cover-overlay {
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-        }
-    }
-
-    /* Smooth Scrolling */
-    html {
-        scroll-behavior: smooth;
-    }
-
-    /* Loading State */
-    .ant-btn-loading {
-        opacity: 0.8;
-    }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: var(--background);
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: var(--border-color);
-        border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: var(--text-secondary);
-    }
+	/* Import Vazir Font */
+	@@import url('https://fonts.googleapis.com/css2?family=Vazir:wght@300;400;500;600;700&display=swap');
+
+	/* CSS Variables for Theming */
+	:root {
+	--primary-color: #1890ff;
+	--primary-dark: #096dd9;
+	--secondary-color: #52c41a;
+	--danger-color: #ff4d4f;
+	--warning-color: #faad14;
+	--text-primary: #262626;
+	--text-secondary: #8c8c8c;
+	--background: #f5f7fa;
+	--card-background: #ffffff;
+	--border-color: #e8e8e8;
+	--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+	--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+	--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+	--radius-sm: 8px;
+	--radius-md: 12px;
+	--radius-lg: 16px;
+	--radius-xl: 24px;
+	}
+
+	/* Global Styles */
+	* {
+	font-family: 'Vazir', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	}
+
+	/* Container */
+	.profile-container {
+	min-height: 100vh;
+	background: var(--background);
+	padding-bottom: 32px;
+	}
+
+	/* Profile Header Card */
+	.profile-header-card {
+	background: var(--card-background);
+	border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+	box-shadow: var(--shadow-md);
+	overflow: hidden;
+	margin-bottom: 24px;
+	}
+
+	/* Cover Section */
+	.profile-cover-wrapper {
+	position: relative;
+	height: 280px;
+	overflow: hidden;
+	}
+
+	.profile-cover {
+	width: 100%;
+	height: 100%;
+	background-size: cover;
+	background-position: center;
+	transition: transform 0.3s ease;
+	}
+
+	.profile-cover:hover {
+	transform: scale(1.05);
+	}
+
+	.cover-overlay {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 120px;
+	background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+	}
+
+	.change-cover-btn {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	background: rgba(255, 255, 255, 0.9);
+	border: none;
+	backdrop-filter: blur(10px);
+	}
+
+	/* Profile Info Section */
+	.profile-info-section {
+	padding: 0 24px 24px;
+	margin-top: -60px;
+	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 24px;
+	}
+
+	/* Avatar */
+	.avatar-wrapper {
+	position: relative;
+	}
+
+	.profile-avatar {
+	border: 4px solid var(--card-background);
+	box-shadow: var(--shadow-lg);
+	background: var(--card-background);
+	}
+
+	.change-avatar-btn {
+	position: absolute;
+	bottom: 4px;
+	right: 4px;
+	background: var(--primary-color);
+	border: 2px solid var(--card-background);
+	color: white;
+	}
+
+	.change-avatar-btn:hover {
+	background: var(--primary-dark);
+	}
+
+	/* Profile Details */
+	.profile-details {
+	flex: 1;
+	min-width: 200px;
+	}
+
+	.profile-name {
+	font-size: 28px;
+	font-weight: 700;
+	margin: 0 0 8px;
+	color: var(--text-primary);
+	}
+
+	.profile-bio {
+	font-size: 16px;
+	color: var(--text-secondary);
+	margin: 0 0 12px;
+	line-height: 1.6;
+	}
+
+	.profile-location {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--text-secondary);
+	font-size: 14px;
+	}
+
+	/* Edit Button */
+	.edit-profile-btn {
+	margin-left: auto;
+	}
+
+	/* Stats Grid */
+	.stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 16px;
+	padding: 24px;
+	background: var(--background);
+	border-top: 1px solid var(--border-color);
+	}
+
+	.stat-card {
+	background: var(--card-background);
+	border-radius: var(--radius-md);
+	padding: 20px;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	transition: all 0.3s ease;
+	cursor: pointer;
+	}
+
+	.stat-card:hover {
+	transform: translateY(-4px);
+	box-shadow: var(--shadow-md);
+	}
+
+	.stat-icon {
+	font-size: 24px;
+	color: var(--primary-color);
+	}
+
+	.stat-content {
+	display: flex;
+	flex-direction: column;
+	}
+
+	.stat-value {
+	font-size: 24px;
+	font-weight: 700;
+	color: var(--text-primary);
+	line-height: 1;
+	}
+
+	.stat-label {
+	font-size: 14px;
+	color: var(--text-secondary);
+	margin-top: 4px;
+	}
+
+	/* Content Area */
+	.profile-content {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 24px;
+	}
+
+	/* Custom Tabs */
+	.custom-tabs {
+	background: transparent;
+	}
+
+	.custom-tabs .ant-tabs-nav {
+	background: var(--card-background);
+	border-radius: var(--radius-lg);
+	padding: 8px;
+	margin-bottom: 24px;
+	box-shadow: var(--shadow-sm);
+	}
+
+	.custom-tabs .ant-tabs-tab {
+	border-radius: var(--radius-sm);
+	font-weight: 500;
+	transition: all 0.3s ease;
+	}
+
+	.custom-tabs .ant-tabs-tab:hover {
+	color: var(--primary-color);
+	}
+
+	.custom-tabs .ant-tabs-tab-active {
+	background: var(--primary-color);
+	color: white !important;
+	}
+
+	.custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+	color: white;
+	}
+
+	.custom-tabs .ant-tabs-ink-bar {
+	display: none;
+	}
+
+	/* Tab Content */
+	.tab-content {
+	background: var(--card-background);
+	border-radius: var(--radius-lg);
+	padding: 32px;
+	box-shadow: var(--shadow-sm);
+	}
+
+	/* Form Sections */
+	.form-section {
+	margin-bottom: 32px;
+	padding-bottom: 32px;
+	border-bottom: 1px solid var(--border-color);
+	}
+
+	.form-section:last-of-type {
+	border-bottom: none;
+	margin-bottom: 0;
+	padding-bottom: 0;
+	}
+
+	.section-title {
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--text-primary);
+	margin-bottom: 20px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	}
+
+	.section-title .anticon {
+	color: var(--primary-color);
+	}
+
+	/* Form Styling */
+	.profile-form .ant-form-item {
+	margin-bottom: 20px;
+	}
+
+	.profile-form .ant-form-item-label > label {
+	font-weight: 500;
+	color: var(--text-primary);
+	}
+
+	.profile-form .ant-input,
+	.profile-form .ant-input-affix-wrapper,
+	.profile-form .ant-picker,
+	.profile-form .ant-select-selector {
+	border-radius: var(--radius-sm);
+	transition: all 0.3s ease;
+	}
+
+	.profile-form .ant-input:hover,
+	.profile-form .ant-input-affix-wrapper:hover,
+	.profile-form .ant-picker:hover,
+	.profile-form .ant-select:not(.ant-select-disabled):hover .ant-select-selector {
+	border-color: var(--primary-color);
+	}
+
+	.profile-form .ant-input:focus,
+	.profile-form .ant-input-affix-wrapper-focused,
+	.profile-form .ant-picker-focused,
+	.profile-form .ant-select-focused .ant-select-selector {
+	border-color: var(--primary-color);
+	box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+	}
+
+	/* Form Actions */
+	.form-actions {
+	display: flex;
+	gap: 12px;
+	margin-top: 32px;
+	padding-top: 32px;
+	border-top: 1px solid var(--border-color);
+	}
+
+	/* Security Section */
+	.security-section {
+	background: var(--background);
+	border-radius: var(--radius-md);
+	padding: 24px;
+	margin-bottom: 24px;
+	}
+
+	.security-section:last-child {
+	margin-bottom: 0;
+	}
+
+	.security-form {
+	max-width: 500px;
+	}
+
+	/* Two Factor Card */
+	.two-factor-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: var(--card-background);
+	border-radius: var(--radius-md);
+	padding: 20px;
+	border: 1px solid var(--border-color);
+	}
+
+	.two-factor-info {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex: 1;
+	}
+
+	.security-icon {
+	font-size: 32px;
+	color: var(--secondary-color);
+	}
+
+	.two-factor-info h4 {
+	margin: 0 0 4px;
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--text-primary);
+	}
+
+	.two-factor-info p {
+	margin: 0;
+	font-size: 14px;
+	color: var(--text-secondary);
+	}
+
+	/* Notification Section */
+	.notification-section {
+	max-width: 700px;
+	}
+
+	.notification-list {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin-bottom: 24px;
+	}
+
+	.notification-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: var(--background);
+	border-radius: var(--radius-md);
+	padding: 20px;
+	border: 1px solid var(--border-color);
+	transition: all 0.3s ease;
+	}
+
+	.notification-item:hover {
+	border-color: var(--primary-color);
+	box-shadow: var(--shadow-sm);
+	}
+
+	.notification-info {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	}
+
+	.notification-icon {
+	font-size: 24px;
+	color: var(--primary-color);
+	}
+
+	.notification-info h4 {
+	margin: 0 0 4px;
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--text-primary);
+	}
+
+	.notification-info p {
+	margin: 0;
+	font-size: 14px;
+	color: var(--text-secondary);
+	}
+
+	/* Animations */
+	@@keyframes fadeIn {
+	from {
+	opacity: 0;
+	transform: translateY(20px);
+	}
+
+	to {
+	opacity: 1;
+	transform: translateY(0);
+	}
+	}
+
+	.profile-header-card {
+	animation: fadeIn 0.6s ease-out;
+	}
+
+	.stat-card {
+	animation: fadeIn 0.6s ease-out;
+	animation-fill-mode: both;
+	}
+
+	.stat-card:nth-child(1) {
+	animation-delay: 0.1s;
+	}
+
+	.stat-card:nth-child(2) {
+	animation-delay: 0.2s;
+	}
+
+	.stat-card:nth-child(3) {
+	animation-delay: 0.3s;
+	}
+
+	/* Mobile Responsive */
+	@@media (max-width: 768px) {
+	.profile-cover-wrapper {
+	height: 200px;
+	}
+
+	.profile-info-section {
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	padding: 0 16px 16px;
+	}
+
+	.profile-details {
+	order: 2;
+	}
+
+	.edit-profile-btn {
+	order: 3;
+	width: 100%;
+	margin-left: 0;
+	}
+
+	.profile-name {
+	font-size: 24px;
+	}
+
+	.stats-grid {
+	padding: 16px;
+	grid-template-columns: 1fr;
+	}
+
+	.profile-content {
+	padding: 0 16px;
+	}
+
+	.tab-content {
+	padding: 20px;
+	}
+
+	.custom-tabs .ant-tabs-nav {
+	padding: 4px;
+	}
+
+	.section-title {
+	font-size: 16px;
+	}
+
+	.form-actions {
+	flex-direction: column;
+	}
+
+	.form-actions button {
+	width: 100%;
+	}
+
+	.two-factor-card {
+	flex-direction: column;
+	gap: 16px;
+	text-align: center;
+	}
+
+	.two-factor-info {
+	flex-direction: column;
+	}
+
+	.notification-item {
+	flex-direction: column;
+	gap: 16px;
+	text-align: center;
+	}
+
+	.notification-info {
+	flex-direction: column;
+	}
+	}
+
+	@@media (max-width: 480px) {
+	.profile-avatar {
+	width: 100px !important;
+	height: 100px !important;
+	}
+
+	.change-avatar-btn {
+	width: 32px !important;
+	height: 32px !important;
+	}
+
+	.stat-card {
+	padding: 16px;
+	}
+
+	.stat-icon {
+	font-size: 20px;
+	}
+
+	.stat-value {
+	font-size: 20px;
+	}
+	}
+
+	/* Dark Mode Support */
+	@@media (prefers-color-scheme: dark) {
+	:root {
+	--text-primary: #f0f0f0;
+	--text-secondary: #bfbfbf;
+	--background: #141414;
+	--card-background: #1f1f1f;
+	--border-color: #303030;
+	}
+
+	.cover-overlay {
+	background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+	}
+	}
+
+	/* Smooth Scrolling */
+	html {
+	scroll-behavior: smooth;
+	}
+
+	/* Loading State */
+	.ant-btn-loading {
+	opacity: 0.8;
+	}
+
+	/* Custom Scrollbar */
+	::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+	}
+
+	::-webkit-scrollbar-track {
+	background: var(--background);
+	}
+
+	::-webkit-scrollbar-thumb {
+	background: var(--border-color);
+	border-radius: 4px;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+	background: var(--text-secondary);
+	}
 </style>
 
 @code {
-    // ... Previous C# code remains the same ...
-    private ProfileModel profileModel = new ProfileModel();
-    private SecurityModel securityModel = new SecurityModel();
-    private NotificationModel notificationModel = new NotificationModel();
-    private bool isEditing = false;
-    private bool loading = false;
-    private bool twoFactorEnabled = false;
+	[Inject] private IFamilyService _familyService { get; set; }
+	[Inject]	private UserManager<ApplicationUser> _userManager { get; set; }
+	private ProfileModel profileModel = new ProfileModel();
+	private SecurityModel securityModel = new SecurityModel();
+	private NotificationModel notificationModel = new NotificationModel();
+	private bool isEditing = false;
+	private bool loading = false;
+	private bool twoFactorEnabled = false;
 
-    protected override void OnInitialized()
-    {
-        // Initialize with sample data - replace with actual data loading
-        profileModel = new ProfileModel
-        {
-            FirstName = "احمد",
-            LastName = "رضایی",
-            Email = "ahmad@example.com",
-            PhoneNumber = "09123456789",
-            Bio = "عاشق سفر و ماجراجویی",
-            City = "تهران",
-            BirthDate = DateTime.Now.AddYears(-30),
-            AvatarUrl = "https://i.pravatar.cc/300?img=3",
-            TripsCount = 24,
-            FriendsCount = 18,
-            PhotosCount = 156,
-            Interests = new[] { "nature", "photography" }
-        };
+	protected override async Task OnInitializedAsync()
+	{
+		var currentfamily = _familyService.GetFamilyId();
+		var info =await _familyService.GetFamilyInfo(currentfamily);
+		var user = await _userManager.FindByNameAsync(info.UserId);
+		profileModel = new ProfileModel
+			{
+				Name = info.Name,
+				AccountNumber = info.AccountNumber,
+				Email = user.Email,
+				PhoneNumber = user.PhoneNumber,
+				Bio = info.Bio,
+				AvatarUrl = "https://i.pravatar.cc/300?img=3",
+				TripsCount = info.Trips,
+				FriendsCount = info.Friends,
+				Interests = info.Interests
+			};
 
-        notificationModel = new NotificationModel
-        {
-            EmailNotifications = true,
-            TripReminders = true,
-            FriendRequests = false,
-            TripInvitations = true
-        };
-    }
+		notificationModel = new NotificationModel
+			{
+				EmailNotifications = true,
+				TripReminders = true,
+				FriendRequests = false,
+				TripInvitations = true
+			};
+	}
 
-    private void EnableEdit()
-    {
-        isEditing = true;
-    }
+	private void EnableEdit()
+	{
+		isEditing = true;
+	}
 
-    private void CancelEdit()
-    {
-        isEditing = false;
-        // Reset form to original values if needed
-    }
+	private void CancelEdit()
+	{
+		isEditing = false;
+		// Reset form to original values if needed
+	}
 
-    private async Task OnFinish(EditContext editContext)
-    {
-        loading = true;
-        try
-        {
-            // Simulate API call
-            await Task.Delay(1000);
-            
-            // Save profile data
-            // await ProfileService.UpdateProfile(profileModel);
-            
-           await Message.Success("پروفایل با موفقیت بروزرسانی شد");
-            isEditing = false;
-        }
-        catch
-        {
-            await Message.Error("خطا در بروزرسانی پروفایل");
-        }
-        finally
-        {
-            loading = false;
-        }
-    }
+	private async Task OnFinish(EditContext editContext)
+	{
+		loading = true;
+		try
+		{
+			// Simulate API call
+			await Task.Delay(1000);
 
-    private void OnFinishFailed(EditContext editContext)
-    {
-        Message.Error("لطفا فیلدهای مورد نیاز را تکمیل کنید");
-    }
+			// Save profile data
+			// await ProfileService.UpdateProfile(profileModel);
 
-    private async Task ChangePassword()
-    {
-        if (securityModel.NewPassword != securityModel.ConfirmPassword)
-        {
-            await Message.Error("رمز عبور جدید با تکرار آن مطابقت ندارد");
-            return;
-        }
+			await Message.Success("پروفایل با موفقیت بروزرسانی شد");
+			isEditing = false;
+		}
+		catch
+		{
+			await Message.Error("خطا در بروزرسانی پروفایل");
+		}
+		finally
+		{
+			loading = false;
+		}
+	}
 
-        // Implement password change logic
-        await Task.Delay(1000);
-        await Message.Success("رمز عبور با موفقیت تغییر یافت");
-    }
+	private void OnFinishFailed(EditContext editContext)
+	{
+		Message.Error("لطفا فیلدهای مورد نیاز را تکمیل کنید");
+	}
 
-    private void OnTwoFactorChange(bool enabled)
-    {
-        // Implement 2FA toggle logic
-        Message.Info(enabled ? "احراز هویت دو مرحله‌ای فعال شد" : "احراز هویت دو مرحله‌ای غیرفعال شد");
-    }
+	private async Task ChangePassword()
+	{
+		if (securityModel.NewPassword != securityModel.ConfirmPassword)
+		{
+			await Message.Error("رمز عبور جدید با تکرار آن مطابقت ندارد");
+			return;
+		}
 
-    private async Task SaveNotificationSettings()
-    {
-        // Save notification settings
-        await Task.Delay(500);
-        await Message.Success("تنظیمات اعلان‌ها ذخیره شد");
-    }
+		// Implement password change logic
+		await Task.Delay(1000);
+		await Message.Success("رمز عبور با موفقیت تغییر یافت");
+	}
 
-    // Model Classes
-    public class ProfileModel
-    {
-        [Required(ErrorMessage = "نام الزامی است")]
-        public string FirstName { get; set; }
-        
-        [Required(ErrorMessage = "نام خانوادگی الزامی است")]
-        public string LastName { get; set; }
-        
-        [Required(ErrorMessage = "ایمیل الزامی است")]
-        [EmailAddress(ErrorMessage = "فرمت ایمیل صحیح نیست")]
-        public string Email { get; set; }
-        
-        [Required(ErrorMessage = "شماره تماس الزامی است")]
-        [Phone(ErrorMessage = "فرمت شماره تماس صحیح نیست")]
-        public string PhoneNumber { get; set; }
-        
-        public string Bio { get; set; }
-        public string City { get; set; }
-        public DateTime? BirthDate { get; set; }
-        public string AvatarUrl { get; set; }
-        public string[] Interests { get; set; }
-        
-        // Stats
-        public int TripsCount { get; set; }
-        public int FriendsCount { get; set; }
-        public int PhotosCount { get; set; }
-        
-        public string FullName => $"{FirstName} {LastName}";
-    }
+	private void OnTwoFactorChange(bool enabled)
+	{
+		// Implement 2FA toggle logic
+		Message.Info(enabled ? "احراز هویت دو مرحله‌ای فعال شد" : "احراز هویت دو مرحله‌ای غیرفعال شد");
+	}
 
-    public class SecurityModel
-    {
-        [Required(ErrorMessage = "رمز عبور فعلی الزامی است")]
-        public string CurrentPassword { get; set; }
-        
-        [Required(ErrorMessage = "رمز عبور جدید الزامی است")]
-        [MinLength(8, ErrorMessage = "رمز عبور باید حداقل 8 کاراکتر باشد")]
-        public string NewPassword { get; set; }
-        
-        [Required(ErrorMessage = "تکرار رمز عبور الزامی است")]
-        [Compare("NewPassword", ErrorMessage = "رمز عبور جدید با تکرار آن مطابقت ندارد")]
-        public string ConfirmPassword { get; set; }
-    }
+	private async Task SaveNotificationSettings()
+	{
+		// Save notification settings
+		await Task.Delay(500);
+		await Message.Success("تنظیمات اعلان‌ها ذخیره شد");
+	}
 
-    public class NotificationModel
-    {
-        public bool EmailNotifications { get; set; }
-        public bool TripReminders { get; set; }
-        public bool FriendRequests { get; set; }
-        public bool TripInvitations { get; set; }
-    }
+	// Model Classes
+	public class ProfileModel
+	{
+		[Required(ErrorMessage = "نام الزامی است")]
+		public string Name { get; set; }
+
+		[Required(ErrorMessage = "شماره کارت الزامی است")]
+		public string AccountNumber { get; set; }
+
+		[Required(ErrorMessage = "ایمیل الزامی است")]
+		[EmailAddress(ErrorMessage = "فرمت ایمیل صحیح نیست")]
+		public string Email { get; set; }
+
+		[Required(ErrorMessage = "شماره تماس الزامی است")]
+		[Phone(ErrorMessage = "فرمت شماره تماس صحیح نیست")]
+		public string PhoneNumber { get; set; }
+
+		public string Bio { get; set; }
+		public string AvatarUrl { get; set; }
+		public List<string> Interests { get; set; }
+
+		// Stats
+		public int TripsCount { get; set; }
+		public int FriendsCount { get; set; }
+
+	}
+
+	public class SecurityModel
+	{
+		[Required(ErrorMessage = "رمز عبور فعلی الزامی است")]
+		public string CurrentPassword { get; set; }
+
+		[Required(ErrorMessage = "رمز عبور جدید الزامی است")]
+		[MinLength(8, ErrorMessage = "رمز عبور باید حداقل 8 کاراکتر باشد")]
+		public string NewPassword { get; set; }
+
+		[Required(ErrorMessage = "تکرار رمز عبور الزامی است")]
+		[Compare("NewPassword", ErrorMessage = "رمز عبور جدید با تکرار آن مطابقت ندارد")]
+		public string ConfirmPassword { get; set; }
+	}
+
+	public class NotificationModel
+	{
+		public bool EmailNotifications { get; set; }
+		public bool TripReminders { get; set; }
+		public bool FriendRequests { get; set; }
+		public bool TripInvitations { get; set; }
+	}
 }

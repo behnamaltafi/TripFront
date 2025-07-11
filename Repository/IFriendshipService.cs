@@ -3,9 +3,10 @@ using FilterPagingEfCore.Paging;
 
 public interface IFriendshipService
 {
-    Task<bool> AreFriendsAsync(int familyId1, int familyId2);
-    Task CreateFriendshipAsync(int familyId1, int familyId2);
-    int GetFamilyId();
-    Task<PagingResult<FamilyDTO>> GetFriendsAsync(PagingParam pagingParam);
-    Task RemoveFriendshipAsync(int familyId1, int familyId2);
+    Task AddFriendshipAsync(FamilyFriendship friendship);
+    Task<bool> AreFriendsAsync( int targetFamilyId);
+    Task<PagingResult<FamilyDTO>> GetFriendsAsync(PagingParam pagingParam, int familyId);
+    Task<FamilyFriendship> GetFriendshipAsync( int targetFamilyId);
+    Task RemoveFriendshipAsync(FamilyFriendship friendship);
+
 }

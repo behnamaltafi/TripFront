@@ -1,20 +1,16 @@
-﻿// مدل‌های پایه
-
-public class Family : BaseEntity<int>
+﻿namespace TripFront.Models
 {
-    public string Name { get; set; }
+    public class Family : BaseEntity<int>
+    {
+        public string Name { get; set; }
+        public string AccountNumber { get; set; }
+        public string UserId { get; set; }
+        public string ProfileImage { get; set; }
+        public string Bio { get; set; }
+        public List<FamilyInterest> FamilyInterests { get; set; } = new();
+        public List<TripFamily> TripFamilies { get; set; } = new();
+        public List<FamilyFriendship> SentFriendshipRequests { get; set; } = new();
+        public List<FamilyFriendship> ReceivedFriendshipRequests { get; set; } = new();
+    }
 
-    public string AccountNumber { get; set; }
-    public string UserId { get; set; }
-    public string ProfileImage { get; set; }
-
-
-    public List<TripFamily> TripFamilies { get; set; } = new();
-
-    // Navigation properties
-    public List<FriendRequest> SentFriendRequests { get; set; } = new();
-    public List<FriendRequest> ReceivedFriendRequests { get; set; } = new();
-
-    public List<FamilyFriendship> FriendshipsA { get; set; } = new();
-    public List<FamilyFriendship> FriendshipsB { get; set; } = new();
 }

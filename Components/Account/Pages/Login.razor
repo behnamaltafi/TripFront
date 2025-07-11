@@ -1,4 +1,4 @@
-﻿@page "/Account/Login"
+﻿@* @page "/Account/Login"
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Authentication
@@ -608,6 +608,228 @@
         public string Password { get; set; } = "";
 
         [Display(Name = "مرا به خاطر بسپار")]
+        public bool RememberMe { get; set; }
+    }
+}
+ *@
+
+
+﻿@page "/Account/Login"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authentication
+@using TripFront.Data
+@using AntDesign
+@using System.Security.Claims
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Login> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+@inject UserManager<ApplicationUser> UserManager
+
+
+<PageTitle>ورود</PageTitle>
+
+<style>
+    .login-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    background: linear-gradient(to left, #4e54c8, #8f94fb);
+    direction: rtl;
+    overflow: hidden;
+    }
+
+    .login-box {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    padding: 32px;
+    max-width: 480px;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .login-form-card {
+    width: 100%;
+    border-radius: 12px;
+    }
+
+    .login-header {
+    text-align: center;
+    margin-bottom: 24px;
+    }
+
+    .login-header img {
+    height: 100px;
+    margin-bottom: 12px;
+    }
+
+    .login-description {
+    flex: 1.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 40px;
+    text-align: center;
+    line-height: 1.8;
+    }
+
+    .login-description h1 {
+    font-size: 32px;
+    margin-bottom: 16px;
+    }
+
+    .login-description p {
+    font-size: 18px;
+    color: #e0e0e0;
+    }
+
+    @@media (max-width: 768px) {
+    .login-container
+
+    {
+    flex-direction: column-reverse;
+    }
+
+    .login-description {
+    padding: 24px;
+    }
+
+    .login-box {
+    max-width: 100%;
+    box-shadow: none;
+    }
+
+    }
+</style>
+
+<div class="login-container">
+
+    <!-- Left: Description -->
+    <div class="login-description">
+        <div>
+            <h1>به دونگچی خوش آمدید</h1>
+            <p>
+                دونگچی به شما کمک می‌کند هزینه‌های سفرهای خانوادگی را راحت و منصفانه مدیریت کنید. <br />
+                با قابلیت ثبت هزینه‌ها، تسویه حساب و گزارش‌گیری دقیق.
+            </p>
+        </div>
+    </div>
+
+    <!-- Right: Login Form -->
+    <div class="login-box">
+        <Card class="login-form-card" Title="ورود به حساب کاربری">
+            <div class="login-header">
+                <Image src="images/logo.png" alt="لوگو" />
+                <p>برای مدیریت سفرهای خود وارد شوید</p>
+            </div>
+
+            <Form Method="HttpMethod.Post" Model="@Input" OnFinish="LoginUser" Name="login">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <FormItem Label="نام کاربری" Required="true">
+                    <Input @bind-Value="Input.UserName" Placeholder="ایمیل یا نام کاربری" />
+                    <ValidationMessage For="@(() => Input.UserName)" />
+                </FormItem>
+
+                <FormItem Label="رمز عبور" Required="true">
+                    <InputPassword @bind-Value="Input.Password" Placeholder="رمز عبور" />
+                    <ValidationMessage For="@(() => Input.Password)" />
+                </FormItem>
+
+                <FormItem>
+                    <Checkbox @bind-Value="Input.RememberMe">مرا به خاطر بسپار</Checkbox>
+                </FormItem>
+
+                <FormItem>
+                    <Button Type="ButtonType.Primary" HtmlType="submit" Block>ورود</Button>
+                </FormItem>
+
+                @if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    <Alert Message="@errorMessage" Type="AlertType.Error" ShowIcon="true" />
+                }
+
+                <div style="text-align: center; margin-top: 12px;">
+                    <a href="/Account/ForgotPassword">رمز عبور را فراموش کرده‌اید؟</a>
+                </div>
+            </Form>
+        </Card>
+    </div>
+</div>
+
+@code {
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            // Clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+
+    private string? errorMessage;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    public async Task LoginUser()
+    {
+        var result = await SignInManager.PasswordSignInAsync(Input.UserName, Input.Password, Input.RememberMe, false);
+
+        if (result.Succeeded)
+        {
+            var user = await UserManager.FindByNameAsync(Input.UserName);
+            Logger.LogInformation("ورود موفق.");
+            if (ReturnUrl == null || ReturnUrl=="")
+            {
+                RedirectManager.RedirectTo("/trips");
+            }
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            RedirectManager.RedirectTo("Account/LoginWith2fa", new()
+                {
+                    ["returnUrl"] = ReturnUrl,
+                    ["rememberMe"] = Input.RememberMe
+                });
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("اکانت قفل شده.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            errorMessage = "ورود نامعتبر. لطفاً اطلاعات را بررسی کنید.";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required(ErrorMessage = "نام کاربری الزامی است.")]
+        public string UserName { get; set; } = "";
+
+        [Required(ErrorMessage = "رمز عبور الزامی است.")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
         public bool RememberMe { get; set; }
     }
 }
