@@ -1,4 +1,4 @@
-﻿@* @page "/Account/Login"
+﻿@page "/Account/Login"
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Authentication
@@ -10,6 +10,8 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject UserManager<ApplicationUser> UserManager
+ @rendermode InteractiveServer
+
 
 <PageTitle>ورود - دونگچی</PageTitle>
 
@@ -27,8 +29,8 @@
     /* Left Side - Feature Showcase */
     .login-showcase {
         flex: 1.2;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
+        background: linear-gradient(315deg, #129990 10%, #096B68 50%) !important;
+        display:flex
         align-items: center;
         justify-content: center;
         padding: 60px;
@@ -49,16 +51,13 @@
         }
 
     @@keyframes bgMove {
-        0%
+        0% {
+            transform: translate(0, 0);
+        }
 
-    {
-        transform: translate(0, 0);
-    }
-
-    100% {
-        transform: translate(50px, 50px);
-    }
-
+        100% {
+            transform: translate(50px, 50px);
+        }
     }
 
     .showcase-content {
@@ -66,7 +65,7 @@
         z-index: 1;
         text-align: center;
         color: white;
-        max-width: 500px;
+        max-width: 800px;
     }
 
     .showcase-logo {
@@ -90,6 +89,7 @@
     .showcase-title {
         font-size: 48px;
         font-weight: 700;
+        color:white;
         margin-bottom: 24px;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
     }
@@ -108,15 +108,18 @@
         text-align: right;
     }
 
-    .feature-item {
+    .feature-item
+    {
         display: flex;
         align-items: center;
         gap: 16px;
-        background: rgba(255, 255, 255, 0.1);
         padding: 20px 24px;
-        border-radius: 12px;
-        backdrop-filter: blur(10px);
         transition: all 0.3s ease;
+        border-radius: 16px;
+        box-shadow: 12px 15px 30px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        -webkit-backdrop-filter: blur(20px);
     }
 
         .feature-item:hover {
@@ -159,7 +162,7 @@
         align-items: center;
         justify-content: center;
         padding: 40px;
-        background: white;
+        background: #f1f7f4;
     }
 
     .login-form-wrapper {
@@ -175,7 +178,7 @@
         .login-form-header h2 {
             font-size: 32px;
             font-weight: 700;
-            color: #1a1a1a;
+            color: #318784;
             margin: 0 0 8px;
         }
 
@@ -231,12 +234,12 @@
 
         .ant-input:hover,
         .ant-input-password:hover {
-            border-color: #667eea !important;
+            border-color: #318784 !important;
         }
 
         .ant-input:focus,
         .ant-input-password:focus {
-            border-color: #667eea !important;
+            border-color: #318784 !important;
             box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1) !important;
         }
 
@@ -258,7 +261,7 @@
 
     .forgot-link {
         font-size: 14px;
-        color: #667eea;
+        color: #318784;
         text-decoration: none;
         transition: color 0.3s ease;
     }
@@ -273,7 +276,7 @@
         height: 48px !important;
         font-size: 16px !important;
         font-weight: 600;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        background: linear-gradient(135deg, #129990 0%, #096B68 100%) !important;
         border: none !important;
         border-radius: 8px !important;
         transition: all 0.3s ease !important;
@@ -328,8 +331,8 @@
     }
 
         .social-button:hover {
-            border-color: #667eea !important;
-            color: #667eea !important;
+            border-color: #318784 !important;
+            color: #318784 !important;
         }
 
     .signup-link {
@@ -342,7 +345,7 @@
     }
 
         .signup-link a {
-            color: #667eea;
+            color: #318784;
             font-weight: 600;
             text-decoration: none;
             transition: color 0.3s ease;
@@ -361,37 +364,31 @@
 
     /* Responsive Design */
     @@media (max-width: 1200px) {
-        .login-showcase
+        .login-showcase {
+            display: none;
+        }
 
-    {
-        display: none;
-    }
+        .login-form-section {
+            background: #f1f7f4;
+        }
 
-    .login-form-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .login-form {
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    }
-
+        .login-form {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
     }
 
     @@media (max-width: 480px) {
-        .login-form-section
+        .login-form-section {
+            padding: 20px;
+        }
 
-    {
-        padding: 20px;
-    }
+        .login-form {
+            padding: 24px;
+        }
 
-    .login-form {
-        padding: 24px;
-    }
-
-    .login-form-header h2 {
-        font-size: 24px;
-    }
-
+        .login-form-header h2 {
+            font-size: 24px;
+        }
     }
 
     /* Loading Animation */
@@ -426,7 +423,7 @@
                         <Icon Type="@IconType.Outline.Calculator" />
                     </div>
                     <div class="feature-content">
-                        <h4>محاسبه دقیق هزینه‌ها</h4>
+                        <h4 style="color:white">محاسبه دقیق هزینه‌ها</h4>
                         <p>تقسیم عادلانه و شفاف بین اعضای سفر</p>
                     </div>
                 </div>
@@ -436,7 +433,7 @@
                         <Icon Type="@IconType.Outline.Team" />
                     </div>
                     <div class="feature-content">
-                        <h4>مدیریت گروهی</h4>
+                        <h4 style="color:white">مدیریت گروهی</h4>
                         <p>افزودن اعضای خانواده و دوستان به سفر</p>
                     </div>
                 </div>
@@ -446,7 +443,7 @@
                         <Icon Type="@IconType.Outline.PieChart" />
                     </div>
                     <div class="feature-content">
-                        <h4>گزارش‌های جامع</h4>
+                        <h4 style="color:white">گزارش‌های جامع</h4>
                         <p>نمودارها و آمار دقیق از هزینه‌ها</p>
                     </div>
                 </div>
@@ -480,14 +477,16 @@
                     <div class="form-item-custom">
                         <label class="form-label">رمز عبور</label>
                         <div class="input-wrapper">
-                            <Icon Type="@IconType.Outline.Lock" Class="input-icon" />
-                            <InputPassword @bind-Value="Input.Password"
-                                           Placeholder="رمز عبور خود را وارد کنید"
-                                           Size="@InputSize.Large" />
+                            <Icon Type="@(_showPassword ? IconType.Outline.EyeInvisible : IconType.Outline.Eye)" OnClick="@TogglePasswordVisibility" Class="input-icon" style="cursor: pointer; margin-right:89%" />
+                           <Icon Type="@IconType.Outline.Lock" Class="input-icon" />
+                            <Input Type="@(_showPassword ? InputType.Text : InputType.Password)"
+                                   @bind-Value="Input.Password"
+                                   Placeholder="رمز عبور خود را وارد کنید"
+                                   Size="@InputSize.Large" />
+                     
                         </div>
                         <ValidationMessage For="@(() => Input.Password)" />
                     </div>
-
                     <div class="remember-section">
                         <Checkbox @bind-Value="Input.RememberMe">مرا به خاطر بسپار</Checkbox>
                         <a href="/Account/ForgotPassword" class="forgot-link">رمز عبور را فراموش کرده‌اید؟</a>
@@ -521,7 +520,7 @@
                         <Icon Type="@IconType.Outline.Google" />
                         Google
                     </Button>
-   
+
                 </div>
 
                 <div class="signup-link">
@@ -534,10 +533,16 @@
 
 @code {
     private bool isLoading = false;
+    private bool _showPassword = false;
+
+    private void TogglePasswordVisibility()
+    {
+        _showPassword = !_showPassword;
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        if (HttpMethods.IsGet(HttpContext?.Request?.Method))
         {
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         }
@@ -611,8 +616,8 @@
         public bool RememberMe { get; set; }
     }
 }
- *@
 
+@* 
 
 ﻿@page "/Account/Login"
 @using System.ComponentModel.DataAnnotations
@@ -832,4 +837,4 @@
 
         public bool RememberMe { get; set; }
     }
-}
+} *@
