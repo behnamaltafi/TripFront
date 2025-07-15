@@ -1,18 +1,530 @@
-#components-layout-demo-side .logo {
-    height: 32px;
-    background: rgba(255, 255, 255, 0.2);
-    margin: 16px;
+/* ========================================
+   DONGCHI THEME - General Theme System
+   ======================================== */
+
+/* Root Variables - Color Palette & Theme Settings */
+:root {
+    /* Primary Colors */
+    --primary-color: #129990;
+    --primary-dark: #096B68;
+    --primary-light: #318784;
+    --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    --primary-gradient-alt: linear-gradient(315deg, var(--primary-color) 10%, var(--primary-dark) 50%);
+    /* Secondary Colors */
+    --secondary-color: #764ba2;
+    --secondary-light: #a084dc;
+    /* Neutral Colors */
+    --bg-primary: #f0f2f5;
+    --bg-secondary: #f1f7f4;
+    --bg-white: #ffffff;
+    --text-primary: #333333;
+    --text-secondary: #595959;
+    --text-muted: #8c8c8c;
+    --text-light: #bfbfbf;
+    --border-color: #d9d9d9;
+    --border-light: #e8e8e8;
+    --border-lighter: #f0f0f0;
+    /* Semantic Colors */
+    --success-color: #52c41a;
+    --error-color: #ff4d4f;
+    --warning-color: #faad14;
+    --info-color: #1890ff;
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
+    --spacing-xxxl: 60px;
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-xxl: 24px;
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.15);
+    --shadow-colored: 0 8px 24px rgba(102, 126, 234, 0.3);
+    /* Typography */
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Vazirmatn', sans-serif;
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 20px;
+    --font-size-xxl: 24px;
+    --font-size-xxxl: 32px;
+    --font-size-xxxxl: 48px;
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-base: 0.3s ease;
+    --transition-slow: 0.5s ease;
+    /* Z-index layers */
+    --z-base: 1;
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
 }
 
-.site-layout .site-layout-background {
-    background: #fff;
+/* ========================================
+   GLOBAL STYLES
+   ======================================== */
+
+/* Direction Support */
+body[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
 }
 
-@font-face {
-    font-family: 'Vazir';
-    src: url('/font/Vazir.woff2') format('woff2');
-}
-
+/* Base Typography */
 body {
-    font-family: 'Vazir', sans-serif;
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--text-primary);
+    line-height: 1.6;
+    background-color: var(--bg-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: var(--spacing-md);
+}
+
+h1 {
+    font-size: var(--font-size-xxxxl);
+}
+
+h2 {
+    font-size: var(--font-size-xxxl);
+}
+
+h3 {
+    font-size: var(--font-size-xxl);
+}
+
+h4 {
+    font-size: var(--font-size-xl);
+}
+
+h5 {
+    font-size: var(--font-size-lg);
+}
+
+h6 {
+    font-size: var(--font-size-base);
+}
+
+/* Links */
+a {
+    color: var(--primary-light);
+    text-decoration: none;
+    transition: color var(--transition-base);
+}
+
+    a:hover {
+        color: var(--secondary-color);
+        text-decoration: underline;
+    }
+
+/* ========================================
+   LAYOUT COMPONENTS
+   ======================================== */
+
+/* Container Classes */
+.container-full {
+    min-height: 100vh;
+    display: flex;
+    background: var(--bg-primary);
+    direction: rtl;
+    position: relative;
+    overflow: hidden;
+}
+
+.showcase-section {
+    flex: 1.2;
+    background: var(--primary-gradient-alt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xxxl);
+    position: relative;
+    overflow: hidden;
+}
+
+.form-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    background: var(--bg-secondary);
+}
+
+/* ========================================
+   CARD COMPONENTS
+   ======================================== */
+
+.card {
+    background: var(--bg-white);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.card-title {
+    font-size: var(--font-size-xxxl);
+    font-weight: 700;
+    color: var(--primary-light);
+    margin: 0 0 var(--spacing-sm);
+}
+
+.card-subtitle {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* ========================================
+   FORM COMPONENTS
+   ======================================== */
+
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    right: var(--spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+    font-size: var(--font-size-lg);
+    z-index: var(--z-base);
+}
+
+.input-icon-left {
+    left: var(--spacing-md);
+    right: auto;
+}
+
+/* Input Styles Override for AntDesign */
+.ant-input,
+.ant-input-password {
+    padding-right: 40px !important;
+    height: 48px !important;
+    font-size: var(--font-size-base) !important;
+    border-radius: var(--radius-md) !important;
+    border: 1px solid var(--border-color) !important;
+    transition: all var(--transition-base) !important;
+}
+
+    .ant-input:hover,
+    .ant-input-password:hover {
+        border-color: var(--primary-light) !important;
+    }
+
+    .ant-input:focus,
+    .ant-input-password:focus {
+        border-color: var(--primary-light) !important;
+        box-shadow: 0 0 0 2px rgba(18, 153, 144, 0.1) !important;
+    }
+
+/* ========================================
+   BUTTON COMPONENTS
+   ======================================== */
+
+.btn {
+    height: 48px;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: 0 var(--spacing-lg);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-colored);
+    }
+
+.btn-secondary {
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+    .btn-secondary:hover {
+        border-color: var(--primary-light);
+        color: var(--primary-light);
+    }
+
+.btn-block {
+    width: 100%;
+}
+
+/* ========================================
+   FEATURE COMPONENTS
+   ======================================== */
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    transition: all var(--transition-base);
+    border-radius: var(--radius-xl);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+    .feature-item:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateX(-4px);
+    }
+
+.feature-icon-box {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+    .feature-icon-box .anticon {
+        font-size: var(--font-size-lg);
+        color: white;
+    }
+
+.feature-content h4 {
+    margin: 0 0 var(--spacing-xs);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: white;
+}
+
+.feature-content p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    opacity: 0.9;
+    color: white;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Spacing Utilities */
+.mt-1 {
+    margin-top: var(--spacing-xs);
+}
+
+.mt-2 {
+    margin-top: var(--spacing-sm);
+}
+
+.mt-3 {
+    margin-top: var(--spacing-md);
+}
+
+.mt-4 {
+    margin-top: var(--spacing-lg);
+}
+
+.mt-5 {
+    margin-top: var(--spacing-xl);
+}
+
+.mb-1 {
+    margin-bottom: var(--spacing-xs);
+}
+
+.mb-2 {
+    margin-bottom: var(--spacing-sm);
+}
+
+.mb-3 {
+    margin-bottom: var(--spacing-md);
+}
+
+.mb-4 {
+    margin-bottom: var(--spacing-lg);
+}
+
+.mb-5 {
+    margin-bottom: var(--spacing-xl);
+}
+
+/* Text Utilities */
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-primary {
+    color: var(--primary-color);
+}
+
+.text-secondary {
+    color: var(--text-secondary);
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+.text-white {
+    color: white;
+}
+
+/* Divider */
+.divider {
+    margin: var(--spacing-xl) 0;
+    text-align: center;
+    position: relative;
+}
+
+.divider-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border-light);
+}
+
+.divider-text {
+    background: var(--bg-white);
+    padding: 0 var(--spacing-md);
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    position: relative;
+    z-index: var(--z-base);
+}
+
+/* Animations */
+@keyframes bgMove {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(50px, 50px);
+    }
+}
+
+.animated-bg::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: bgMove 60s linear infinite;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 1200px) {
+    .showcase-section {
+        display: none;
+    }
+
+    .form-section {
+        background: var(--primary-gradient-alt);
+    }
+
+    .card {
+        box-shadow: var(--shadow-xl);
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --spacing-xxxl: 40px;
+        --spacing-xxl: 32px;
+        --spacing-xl: 24px;
+    }
+
+    .form-section {
+        padding: var(--spacing-lg);
+    }
+
+    .card {
+        padding: var(--spacing-lg);
+    }
+
+    h1 {
+        font-size: var(--font-size-xxxl);
+    }
+
+    h2 {
+        font-size: var(--font-size-xxl);
+    }
+}
+
+@media (max-width: 480px) {
+    .form-section {
+        padding: var(--spacing-md);
+    }
+
+    .card {
+        padding: var(--spacing-md);
+    }
+
+    .btn {
+        height: 44px;
+        font-size: var(--font-size-sm);
+    }
 }
