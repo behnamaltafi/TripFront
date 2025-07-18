@@ -156,6 +156,10 @@ a {
     overflow: hidden;
 }
 
+.display-block {
+    display: block !important;
+}
+
 .showcase-section {
     flex: 1.2;
     background: var(--primary-gradient-alt);

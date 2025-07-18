@@ -257,48 +257,36 @@
 
     public async Task LoginUser()
     {
-        isLoading = true;
-        errorMessage = null;
+        var result = await SignInManager.PasswordSignInAsync(Input.UserName, Input.Password, Input.RememberMe, false);
 
-        try
+        if (result.Succeeded)
         {
-            var result = await SignInManager.PasswordSignInAsync(Input.UserName, Input.Password, Input.RememberMe, false);
-
-            if (result.Succeeded)
+            var user = await UserManager.FindByNameAsync(Input.UserName);
+            Logger.LogInformation("ورود موفق.");
+            if (ReturnUrl == null || ReturnUrl == "")
             {
-                var user = await UserManager.FindByNameAsync(Input.UserName);
-
-                var redirectUrl = !string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/";
-                RedirectManager.RedirectTo(redirectUrl);
+                RedirectManager.RedirectTo("/");
             }
-            else if (result.RequiresTwoFactor)
-            {
-                RedirectManager.RedirectTo("Account/LoginWith2fa", new()
-                    {
-                        ["returnUrl"] = ReturnUrl,
-                        ["rememberMe"] = Input.RememberMe
-                    });
-            }
-            else if (result.IsLockedOut)
-            {
-                errorMessage = "حساب کاربری شما قفل شده است. لطفاً بعداً تلاش کنید.";
-                RedirectManager.RedirectTo("Account/Lockout");
-            }
-            else
-            {
-                errorMessage = "نام کاربری یا رمز عبور اشتباه است.";
-            }
+            RedirectManager.RedirectTo(ReturnUrl);
         }
-        catch (Exception ex)
+        else if (result.RequiresTwoFactor)
         {
-            errorMessage = "خطایی در فرآیند ورود رخ داد. لطفاً دوباره تلاش کنید.";
+            RedirectManager.RedirectTo("Account/LoginWith2fa", new()
+                {
+                    ["returnUrl"] = ReturnUrl,
+                    ["rememberMe"] = Input.RememberMe
+                });
         }
-        finally
+        else if (result.IsLockedOut)
         {
-            isLoading = false;
+            Logger.LogWarning("اکانت قفل شده.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            errorMessage = "ورود نامعتبر. لطفاً اطلاعات را بررسی کنید.";
         }
     }
-
     private sealed class InputModel
     {
         [Required(ErrorMessage = "نام کاربری الزامی است.")]
