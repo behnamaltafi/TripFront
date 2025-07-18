@@ -85,6 +85,7 @@
    GLOBAL STYLES
    ======================================== */
 
+
 /* Direction Support */
 body[dir="rtl"] {
     direction: rtl;
@@ -249,15 +250,23 @@ a {
 }
 
 /* Input Styles Override for AntDesign */
-.ant-input,
-.ant-input-password {
+.ant-input{
+
     padding-right: 40px !important;
-    height: 48px !important;
+    height: 30px !important;
     font-size: var(--font-size-base) !important;
     border-radius: var(--radius-md) !important;
-    border: 1px solid var(--border-color) !important;
     transition: all var(--transition-base) !important;
 }
+    .ant-input,
+    .ant-input-password {
+        padding-right: 40px;
+        height: 48px ;
+        font-size: var(--font-size-base) !important;
+        border-radius: var(--radius-md) !important;
+        border: 1px solid var(--border-color) ;
+        transition: all var(--transition-base) !important;
+    }
 
     .ant-input:hover,
     .ant-input-password:hover {
@@ -313,7 +322,67 @@ a {
 .btn-block {
     width: 100%;
 }
+.ant-input-affix-wrapper {
+    background-color: #fff !important;
+    border: 1.5px solid var(--border-light) !important;
+    border-radius: var(--radius-md, 6px) !important;
+    color: var(--text-color, #222) !important;
+    transition: border-color 0.2s;
+    box-shadow: none !important;
+}
 
+    /* On hover, border uses Dongchi green, never blue */
+    .ant-input-affix-wrapper:not(.ant-input-affix-wrapper-disabled):hover,
+    .ant-input-affix-wrapper:hover {
+        border-color: var(--primary-light) !important;
+        z-index: 2;
+        box-shadow: 0 1px 6px 0 rgba(18,153,144,0.05) !important;
+    }
+
+    /* On focus, border and shadow are Dongchi green */
+    .ant-input-affix-wrapper-focused,
+    .ant-input-affix-wrapper:focus-within,
+    .ant-input-affix-wrapper:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 2px rgba(18,153,144,0.15) !important;
+        z-index: 3;
+    }
+
+/* Disabled: use a gentle, lighter border and background */
+.ant-input-affix-wrapper-disabled {
+    background: var(--bg-disabled, #eee) !important;
+    border-color: var(--border-lighter, #e0e0e0) !important;
+    color: var(--text-disabled, #aaa) !important;
+}
+
+/* Large variant: only pad and size, keep theme */
+.ant-input-affix-wrapper-lg {
+    padding: 6.5px 11px !important;
+    font-size: 16px !important;
+}
+
+/* Remove box-shadow from layout, ensure consistency */
+.ant-layout, .ant-layout * {
+    box-sizing: border-box !important;
+}
+.ant-radio-button-wrapper-checked:not([class*=' ant-radio-button-wrapper-disabled']).ant-radio-button-wrapper:first-child {
+    border-right-color: var(--primary-color) !important;
+}
+.ant-radio-group-solid .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+    color: #fff !important;
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+.ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):hover {
+    background: var(--primary-light) !important;
+    border-color: var(--primary-light) !important;
+    color: #fff !important;
+}
+.ant-radio-button-wrapper:focus-within,
+.ant-radio-button-wrapper:active {
+    box-shadow: 0 0 0 2px rgba(18, 153, 144, 0.10) !important;
+    border-color: var(--primary-light) !important;
+}
 /* ========================================
    FEATURE COMPONENTS
    ======================================== */

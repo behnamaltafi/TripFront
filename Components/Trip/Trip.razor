@@ -75,7 +75,7 @@
 			<div class="card filter-card">
 				<div class="filter-controls">
 					<div class="filter-left">
-						<div class="input-wrapper">
+						
 							<Input Placeholder="جستجوی سفر..."
 								   Size="@InputSize.Large"
 								   AllowClear="true"
@@ -84,7 +84,7 @@
 							<Icon Type="@IconType.Outline.Search" Class="input-icon" />
 
 
-						</div>
+				
 					</div>
 
 					<div class="filter-right">
@@ -244,16 +244,14 @@
 </Modal>
 
 <style>
-	/* Import main CSS (assuming it's linked in the layout) */
-	/* Page-specific customizations using theme variables */
 
-	/* Hero Section Enhancements */
 	.trips-hero {
-		height: 400px;
+		height: 330px;
 		position: relative;
 		background: var(--primary-gradient-alt);
 		background-size: cover;
 		background-position: center;
+
 	}
 
 		.trips-hero::before {
@@ -273,6 +271,7 @@
 		font-size: var(--font-size-xxxxl);
 		margin-bottom: var(--spacing-md);
 		animation: fadeInUp 0.8s ease-out;
+		color: white;
 	}
 
 	.hero-subtitle {
