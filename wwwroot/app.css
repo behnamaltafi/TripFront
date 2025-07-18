@@ -8,6 +8,7 @@
     font-style: normal;
     font-display: swap;
 }
+
 /* Root Variables - Color Palette & Theme Settings */
 :root {
     /* Primary Colors */
@@ -131,13 +132,13 @@ h6 {
 
 /* Links */
 a {
-    color: var(--primary-light);
+    color: var(--primary-color);
     text-decoration: none;
     transition: color var(--transition-base);
 }
 
     a:hover {
-        color: var(--secondary-color);
+        color: var(--primary-dark);
         text-decoration: underline;
     }
 
@@ -202,6 +203,10 @@ a {
     font-size: var(--font-size-base);
     color: var(--text-secondary);
     margin: 0;
+}
+
+.card-bordered {
+    border: 2px inset var(--primary-color) !important;
 }
 
 /* ========================================
@@ -357,6 +362,231 @@ a {
 }
 
 /* ========================================
+   HOVER STATES & ANT DESIGN OVERRIDES
+   ======================================== */
+
+/* Button hover states */
+button:hover,
+.btn:hover {
+    color: var(--primary-color);
+}
+
+/* Ant Design Button Overrides */
+.ant-btn:hover,
+.ant-btn:focus {
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+}
+
+.ant-btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+    .ant-btn-primary:hover,
+    .ant-btn-primary:active,
+    .ant-btn-primary:focus {
+        background-color: var(--primary-dark) !important;
+        border-color: var(--primary-dark) !important;
+    }
+
+/* Ant Design Checkbox Override */
+.ant-checkbox-checked .ant-checkbox-inner {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.ant-checkbox-wrapper:hover .ant-checkbox-inner,
+.ant-checkbox:hover .ant-checkbox-inner {
+    border-color: var(--primary-color) !important;
+}
+
+.ant-checkbox-checked::after {
+    border-color: var(--primary-color) !important;
+}
+
+.ant-checkbox-input:focus + .ant-checkbox-inner {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px rgba(18, 153, 144, 0.1) !important;
+}
+
+/* Ant Design Radio Override */
+.ant-radio-checked .ant-radio-inner {
+    border-color: var(--primary-color) !important;
+}
+
+    .ant-radio-checked .ant-radio-inner::after {
+        background-color: var(--primary-color) !important;
+    }
+
+.ant-radio:hover .ant-radio-inner {
+    border-color: var(--primary-color) !important;
+}
+
+.ant-radio-input:focus + .ant-radio-inner {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px rgba(18, 153, 144, 0.1) !important;
+}
+
+/* Ant Design Switch Override */
+.ant-switch-checked {
+    background-color: var(--primary-color) !important;
+}
+
+.ant-switch:hover:not(.ant-switch-disabled) {
+    background-color: var(--primary-light) !important;
+}
+
+.ant-switch-checked:hover:not(.ant-switch-disabled) {
+    background-color: var(--primary-dark) !important;
+}
+
+/* Ant Design Select Override */
+.ant-select:hover .ant-select-selector {
+    border-color: var(--primary-color) !important;
+}
+
+.ant-select-focused .ant-select-selector,
+.ant-select-selector:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px rgba(18, 153, 144, 0.1) !important;
+}
+
+.ant-select-item-option-selected {
+    background-color: rgba(18, 153, 144, 0.1) !important;
+    color: var(--primary-color) !important;
+}
+
+.ant-select-item-option:hover {
+    background-color: rgba(18, 153, 144, 0.05) !important;
+}
+
+.ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+    background-color: rgba(18, 153, 144, 0.05) !important;
+}
+
+/* Pagination */
+.ant-pagination-item:hover {
+    border-color: var(--primary-color) !important;
+}
+
+    .ant-pagination-item:hover a {
+        color: var(--primary-color) !important;
+    }
+
+.ant-pagination-item-active {
+    border-color: var(--primary-color) !important;
+}
+
+    .ant-pagination-item-active a {
+        color: var(--primary-color) !important;
+    }
+
+/* Tabs */
+.ant-tabs-tab:hover {
+    color: var(--primary-color) !important;
+}
+
+.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: var(--primary-color) !important;
+}
+
+.ant-tabs-ink-bar {
+    background: var(--primary-color) !important;
+}
+
+/* Menu items */
+.ant-menu-item:hover,
+.ant-menu-item-active,
+.ant-menu:not(.ant-menu-inline) .ant-menu-submenu-open,
+.ant-menu-submenu-active,
+.ant-menu-submenu-title:hover {
+    color: var(--primary-color) !important;
+}
+
+.ant-menu-item-selected {
+    color: var(--primary-color) !important;
+}
+
+    .ant-menu-item-selected::after {
+        border-right-color: var(--primary-color) !important;
+    }
+
+/* Date picker */
+.ant-picker:hover,
+.ant-picker-focused {
+    border-color: var(--primary-color) !important;
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+    background: var(--primary-color) !important;
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before {
+    border-color: var(--primary-color) !important;
+}
+
+/* Slider */
+.ant-slider-track {
+    background-color: var(--primary-color) !important;
+}
+
+.ant-slider-handle {
+    border-color: var(--primary-color) !important;
+}
+
+    .ant-slider-handle:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 5px rgba(18, 153, 144, 0.12) !important;
+    }
+
+.ant-slider:hover .ant-slider-track {
+    background-color: var(--primary-dark) !important;
+}
+
+.ant-slider:hover .ant-slider-handle:not(.ant-tooltip-open) {
+    border-color: var(--primary-dark) !important;
+}
+
+/* Native form elements */
+input[type="checkbox"]:checked {
+    accent-color: var(--primary-color);
+}
+
+input[type="radio"]:checked {
+    accent-color: var(--primary-color);
+}
+
+/* Focus states for all form elements */
+input:focus,
+textarea:focus,
+select:focus {
+    outline-color: var(--primary-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(18, 153, 144, 0.1);
+}
+
+/* Text selection */
+::selection {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+::-moz-selection {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Autofill background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* ========================================
    UTILITY CLASSES
    ======================================== */
 
@@ -488,7 +718,7 @@ a {
     }
 
     .form-section {
-        background: var(--primary-gradient-alt);
+        background: var(--bg-secondary);
     }
 
     .card {
