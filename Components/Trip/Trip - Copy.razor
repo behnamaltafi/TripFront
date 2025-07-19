@@ -1,0 +1,987 @@
+﻿@page "/1"
+@using AntDesign
+@using AutoMapper
+@using FilterPagingEfCore.Extenstion
+@using FilterPagingEfCore.Filter
+@using FilterPagingEfCore.Paging
+@inject ITripService _tripService
+@inject IExpenseService _expenseService
+@inject IMapper _mapper
+@inject IMessageService Message
+@rendermode InteractiveServer
+
+<div class="trips-container">
+    <div class="trips-hero">
+        <div class="hero-background">
+            <div class="hero-overlay"></div>
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-title">سفرهای شما</h1>
+            <p class="hero-subtitle">خاطرات زیبای سفر را ثبت کنید و مدیریت کنید</p>
+            <Button Type="@ButtonType.Primary"
+                    Size="@ButtonSize.Large"
+                    Icon="@IconType.Outline.Plus"
+                    Disabled="@isLoadingTrips"
+                    OnClick="@ShowAddTripModal"
+                    Class="hero-cta-btn">
+                <span>برنامه‌ریزی سفر جدید</span>
+            </Button>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stats-container">
+            <div class="stat-item">
+                <Icon Type="@IconType.Outline.Compass" Class="stat-icon" />
+                <div class="stat-info">
+                    <span class="stat-value">@trips.Count</span>
+                    <span class="stat-label">سفر ها</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <Icon Type="@IconType.Outline.Calendar" Class="stat-icon" />
+                <div class="stat-info">
+                    <span class="stat-value">@GetActiveTripCount()</span>
+                    <span class="stat-label">بدهکار</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <Icon Type="@IconType.Outline.Team" Class="stat-icon" />
+                <div class="stat-info">
+                    <span class="stat-value">@GetTotalTravelers()</span>
+                    <span class="stat-label">دوستان</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <Icon Type="@IconType.Outline.DollarCircle" Class="stat-icon" />
+                <div class="stat-info">
+                    <span class="stat-value">@GetTotalBudget()</span>
+                    <span class="stat-label">بستانکار</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-container">
+            <div class="filter-left">
+                <Input Placeholder="جستجوی سفر..."
+                       Size="@InputSize.Large"
+                       Class="search-input"
+                       AllowClear="true"
+                       @bind-Value="searchTerm"
+                       OnPressEnter="@(() => FilterTrips())" />
+
+            </div>
+
+            <div class="filter-right">
+                <RadioGroup @bind-Value="viewMode" ButtonStyle="@RadioButtonStyle.Solid">
+                    <Radio RadioButton Value="@("grid")">
+                        <Icon Type="@IconType.Outline.OrderedList" />
+                    </Radio>
+                    <Radio RadioButton Value="@("list")">
+                        <Icon Type="@IconType.Outline.UnorderedList" />
+                    </Radio>
+                </RadioGroup>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="trips-content">
+        @if (isLoadingTrips)
+        {
+            <div class="loading-container">
+                <Spin Size="@SpinSize.Large">
+                    <div class="loading-content">
+                        <Icon Type="@IconType.Outline.Loading3Quarters" Spin Class="loading-icon" />
+                        <p>در حال بارگذاری سفرها...</p>
+                    </div>
+                </Spin>
+            </div>
+        }
+        else if (!trips.Any())
+        {
+            <div class="empty-container">
+                <Empty Description="@emptyMessage"
+                       Class="custom-empty">
+                    <ChildContent>
+                        <Button Type="@ButtonType.Primary"
+                                Icon="@IconType.Outline.Plus"
+                                OnClick="@ShowAddTripModal">
+                            اولین سفر خود را ایجاد کنید
+                        </Button>
+                    </ChildContent>
+                </Empty>
+            </div>
+        }
+        else
+        {
+            @if (viewMode == "grid")
+            {
+                <div class="trips-grid">
+                    @foreach (var trip in filteredTrips)
+                    {
+                        <div class="trip-card-wrapper">
+                            <TripCard Trip="trip"
+                                      OnClick="@(() => NavigateToTripDetails(trip.Id))"
+                                      OnDelete="() => DeleteTripAsync(trip.Id)"
+                                      OnEdit="() => ShowEditTripModal(trip.Id)"
+                                      OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="trips-list">
+                    @foreach (var trip in filteredTrips)
+                    {
+                        <div class="trip-list-item">
+                            <div class="trip-list-image">
+                                <img src="@GetTripImage(trip)" alt="@trip.Title" />
+                                <Tag Color="@GetStatusColor(trip)" Class="trip-status-badge">
+                                    @GetTripStatus(trip)
+                                </Tag>
+                            </div>
+
+                            <div class="trip-list-content">
+                                <h3>@trip.Title</h3>
+                                <p class="trip-description">@trip.Description</p>
+                                <div class="trip-meta">
+                                    <span><Icon Type="@IconType.Outline.Calendar" /> @trip.StartDate.ToString("yyyy/MM/dd") - @trip.EndDate.Value.ToString("yyyy/MM/dd")</span>
+                                    <span><Icon Type="@IconType.Outline.Team" /> @trip.Families?.Count() نفر</span>
+                                    <span><Icon Type="@IconType.Outline.DollarCircle" /> 500000 تومان</span>
+                                </div>
+                            </div>
+
+                            <div class="trip-list-actions">
+                                <Button Type="@ButtonType.Link"
+                                        Icon="@IconType.Outline.Eye"
+                                        OnClick="@(() => NavigateToTripDetails(trip.Id))">
+                                    مشاهده
+                                </Button>
+                                <Button Type="@ButtonType.Link"
+                                        Icon="@IconType.Outline.Edit"
+                                        OnClick="@(() => ShowEditTripModal(trip.Id))">
+                                    ویرایش
+                                </Button>
+                                <Button Type="@ButtonType.Link"
+                                        Icon="@IconType.Outline.DollarCircle"
+                                        OnClick="@(() => ShowExpensesModalAsync(trip.Id))">
+                                    هزینه‌ها
+                                </Button>
+                                <Popconfirm Title="آیا از حذف این سفر اطمینان دارید؟"
+                                            OnConfirm="@(() => DeleteTripAsync(trip.Id))"
+                                            OkText="بله"
+                                            CancelText="خیر">
+                                    <Button Type="@ButtonType.Link"
+                                            Danger
+                                            Icon="@IconType.Outline.Delete">
+                                        حذف
+                                    </Button>
+                                </Popconfirm>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Floating Action Button (Mobile) -->
+    <div class="fab-container">
+        <Button Type="@ButtonType.Primary"
+                Shape="@ButtonShape.Circle"
+                Size="@ButtonSize.Large"
+                Icon="@IconType.Outline.Plus"
+                Class="fab"
+                OnClick="@ShowAddTripModal" />
+    </div>
+</div>
+
+<!-- Trip Form Modal -->
+<TripFormModal Title="@tripModalTitle"
+               TripModel="@currentTrip"
+               Visible="@isTripModalVisible"
+               Families="@families"
+               OnSave="SaveTripAsync"
+               OnCancel="() => isTripModalVisible = false" />
+
+<!-- Expense Modal -->
+<Modal Title="هزینه‌های سفر"
+       Visible="@isExpenseModalVisible"
+       Width="900"
+       OnCancel="@(() => { isExpenseModalVisible = false; CancelExpenseEdit(); })"
+       Footer="null"
+       Class="expense-modal">
+    @if (isLoadingExpenses)
+    {
+        <div class="modal-loading">
+            <Spin Tip="در حال بارگذاری هزینه‌ها..." />
+        </div>
+    }
+    else
+    {
+        <ExpenseTable TripId="@selectedTripId" Families="@families" />
+    }
+</Modal>
+
+<style>
+    /* Import Vazir Font */
+    @@import url('https://fonts.googleapis.com/css2?family=Vazir:wght@300;400;500;600;700&display=swap');
+
+    /* CSS Variables */
+    :root {
+        --primary-color: #1890ff;
+        --primary-dark: #096dd9;
+        --secondary-color: #52c41a;
+        --danger-color: #ff4d4f;
+        --warning-color: #faad14;
+        --text-primary: #262626;
+        --text-secondary: #8c8c8c;
+        --background: #f5f7fa;
+        --card-background: #ffffff;
+        --border-color: #e8e8e8;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+    }
+
+    /* Global Styles */
+    * {
+        font-family: 'Vazir', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* Container */
+    .trips-container {
+        min-height: 100vh;
+        background: var(--background);
+    }
+
+    /* Hero Section */
+    .trips-hero {
+        position: relative;
+        height: 400px;
+        overflow: hidden;
+        margin-bottom: -60px;
+    }
+
+    .hero-background {
+        position: absolute;
+        inset: 0;
+        background-image: url('https://source.unsplash.com/random/1920x600?travel,adventure');
+        background-size: cover;
+        background-position: center;
+        filter: brightness(0.8);
+    }
+
+    .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(24, 144, 255, 0.9) 0%, rgba(9, 109, 217, 0.8) 100%);
+    }
+
+    .hero-content {
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: white;
+        padding: 0 24px;
+    }
+
+    .hero-title {
+        font-size: 48px;
+        font-weight: 700;
+        margin: 0 0 16px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .hero-subtitle {
+        font-size: 20px;
+        font-weight: 300;
+        margin: 0 0 32px;
+        opacity: 0.95;
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    .hero-cta-btn {
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        height: 48px;
+        padding: 0 32px;
+        font-size: 16px;
+    }
+
+        .hero-cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+    /* Stats Section */
+    .stats-section {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 32px;
+    }
+
+    .stats-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 24px;
+    }
+
+    .stat-item {
+        background: var(--card-background);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+        .stat-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+    .stat-icon {
+        font-size: 32px;
+        color: var(--primary-color);
+        background: rgba(24, 144, 255, 0.1);
+        padding: 12px;
+        border-radius: var(--radius-md);
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    /* Filter Section */
+    .filter-section {
+        background: var(--card-background);
+        padding: 24px 0;
+        margin-bottom: 32px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .filter-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .filter-left {
+        display: flex;
+        gap: 16px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .search-input {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-select {
+        min-width: 180px;
+    }
+
+    .filter-right {
+        display: flex;
+        align-items: center;
+    }
+
+    /* Content Area */
+    .trips-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px 32px;
+    }
+
+    /* Grid View */
+    .trips-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .trip-card-wrapper {
+        animation: scaleIn 0.5s ease-out;
+    }
+
+    /* List View */
+    .trips-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .trip-list-item {
+        background: var(--card-background);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        display: flex;
+        gap: 24px;
+        align-items: center;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+    }
+
+        .trip-list-item:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+    .trip-list-image {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+        .trip-list-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .trip-status-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+    }
+
+    .trip-list-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+        .trip-list-content h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 8px;
+            color: var(--text-primary);
+        }
+
+    .trip-description {
+        color: var(--text-secondary);
+        margin: 0 0 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .trip-meta {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+        .trip-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+    .trip-list-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* Loading State */
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+    }
+
+    .loading-content {
+        text-align: center;
+    }
+
+    .loading-icon {
+        font-size: 48px;
+        color: var(--primary-color);
+        margin-bottom: 16px;
+    }
+
+    /* Empty State */
+    .empty-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+    }
+
+    .custom-empty {
+        padding: 40px;
+    }
+
+    /* Floating Action Button */
+    .fab-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 1000;
+        display: none;
+    }
+
+    .fab {
+        width: 56px !important;
+        height: 56px !important;
+        font-size: 24px;
+        box-shadow: 0 4px 16px rgba(24, 144, 255, 0.4);
+    }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(24, 144, 255, 0.6);
+        }
+
+    /* Modal Styling */
+    .expense-modal .ant-modal-header {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .expense-modal .ant-modal-title {
+        color: white;
+    }
+
+    .expense-modal .ant-modal-close {
+        color: white;
+    }
+
+    .modal-loading {
+        text-align: center;
+        padding: 40px;
+    }
+
+    /* Animations */
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Mobile Responsive */
+    @@media (max-width: 768px) {
+        .trips-hero {
+            height: 300px;
+            margin-bottom: -40px;
+        }
+
+        .hero-title {
+            font-size: 32px;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+        }
+
+        .stats-container {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 0 16px;
+        }
+
+        .stat-item {
+            padding: 16px;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            padding: 8px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+        }
+
+        .filter-container {
+            flex-direction: column;
+            padding: 0 16px;
+        }
+
+        .filter-left {
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .search-input,
+        .filter-select {
+            width: 100%;
+        }
+
+        .trips-content {
+            padding: 0 16px 32px;
+        }
+
+        .trips-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .trip-list-item {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .trip-list-image {
+            width: 100%;
+            height: 200px;
+        }
+
+        .trip-meta {
+            justify-content: center;
+        }
+
+        .trip-list-actions {
+            flex-direction: row;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .fab-container {
+            display: block;
+        }
+
+        .hero-cta-btn {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .hero-title {
+            font-size: 28px;
+        }
+
+        .stats-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Dark Mode Support */
+    @@media (prefers-color-scheme: dark) {
+        :root {
+            --text-primary: #f0f0f0;
+            --text-secondary: #bfbfbf;
+            --background: #141414;
+            --card-background: #1f1f1f;
+            --border-color: #303030;
+        }
+
+        .hero-overlay {
+            background: linear-gradient(135deg, rgba(24, 144, 255, 0.7) 0%, rgba(9, 109, 217, 0.6) 100%);
+        }
+    }
+</style>
+
+@code {
+
+    [Inject] private IFamilyService _familyService { get; set; }
+    private List<TripDTO> trips = new();
+    private List<TripDTO> filteredTrips = new();
+    private TripDTO currentTrip = new();
+    private bool isTripModalVisible = false;
+    private string tripModalTitle = string.Empty;
+    private int selectedTripId;
+    private List<FamilyDTO> families = new();
+    private List<ExpenseDTO> expenses = new();
+    private ExpenseDTO currentExpense = new();
+    private bool isExpenseModalVisible = false;
+    private bool isEditingExpense = false;
+    private bool isLoadingTrips = false;
+    private bool isLoadingExpenses = false;
+    private int totalExpensesCount;
+    private int expensesPageSize = 10;
+    private int expensesCurrentPage = 1;
+    private string emptyMessage = "هنوز سفری ثبت نکرده‌اید. اولین سفر خود را برنامه‌ریزی کنید!";
+
+    // New properties for enhanced features
+    private string searchTerm = "";
+    private string filterStatus = "";
+    private string viewMode = "grid";
+
+    [Inject]
+    private NavigationManager _navigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTripsAsync();
+        FilterTrips();
+    }
+
+    private async Task LoadTripsAsync()
+    {
+        try
+        {
+            isLoadingTrips = true;
+            var result = await _tripService.GetTripsForFamilyAsync(PagingParamFactory.CreateDefault());
+            trips = result?.Items ?? new();
+            FilterTrips();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading trips: {ex.Message}");
+            Message.Error("خطا در بارگذاری سفرها");
+        }
+        finally
+        {
+            isLoadingTrips = false;
+        }
+    }
+
+    private void FilterTrips()
+    {
+        filteredTrips = trips;
+
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredTrips = filteredTrips.Where(t =>
+                t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                t.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true
+            ).ToList();
+        }
+
+        // Apply status filter
+        if (!string.IsNullOrWhiteSpace(filterStatus))
+        {
+            var now = DateTime.Now;
+            filteredTrips = filterStatus switch
+            {
+                "upcoming" => filteredTrips.Where(t => t.StartDate > now).ToList(),
+                "active" => filteredTrips.Where(t => t.StartDate <= now && t.EndDate >= now).ToList(),
+                "completed" => filteredTrips.Where(t => t.EndDate < now).ToList(),
+                _ => filteredTrips
+            };
+        }
+
+        StateHasChanged();
+    }
+
+    private int GetActiveTripCount()
+    {
+        var now = DateTime.Now;
+        return trips.Count(t => t.StartDate <= now && t.EndDate >= now);
+    }
+
+    private int GetTotalTravelers()
+    {
+        return trips.Sum(t => t.Families?.Count() ?? 0);
+    }
+
+    private string GetTotalBudget()
+    {
+        var total = 5000000;
+        return total.ToString("N0");
+    }
+
+    private string GetTripImage(TripDTO trip)
+    {
+        // You can customize this to return actual trip images
+        return $"https://source.unsplash.com/random/400x300?travel,{trip.Title}";
+    }
+
+    private string GetTripStatus(TripDTO trip)
+    {
+        var now = DateTime.Now;
+        if (trip.StartDate > now) return "پیش رو";
+        if (trip.EndDate < now) return "تکمیل شده";
+        return "در حال انجام";
+    }
+
+    private string GetStatusColor(TripDTO trip)
+    {
+        var now = DateTime.Now;
+        if (trip.StartDate > now) return "blue";
+        if (trip.EndDate < now) return "default";
+        return "green";
+    }
+
+    private TripDTO CreateNewTrip()
+    {
+        return new TripDTO
+            {
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(3)
+            };
+    }
+
+    private void ShowAddTripModal()
+    {
+        currentTrip = CreateNewTrip();
+        tripModalTitle = "افزودن سفر جدید";
+        isTripModalVisible = true;
+    }
+
+    private void ShowEditTripModal(int tripId)
+    {
+        var trip = trips.FirstOrDefault(t => t.Id == tripId);
+        if (trip != null)
+        {
+            currentTrip = trip;
+            tripModalTitle = "ویرایش سفر";
+            isTripModalVisible = true;
+        }
+    }
+
+    private async Task SaveTripAsync()
+    {
+        try
+        {
+            if (currentTrip.Id == 0)
+            {
+                await _tripService.CreateTripAsync(_mapper.Map<CreateTripDto>(currentTrip));
+                Message.Success("سفر جدید با موفقیت ایجاد شد");
+            }
+            else
+            {
+                await _tripService.Update(_mapper.Map<UpdateTripDto>(currentTrip));
+                Message.Success("سفر با موفقیت ویرایش شد");
+            }
+
+            isTripModalVisible = false;
+            await LoadTripsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error saving trip: {ex.Message}");
+            Message.Error("خطا در ذخیره سفر");
+        }
+    }
+
+    private async Task DeleteTripAsync(int tripId)
+    {
+        try
+        {
+            await _tripService.Delete(tripId);
+            Message.Success("سفر با موفقیت حذف شد");
+            await LoadTripsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error deleting trip: {ex.Message}");
+            Message.Error("خطا در حذف سفر");
+        }
+    }
+
+    private async Task ShowExpensesModalAsync(int tripId)
+    {
+        selectedTripId = tripId;
+        isExpenseModalVisible = true;
+        await LoadFamiliesAsync("");
+    }
+
+    private void CancelExpenseEdit()
+    {
+        isEditingExpense = false;
+        currentExpense = new ExpenseDTO();
+    }
+
+    private async Task LoadFamiliesAsync(string searchTerm = "")
+    {
+        try
+        {
+            var filters = new List<FilterParam>();
+
+            if (searchTerm != "")
+            {
+                filters.Add(new FilterParam
+                    {
+                        ColumnName = "Name",
+                        FilterValue = searchTerm ?? "",
+                        FilterOption = ComparisonMethod.Contain
+                    });
+            }
+
+            var pagingFilters = new PagingParam { FilterParam = filters };
+            var result = await _tripService.GetTripFamilyAsync(pagingFilters, selectedTripId);
+            families = _mapper.Map<List<FamilyDTO>>(result.Items);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading families: {ex.Message}");
+            Message.Error("خطا در بارگذاری اعضای خانواده");
+        }
+    }
+
+    private void NavigateToTripDetails(int tripId)
+    {
+        _navigationManager.NavigateTo($"/trips/{tripId}");
+    }
+}
