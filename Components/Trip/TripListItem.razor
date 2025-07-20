@@ -1,0 +1,246 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@using AntDesign
+@using TripFront
+
+
+    <link href="/styles/triplistitem.css" rel="stylesheet" />
+
+
+<div class="trip-list-item-modern" @onclick="HandleItemClick">
+    <!-- Image Section -->
+    <div class="list-image-section">
+        <div class="list-image-container">
+            <img src="@Trip.TripProfileImage" 
+                 alt="@Trip.Title" 
+                 class="list-image" />
+            
+            <div class="list-badge">
+                <Tag Color="@GetStatusColor()" Class="status-tag-compact">
+                    @GetTripStatus()
+                </Tag>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="list-content-section">
+        <div class="list-header">
+            <div class="list-title-wrapper">
+                <h3 class="list-title">@Trip.Title</h3>
+                <div class="list-owner">
+                    <Icon Type="@IconType.Outline.User" />
+                    <span>@Trip.OwnerFamilyName</span>
+                </div>
+            </div>
+            
+            @if (!string.IsNullOrWhiteSpace(Trip.Description))
+            {
+                <p class="list-description">@Trip.Description</p>
+            }
+        </div>
+
+        <div class="list-meta-container">
+            <div class="list-meta-row">
+                <div class="meta-item-modern">
+                    <Icon Type="@IconType.Outline.Calendar" Class="meta-icon" />
+                    <span class="meta-text">@Trip.StartDate.ToShamsi()</span>
+                </div>
+
+                @if (Trip.EndDate.HasValue)
+                {
+                    <div class="meta-item-modern">
+                        <Icon Type="@IconType.Outline.ArrowLeft" Class="meta-icon" />
+                        <span class="meta-text">@Trip.EndDate.Value.ToShamsi()</span>
+                    </div>
+                }
+
+                <div class="meta-item-modern">
+                    <Icon Type="@IconType.Outline.ClockCircle" Class="meta-icon" />
+                    <span class="meta-text">@GetTripDuration() روز</span>
+                </div>
+
+                @if (Trip.Budget != 0)
+                {
+                    <div class="meta-item-modern budget-highlight">
+                        <Icon Type="@IconType.Outline.DollarCircle" Class="meta-icon" />
+                        <span class="meta-text budget-text">@Trip.Budget.ToString("N0") تومان</span>
+                    </div>
+                }
+            </div>
+
+            <!-- Family Avatars and Progress -->
+            <div class="list-footer-row">
+                <div class="family-avatars-compact">
+                    @foreach (var (family, index) in Trip.Families.Select((value, i) => (value, i)))
+                    {
+                        if (index < 3)
+                        {
+                            <Avatar Size="AvatarSize.Small"
+                                    Src="@familyImages.GetValueOrDefault(family.Id, "")"
+                                    Text="@GetFamilyInitials(family)"
+                                    Class="family-avatar-compact"
+                                    Style="@($"margin-left: {(index > 0 ? -10 : 0)}px; z-index: {3 - index};")" />
+                        }
+                    }
+
+                    @if (Trip.Families.Count > 3)
+                    {
+                        <span class="family-count-text">
+                            <Icon Type="@IconType.Outline.Team" />
+                            @Trip.Families.Count نفر
+                        </span>
+                    }
+                </div>
+
+                <div class="trip-progress-compact">
+                    @{
+                        var progress = CalculateTripProgress();
+                    }
+                    <Progress Percent="@progress"
+                              ShowInfo="false"
+                              StrokeColor="@GetProgressColor(progress)"
+                              Size="@ProgressSize.Small"
+                              Class="progress-bar-modern" />
+                    <span class="progress-text">@progress%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Section -->
+    <div class="list-actions-section">
+        <div class="action-buttons-vertical">
+            <Tooltip Title="مشاهده جزئیات" Placement="@Placement.Left">
+                <Button Type="@ButtonType.Default"
+                        Icon="@IconType.Outline.Eye"
+                        Class="action-btn-modern view-btn"
+                        OnClick="HandleItemClick"
+                        OnClickStopPropagation>
+                    مشاهده
+                </Button>
+            </Tooltip>
+
+            <Tooltip Title="ویرایش سفر" Placement="@Placement.Left">
+                <Button Type="@ButtonType.Default"
+                        Icon="@IconType.Outline.Edit"
+                        Class="action-btn-modern edit-btn"
+                        OnClick="@OnEdit"
+                        OnClickStopPropagation>
+                    ویرایش
+                </Button>
+            </Tooltip>
+
+            <Tooltip Title="مدیریت هزینه‌ها" Placement="@Placement.Left">
+                <Button Type="@ButtonType.Default"
+                        Icon="@IconType.Outline.DollarCircle"
+                        Class="action-btn-modern edit-btn"
+                        OnClick="@OnExpenses"
+                        OnClickStopPropagation>
+                    هزینه‌
+                </Button>
+            </Tooltip>
+
+            <Popconfirm Title="آیا از حذف این سفر اطمینان دارید؟"
+                        OnConfirm="@OnDelete"
+                        OkText="بله"
+                        CancelText="خیر"
+                        Placement="@Placement.Left">
+                <Tooltip Title="حذف سفر">
+                    <Button Type="@ButtonType.Default"
+                            Danger
+                            Icon="@IconType.Outline.Delete"
+                            Class="action-btn-modern delete-btn"
+                            OnClickStopPropagation>
+                        حذف
+                    </Button>
+                </Tooltip>
+            </Popconfirm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Dictionary<int, string> familyImages = new();
+    
+    [Parameter] public TripDTO Trip { get; set; }
+    [Parameter] public EventCallback OnEdit { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public EventCallback OnExpenses { get; set; }
+    [Inject] private IFamilyService _familyService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        foreach (var family in Trip.Families.Take(3))
+        {
+            familyImages[family.Id] = await GetFamilyImage(family.Id);
+        }
+    }
+
+    private async Task<string> GetFamilyImage(int familyId)
+    {
+        return await _familyService.GetProfileByFamilyId(familyId);
+    }
+
+    private string GetFamilyInitials(FamilyDTO family)
+    {
+        if (string.IsNullOrWhiteSpace(family.Name))
+            return "?";
+
+        var names = family.Name.Split(' ');
+        if (names.Length >= 2)
+            return $"{names[0][0]}{names[1][0]}".ToUpper();
+
+        return family.Name.Substring(0, Math.Min(2, family.Name.Length)).ToUpper();
+    }
+
+    private string GetTripStatus()
+    {
+        var now = DateTime.Now;
+        if (Trip.StartDate > now) return "پیش رو";
+        if (Trip.EndDate.HasValue && Trip.EndDate.Value < now) return "تکمیل شده";
+        return "در حال انجام";
+    }
+
+    private string GetStatusColor()
+    {
+        var now = DateTime.Now;
+        if (Trip.StartDate > now) return "blue";
+        if (Trip.EndDate.HasValue && Trip.EndDate.Value < now) return "default";
+        return "green";
+    }
+
+    private int GetTripDuration()
+    {
+        if (Trip.EndDate.HasValue)
+        {
+            return (Trip.EndDate.Value - Trip.StartDate).Days + 1;
+        }
+        return 1;
+    }
+
+    private double CalculateTripProgress()
+    {
+        var now = DateTime.Now;
+
+        if (now < Trip.StartDate)
+            return 0;
+
+        if (!Trip.EndDate.HasValue || now > Trip.EndDate.Value)
+            return 100;
+
+        var totalDays = (Trip.EndDate.Value - Trip.StartDate).TotalDays;
+        var elapsedDays = (now - Trip.StartDate).TotalDays;
+
+        return Math.Round((elapsedDays / totalDays) * 100, 0);
+    }
+
+    private string GetProgressColor(double progress)
+    {
+        if (progress < 30) return "#52c41a";
+        if (progress < 70) return "#1890ff";
+        return "#ff4d4f";
+    }
+
+    private async Task HandleItemClick() => await OnClick.InvokeAsync();
+}
