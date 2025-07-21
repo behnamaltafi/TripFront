@@ -6,658 +6,408 @@
 @using TripFront.Components.FrontUtility
 @using FilterPagingEfCore.Paging
 
-<div class="expense-container">
-    <!-- Header Section -->
+<div class="expense-container @(IsMobile ? "mobile" : "")">
+    <!-- Simplified Header for Mobile -->
     <div class="expense-header">
         <div class="header-content">
             <h2 class="header-title">
                 <Icon Type="@IconType.Outline.DollarCircle" Class="header-icon" />
-                مدیریت هزینه‌ها
+                هزینه‌ها
             </h2>
-            <p class="header-subtitle">ثبت و مدیریت هزینه‌های سفر</p>
         </div>
-        <Button Type="@ButtonType.Primary"
-                Size="@ButtonSize.Large"
-                Icon="@IconType.Outline.Plus"
-                OnClick="@ShowAddModal"
-                Class="add-expense-btn">
-            <span class="btn-text">هزینه جدید</span>
-        </Button>
+
+        <!-- Floating Action Button for Mobile -->
+        @if (IsMobile)
+        {
+            <div class="fab-container">
+                <Button Type="@ButtonType.Primary"
+                        Shape="@ButtonShape.Circle"
+                        Size="@ButtonSize.Large"
+                        Icon="@IconType.Outline.Plus"
+                        OnClick="@ShowAddModal"
+                        Class="fab-button" />
+            </div>
+        }
+        else
+        {
+            <Button Type="@ButtonType.Primary"
+                    Size="@ButtonSize.Large"
+                    Icon="@IconType.Outline.Plus"
+                    OnClick="@ShowAddModal"
+                    Class="add-expense-btn">
+                <span class="btn-text">هزینه جدید</span>
+            </Button>
+        }
     </div>
 
-    <!-- Stats Cards -->
-    <div class="expense-stats">
-        <div class="stat-card">
-            <div class="stat-icon-wrapper primary">
-                <Icon Type="@IconType.Outline.Calculator" />
+    <!-- Collapsible Stats for Mobile -->
+    <Collapse DefaultActiveKey="@(IsMobile ? Array.Empty<string>() : new[] { "stats" })">
+        <Panel Header="آمار هزینه‌ها" Key="stats" Class="stats-panel">
+            <div class="expense-stats @(IsMobile ? "mobile-stats" : "")">
+                <div class="stat-card compact">
+                    <Icon Type="@IconType.Outline.Calculator" Class="stat-icon" />
+                    <div class="stat-content">
+                        <span class="stat-value">@Expenses.Sum(e => e.Amount).ToString("N0")</span>
+                        <span class="stat-label">مجموع</span>
+                    </div>
+                </div>
+                <div class="stat-card compact">
+                    <Icon Type="@IconType.Outline.FileText" Class="stat-icon" />
+                    <div class="stat-content">
+                        <span class="stat-value">@Expenses.Count</span>
+                        <span class="stat-label">تعداد</span>
+                    </div>
+                </div>
             </div>
-            <div class="stat-content">
-                <span class="stat-value">@Expenses.Sum(e => e.Amount).ToString("N0")</span>
-                <span class="stat-label">مجموع هزینه‌ها</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon-wrapper success">
-                <Icon Type="@IconType.Outline.FileText" />
-            </div>
-            <div class="stat-content">
-                <span class="stat-value">@Expenses.Count</span>
-                <span class="stat-label">تعداد هزینه</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon-wrapper warning">
-                <Icon Type="@IconType.Outline.Team" />
-            </div>
-            <div class="stat-content">
-                <span class="stat-value">@Families.Count</span>
-                <span class="stat-label">خانواده‌ها</span>
-            </div>
-        </div>
-    </div>
+        </Panel>
+    </Collapse>
 
     <!-- Main Content -->
     <div class="expense-content">
         @if (IsLoading)
         {
             <div class="loading-state">
-                <Spin Size="@SpinSize.Large">
-                    <div class="loading-text">
-                        <Icon Type="@IconType.Outline.Loading3Quarters" Spin Class="loading-icon" />
-                        <p>در حال بارگذاری هزینه‌ها...</p>
-                    </div>
-                </Spin>
+                <Spin Size="@SpinSize.Large" />
             </div>
         }
         else if (!Expenses.Any())
         {
-            <div class="empty-state">
-                <Empty Description="@Empty"
-                       Class="custom-empty">
-                    <ChildContent>
-                        <Button Type="@ButtonType.Primary"
-                                Icon="@IconType.Outline.Plus"
-                                OnClick="@ShowAddModal">
-                            اولین هزینه را ثبت کنید
-                        </Button>
-                    </ChildContent>
-                </Empty>
-            </div>
+            <Empty Description="EmptyMessage"
+                   Class="custom-empty">
+                <ChildContent>
+                    <Button Type="@ButtonType.Primary"
+                            Icon="@IconType.Outline.Plus"
+                            OnClick="@ShowAddModal">
+                        اولین هزینه را ثبت کنید
+                    </Button>
+                </ChildContent>
+            </Empty>
         }
         else
         {
-            <!-- Expense List -->
-            <div class="expense-list">
+            <!-- Mobile-Optimized List -->
+            <div class="expense-list @(IsMobile ? "mobile-list" : "")">
                 @foreach (var expense in Expenses)
                 {
-                    <div class="expense-card">
-                        <div class="expense-card-header">
-                            <div class="expense-family">
-                                <div class="family-avatar">
-                                    <Icon Type="@IconType.Outline.User" />
+                    <Card Class="expense-card mobile-optimized" Bordered="false">
+                        <div class="expense-item">
+                            <div class="expense-main">
+                                <div class="expense-info">
+                                    <span class="family-name">@expense.FamilyName</span>
+                                    @if (!string.IsNullOrEmpty(expense.Description))
+                                    {
+                                        <span class="expense-desc">@expense.Description</span>
+                                    }
                                 </div>
-                                <span class="family-name">@expense.FamilyName</span>
+                                <div class="expense-amount">
+                                    <span class="amount">@expense.Amount.ToString("N0")</span>
+                                    <span class="currency">تومان</span>
+                                </div>
                             </div>
-                            <div class="expense-amount">
-                                <span class="amount-value">@expense.Amount.ToString("N0")</span>
-                                <span class="amount-currency">تومان</span>
-                            </div>
-                        </div>
-                        
-                        @if (!string.IsNullOrEmpty(expense.Description))
-                        {
-                            <div class="expense-description">
-                                <Icon Type="@IconType.Outline.FileText" Class="desc-icon" />
-                                <span>@expense.Description</span>
-                            </div>
-                        }
-                        
-                        <div class="expense-actions">
-                            <Button Type="@ButtonType.Text"
-                                    Icon="@IconType.Outline.Edit"
-                                    OnClick="@(() => Edit(expense.Id))"
-                                    Class="action-btn edit">
-                                ویرایش
-                            </Button>
-                            <Popconfirm Title="آیا از حذف این هزینه اطمینان دارید؟"
-                                        OnConfirm="@(() => DeleteAsync(expense.Id))"
-                                        OkText="بله"
-                                        CancelText="خیر">
+
+                            <!-- Swipeable Actions for Mobile -->
+                            <div class="expense-actions">
                                 <Button Type="@ButtonType.Text"
-                                        Danger
-                                        Icon="@IconType.Outline.Delete"
-                                        Class="action-btn delete">
-                                    حذف
-                                </Button>
-                            </Popconfirm>
+                                        Icon="@IconType.Outline.Edit"
+                                        OnClick="@(() => Edit(expense.Id))"
+                                        Size="@(IsMobile ? ButtonSize.Small : ButtonSize.Default)" />
+
+                                <Popconfirm Title="حذف هزینه؟"
+                                            OnConfirm="@(() => DeleteAsync(expense.Id))"
+                                            OkText="حذف"
+                                            CancelText="خیر"
+                                            Placement="@(IsMobile ? Placement.Top : Placement.LeftTop)">
+                                    <Button Type="@ButtonType.Text"
+                                            Danger
+                                            Icon="@IconType.Outline.Delete"
+                                            Size="@(IsMobile ? ButtonSize.Small : ButtonSize.Default)" />
+                                </Popconfirm>
+                            </div>
                         </div>
-                    </div>
+                    </Card>
                 }
             </div>
 
-            <!-- Pagination -->
+            <!-- Simple Pagination for Mobile -->
             @if (TotalCount > PageSize)
             {
-                <div class="expense-pagination">
-                    <Pagination Current="@CurrentPage"
+                <div class="expense-pagination mobile-pagination">
+                    <Pagination Simple="@IsMobile"
+                                Current="@CurrentPage"
                                 PageSize="@PageSize"
                                 Total="@TotalCount"
-                                ShowSizeChanger="false"
-                           />
-
+                                OnChange="@OnPageChanged"
+                                ShowSizeChanger="false" />
                 </div>
             }
         }
     </div>
 
-    <!-- Add/Edit Modal -->
-    <Modal Title="@(Model.Id == 0 ? "ثبت هزینه جدید" : "ویرایش هزینه")"
-           Visible="@IsAddModalVisible"
-           OnOk="@Save"
-           OnCancel="@CloseAddModal"
-           OkText="@OK"
-           CancelText="@Cancel"
-           Width="500"
-           Class="expense-modal">
-        <Form Model="@Model" Class="expense-form">
-            <FormItem Label="خانواده پرداخت‌کننده" Required>
-                <Select DataSource="@Families"
-                        Value="@SelectedFamilyId"
-                        ValueChanged="@((int? value) => OnFamilyChanged(value))"
-                        ItemValue="p => p.Id"
-                        ItemLabel="p => p.Name"
-                        EnableSearch="true"
-                        Placeholder="انتخاب خانواده"
-                        OnFocus="@Focus"
-                        Size="@InputSize.Large"
-                        Class="form-select"
-                        OnSearch="async (value) => await Search(value)"
-                        AutoClearSearchValue="false" />
-               
-            </FormItem>
+    <!-- Mobile-Optimized Drawer instead of Modal -->
+    @if (IsMobile)
+    {
+        <!-- Mobile-Optimized Drawer instead of Modal -->
+        @if (IsMobile)
+        {
+            <Drawer Title="@(Model.Id == 0 ? "هزینه جدید" : "ویرایش هزینه")"
+                    Placement="DrawerPlacement.Bottom"
+                    Height="80%"
+                    Visible="@IsAddModalVisible"
+                    OnClose="@CloseAddModal"
+                    Class="expense-drawer">
+                <div class="drawer-content">
+                    @FormContent
+                </div>
+                <div class="drawer-footer">
+                    <Space>
+                        <Button OnClick="@CloseAddModal">انصراف</Button>
+                        <Button Type="@ButtonType.Primary"
+                                OnClick="@Save"
+                                Loading="@IsSaving">
+                            @OK
+                        </Button>
+                    </Space>
+                </div>
+            </Drawer>
+        }
+        else
+        {
+            <Modal Title="@(Model.Id == 0 ? "ثبت هزینه جدید" : "ویرایش هزینه")"
+                   Visible="@IsAddModalVisible"
+                   OnOk="@Save"
+                   OnCancel="@CloseAddModal"
+                   OkText="@OK"
+                   CancelText="@Cancel"
+                   Width="500"
+                   ConfirmLoading="@IsSaving"
+                   Class="expense-modal">
+                @FormContent
+            </Modal>
+        }
 
-            <FormItem Label="مبلغ (تومان)" Required>
-                <Input Number @bind-Value="@Model.Amount"
-                             Min="0"
-                       
-                             Size="@InputSize.Large"
-                             Class="form-input-number" />
-            </FormItem>
-
-            <FormItem Label="توضیحات">
-                <TextArea @bind-Value="@Model.Description"
-                          Rows="3"
-                          MaxLength="200"
-                          ShowCount
-                          Size="@InputSize.Large"
-                          Placeholder="توضیحات اختیاری..."
-                          Class="form-textarea" />
-            </FormItem>
-        </Form>
-    </Modal>
+    }
 </div>
 
 <style>
-    /* Import Vazir Font */
-    @@import url('https://fonts.googleapis.com/css2?family=Vazir:wght@300;400;500;600;700&display=swap');
-
-    /* Expense Container */
-    .expense-container {
-        font-family: 'Vazir', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        min-height: 100%;
-        background: #f5f7fa;
-        border-radius: 24px;
-        overflow: hidden;
+    /* Mobile-First Styles */
+    .expense-container.mobile {
+        padding: 0;
+        background: #f5f5f5;
     }
 
-    /* Header Section */
     .expense-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 32px 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 12px 16px;
     }
 
-    .header-content {
-        flex: 1;
-    }
-
-    .header-title {
-        font-size: 28px;
-        font-weight: 700;
-        margin: 0 0 8px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .header-icon {
-        font-size: 32px;
-    }
-
-    .header-subtitle {
-        font-size: 16px;
-        opacity: 0.9;
+    .mobile .header-title {
+        font-size: 18px;
         margin: 0;
     }
 
-    .add-expense-btn {
-        height: 48px !important;
-        padding: 0 24px !important;
-        font-size: 16px !important;
-        font-weight: 500;
-        border-radius: 12px !important;
-        background: rgba(255, 255, 255, 0.2) !important;
-        border: 2px solid rgba(255, 255, 255, 0.3) !important;
-        backdrop-filter: blur(10px);
-        transition: all 0.3s ease;
+    /* Floating Action Button */
+    .fab-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
     }
 
-    .add-expense-btn:hover {
-        background: rgba(255, 255, 255, 0.3) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    .fab-button {
+        width: 56px !important;
+        height: 56px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
-    /* Stats Cards */
-    .expense-stats {
+    /* Mobile Stats */
+    .mobile-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        padding: 24px;
-        background: white;
-        border-bottom: 1px solid #e8e8e8;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding: 12px;
     }
 
-    .stat-card {
+    .stat-card.compact {
         display: flex;
         align-items: center;
-        gap: 16px;
-        padding: 20px;
-        background: #fafafa;
-        border-radius: 16px;
-        transition: all 0.3s ease;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .stat-icon-wrapper {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-    }
-
-    .stat-icon-wrapper.primary {
-        background: rgba(102, 126, 234, 0.1);
-        color: #667eea;
-    }
-
-    .stat-icon-wrapper.success {
-        background: rgba(82, 196, 26, 0.1);
-        color: #52c41a;
-    }
-
-    .stat-icon-wrapper.warning {
-        background: rgba(250, 173, 20, 0.1);
-        color: #faad14;
-    }
-
-    .stat-content {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .stat-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: #262626;
-        line-height: 1.2;
-    }
-
-    .stat-label {
-        font-size: 14px;
-        color: #8c8c8c;
-        margin-top: 4px;
-    }
-
-    /* Main Content */
-    .expense-content {
-        padding: 24px;
+        padding: 12px;
         background: white;
-        min-height: 400px;
+        border-radius: 8px;
+        gap: 8px;
     }
 
-    /* Loading & Empty States */
-    .loading-state,
-    .empty-state {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 300px;
+        .stat-card.compact .stat-icon {
+            font-size: 20px;
+            color: #1890ff;
+        }
+
+        .stat-card.compact .stat-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-card.compact .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .stat-card.compact .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+    /* Mobile List */
+    .expense-list.mobile-list {
+        padding: 0;
+        background: transparent;
     }
 
-    .loading-text {
-        text-align: center;
+    .expense-card.mobile-optimized {
+        margin: 0 0 8px 0;
+        border-radius: 0;
     }
 
-    .loading-icon {
-        font-size: 48px;
-        color: #667eea;
-        margin-bottom: 16px;
-    }
-
-    /* Expense List */
-    .expense-list {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .expense-card {
-        background: #fafafa;
-        border-radius: 16px;
-        padding: 20px;
-        transition: all 0.3s ease;
-        border: 1px solid transparent;
-    }
-
-    .expense-card:hover {
-        background: white;
-        border-color: #e8e8e8;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        transform: translateY(-2px);
-    }
-
-    .expense-card-header {
+    .expense-item {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-    }
-
-    .expense-family {
-        display: flex;
         align-items: center;
         gap: 12px;
     }
 
-    .family-avatar {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        border-radius: 50%;
+    .expense-main {
+        flex: 1;
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 18px;
+    }
+
+    .expense-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
 
     .family-name {
-        font-size: 16px;
-        font-weight: 600;
-        color: #262626;
+        font-weight: 500;
+        font-size: 15px;
+    }
+
+    .expense-desc {
+        font-size: 13px;
+        color: #666;
     }
 
     .expense-amount {
         text-align: right;
     }
 
-    .amount-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: #667eea;
-        display: block;
-    }
+        .expense-amount .amount {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1890ff;
+        }
 
-    .amount-currency {
-        font-size: 14px;
-        color: #8c8c8c;
-    }
-
-    .expense-description {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-        padding: 12px;
-        background: white;
-        border-radius: 8px;
-        margin-bottom: 12px;
-        color: #595959;
-        font-size: 14px;
-    }
-
-    .desc-icon {
-        color: #8c8c8c;
-        margin-top: 2px;
-    }
+        .expense-amount .currency {
+            font-size: 12px;
+            color: #666;
+            margin-right: 4px;
+        }
 
     .expense-actions {
         display: flex;
-        gap: 8px;
+        gap: 4px;
+    }
+
+    /* Drawer Styles */
+    .expense-drawer .drawer-content {
+        padding: 16px;
+    }
+
+    .expense-drawer .drawer-footer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px;
+        background: white;
+        border-top: 1px solid #f0f0f0;
+        display: flex;
         justify-content: flex-end;
-        padding-top: 12px;
-        border-top: 1px solid #e8e8e8;
     }
 
-    .action-btn {
-        padding: 6px 16px !important;
-        border-radius: 8px !important;
-        font-size: 14px !important;
-        transition: all 0.3s ease;
+    /* Form Optimization for Mobile */
+    .mobile .ant-form-item {
+        margin-bottom: 16px;
     }
 
-    .action-btn.edit:hover {
-        background: rgba(102, 126, 234, 0.1) !important;
-        color: #667eea !important;
-    }
-
-    .action-btn.delete:hover {
-        background: rgba(255, 77, 79, 0.1) !important;
+    .mobile .ant-input-number,
+    .mobile .ant-select,
+    .mobile .ant-input-affix-wrapper {
+        font-size: 16px !important; /* Prevents zoom on iOS */
     }
 
     /* Pagination */
-    .expense-pagination {
-        margin-top: 24px;
-        padding-top: 24px;
-        border-top: 1px solid #e8e8e8;
+    .mobile-pagination {
+        padding: 16px;
         display: flex;
         justify-content: center;
     }
 
-    /* Modal Styling */
-    .expense-modal .ant-modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 20px 24px;
-    }
-
-    .expense-modal .ant-modal-title {
-        color: white;
-        font-size: 20px;
-        font-weight: 600;
-    }
-
-    .expense-modal .ant-modal-close {
-        color: white;
-    }
-
-    .expense-modal .ant-modal-body {
-        padding: 24px;
-    }
-
-    .expense-form .ant-form-item {
-        margin-bottom: 20px;
-    }
-
-    .expense-form .ant-form-item-label > label {
-        font-size: 14px;
-        font-weight: 500;
-        color: #595959;
-    }
-
-    /* Form Controls */
-    .form-select,
-    .form-input-number,
-    .form-textarea {
-        width: 100% !important;
-    }
-
-    .ant-select-lg,
-    .ant-input-number-lg,
-    .ant-input-affix-wrapper-lg {
-        height: 48px !important;
-        font-size: 16px !important;
-        border-radius: 12px !important;
-        border: 2px solid #e8e8e8 !important;
-    }
-
-    .ant-input-textarea textarea {
-        font-size: 16px !important;
-        border-radius: 12px !important;
-        padding: 12px !important;
-        border: 2px solid #e8e8e8 !important;
-    }
-
-    .ant-select:hover .ant-select-selector,
-    .ant-input-number:hover,
-    .ant-input-textarea:hover textarea {
-        border-color: #667eea !important;
-    }
-
-    .ant-select-focused .ant-select-selector,
-    .ant-input-number-focused,
-    .ant-input-textarea-focused textarea {
-        border-color: #667eea !important;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
-    }
-
-    /* Mobile Responsive */
-    @@media (max-width: 768px) {
-        .expense-header {
-            padding: 24px 16px;
-        }
-
-        .header-title {
-            font-size: 24px;
-        }
-
-        .header-subtitle {
-            font-size: 14px;
-        }
-
-        .add-expense-btn .btn-text {
-            display: none;
-        }
-
-        .add-expense-btn {
-            width: 48px !important;
-            height: 48px !important;
-            padding: 0 !important;
-            border-radius: 50% !important;
+    /* Desktop Styles */
+    @@media (min-width: 768px) {
+        .expense-container {
+            padding: 24px;
         }
 
         .expense-stats {
-            grid-template-columns: 1fr;
-            padding: 16px;
-            gap: 12px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
-        .expense-content {
-            padding: 16px;
-        }
-
-        .expense-card {
-            padding: 16px;
-        }
-
-        .expense-card-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .expense-amount {
-            text-align: left;
-            padding: 12px 0;
-            border-top: 1px solid #e8e8e8;
-            border-bottom: 1px solid #e8e8e8;
-            width: 100%;
-        }
-
-        .expense-actions {
-            justify-content: center;
-        }
-
-        .expense-modal {
-            max-width: calc(100vw - 32px) !important;
-        }
-    }
-
-    @@media (max-width: 480px) {
         .stat-card {
-            flex-direction: column;
-            text-align: center;
-            padding: 16px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .amount-value {
-            font-size: 20px;
+        .expense-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .expense-card {
+            padding: 20px;
         }
     }
 
-    /* Dark Mode Support */
-    @@media (prefers-color-scheme: dark) {
-        .expense-container {
-            background: #141414;
-        }
+    /* Loading State */
+    .loading-state {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 200px;
+    }
 
-        .expense-stats,
-        .expense-content {
-            background: #1f1f1f;
-        }
-
-        .stat-card,
-        .expense-card {
-            background: #262626;
-        }
-
-        .expense-card:hover {
-            background: #2f2f2f;
-        }
-
-        .expense-description {
-            background: #1f1f1f;
-        }
-
-        .family-name,
-        .stat-value {
-            color: #f0f0f0;
-        }
-
-        .expense-card-header,
-        .expense-actions {
-            border-color: #303030;
-        }
+    /* Stats Panel */
+    .stats-panel .ant-collapse-header {
+        padding: 12px 16px !important;
     }
 </style>
 
 @code {
-    // Your existing code remains the same
+    // Existing properties
     [Inject] private IExpenseService _expenseService { get; set; }
-    [Inject] private ITripService _tripService{ get; set; }
+    [Inject] private ITripService _tripService { get; set; }
     [Inject] private IMapper _mapper { get; set; }
     [Inject] private IMessageService _message { get; set; }
+    [Inject] private NavigationManager NavigationManager { get; set; }
 
     [Parameter] public int TripId { get; set; }
     [Parameter] public List<FamilyDTO> Families { get; set; } = new();
@@ -666,28 +416,87 @@
     private ExpenseDTO Model { get; set; } = new();
     private int? SelectedFamilyId { get; set; }
     private bool IsAddModalVisible { get; set; }
+    private bool IsSaving { get; set; }
 
-    private string OK => Model.Id == 0 ? "ثبت" : "ذخیره تغییرات";
+    // Mobile detection
+    private bool IsMobile { get; set; }
+
+    private string OK => Model.Id == 0 ? "ثبت" : "ذخیره";
     private string Cancel => "انصراف";
-    private string Empty => "هنوز هزینه‌ای ثبت نشده است";
+    private string EmptyMessage => "هنوز هزینه‌ای ثبت نشده";
 
     private int CurrentPage { get; set; } = 1;
     private int PageSize { get; set; } = 10;
     private int TotalCount { get; set; }
     private bool IsLoading { get; set; }
-    private QueryModel<ExpenseDTO> _lastQueryModel = new QueryModel<ExpenseDTO>(1, 1, 1, null, null);
+    private QueryModel<ExpenseDTO> _lastQueryModel = new QueryModel<ExpenseDTO>(1, 10, 1, null, null);
 
+    protected override async Task OnInitializedAsync()
+    {
+        // Simple mobile detection
+        IsMobile = await IsDeviceMobile();
+
+        if (IsMobile)
+        {
+            PageSize = 20; // Show more items on mobile to reduce pagination
+        }
+
+        await RefreshTableAsync();
+    }
+
+    private async Task<bool> IsDeviceMobile()
+    {
+        // This is a simple implementation. You might want to use JavaScript interop for better detection
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        return uri.Query.Contains("mobile") || false; // Simplified for demo
+    }
+
+    private RenderFragment FormContent => __builder =>
+      {
+          <Form Model="@Model" Layout="@(IsMobile ? FormLayout.Vertical : FormLayout.Vertical)">
+              <FormItem Label="خانواده" Required>
+                  <Select DataSource="@Families"
+                          @bind-Value="@SelectedFamilyId"
+                          ValueName="@nameof(FamilyDTO.Id)"
+                          LabelName="@nameof(FamilyDTO.Name)"
+                          EnableSearch="true"
+                          Placeholder="انتخاب خانواده"
+                          OnFocus="@Focus"
+                          Size="@(IsMobile ? InputSize.Large : InputSize.Default)"
+                          OnSearch="@(async (value) => await Search(value))"
+                          AutoClearSearchValue="false">
+                  </Select>
+              </FormItem>
+
+              <FormItem Label="مبلغ (تومان)" Required>
+                  <AntDesign.InputNumber @bind-Value="@Model.Amount"
+                                         Min="0"
+                                         Formatter="@(value => value.ToString("N0"))"
+                                         Size="@(IsMobile ? InputSize.Large : InputSize.Default)"
+                                         Style="width: 100%;" />
+              </FormItem>
+
+              <FormItem Label="توضیحات">
+                  <TextArea @bind-Value="@Model.Description"
+                            Rows="@(IsMobile ? (uint)2 : 3)"
+                            MaxLength="200"
+                            ShowCount
+                            Size="@(IsMobile ? InputSize.Large : InputSize.Default)"
+                            Placeholder="توضیحات اختیاری..." />
+              </FormItem>
+          </Form>
+      };
 
 
     private async Task OnTableChange(QueryModel<ExpenseDTO> queryModel)
     {
-        _lastQueryModel = queryModel; // Store the last query
+        _lastQueryModel = queryModel;
         await LoadExpensesAsync(queryModel);
     }
+
     private async Task RefreshTableAsync()
     {
-        // Use the last query or a default one
-        await LoadExpensesAsync(_lastQueryModel ?? new QueryModel<ExpenseDTO>(1, 1, 1, null, null));
+        await LoadExpensesAsync(_lastQueryModel ?? new QueryModel<ExpenseDTO>(1, PageSize, 1, null, null));
     }
 
     private async Task LoadExpensesAsync(QueryModel<ExpenseDTO> queryModel)
@@ -695,28 +504,30 @@
         try
         {
             IsLoading = true;
+            StateHasChanged();
+
             var result = await _expenseService.FindTripExpenses(queryModel.ToPagingParam(), TripId);
             Expenses = _mapper.Map<List<ExpenseDTO>>(result.Items);
             TotalCount = result.TotalCount;
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error loading expenses: {ex.Message}");
+            await _message.Error($"خطا در بارگذاری: {ex.Message}");
         }
         finally
         {
             IsLoading = false;
+            StateHasChanged();
         }
     }
-    private string ShowTotalText(int total)
+
+    private async Task OnPageChanged(PaginationEventArgs args)
     {
-        return $"مجموع {total} هزینه";
+        CurrentPage = args.Page;
+        PageSize = args.PageSize;
+        await OnTableChange(new QueryModel<ExpenseDTO>(CurrentPage, PageSize, TotalCount, null, null));
     }
 
-    private async Task OnPageChanged(int page, int pageSize)
-    {
-        await OnTableChange(new QueryModel<ExpenseDTO>(page, pageSize, TotalCount, null, null));
-    }
     private void ShowAddModal()
     {
         Model = new ExpenseDTO();
@@ -745,17 +556,28 @@
     {
         try
         {
+            IsSaving = true;
+
+            if (!SelectedFamilyId.HasValue)
+            {
+                await _message.Warning("لطفا خانواده را انتخاب کنید");
+                return;
+            }
+
+            Model.FamilyId = SelectedFamilyId.Value;
+
             if (Model.Id == 0)
             {
                 var addDto = _mapper.Map<AddExpenseDTO>(Model);
                 addDto.TripId = TripId;
                 await _expenseService.Add(addDto);
+                await _message.Success("هزینه با موفقیت ثبت شد");
             }
             else
             {
                 var updateDto = _mapper.Map<UpdateExpenseDTO>(Model);
-
                 await _expenseService.Update(updateDto);
+                await _message.Success("هزینه با موفقیت ویرایش شد");
             }
 
             IsAddModalVisible = false;
@@ -763,7 +585,11 @@
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error saving expense: {ex.Message}");
+            await _message.Error($"خطا در ذخیره: {ex.Message}");
+        }
+        finally
+        {
+            IsSaving = false;
         }
     }
 
@@ -772,11 +598,12 @@
         try
         {
             await _expenseService.Remove(expenseId);
+            await _message.Success("هزینه حذف شد");
             await RefreshTableAsync();
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error deleting expense: {ex.Message}");
+            await _message.Error($"خطا در حذف: {ex.Message}");
         }
     }
 
@@ -789,24 +616,20 @@
     private void OnFamilyChanged(int? value)
     {
         SelectedFamilyId = value;
-        if (value.HasValue)
-        {
-            Model.FamilyId = value.Value;
-        }
     }
+
     private async Task LoadFamiliesAsync(string searchTerm)
     {
         var filters = new List<FilterParam>();
 
-        if (searchTerm != "")
+        if (!string.IsNullOrEmpty(searchTerm))
         {
             filters.Add(new FilterParam
                 {
                     ColumnName = "FamilyName",
-                    FilterValue = searchTerm ?? "",
+                    FilterValue = searchTerm,
                     FilterOption = ComparisonMethod.Contain
                 });
-
         }
 
         var pagingFilters = new PagingParam { FilterParam = filters };
@@ -814,6 +637,7 @@
         Families = _mapper.Map<List<FamilyDTO>>(result.Items);
         StateHasChanged();
     }
+
     private async Task Focus()
     {
         await LoadFamiliesAsync("");
@@ -822,6 +646,5 @@
     private async Task Search(string searchTerm)
     {
         await LoadFamiliesAsync(searchTerm);
-
     }
 }

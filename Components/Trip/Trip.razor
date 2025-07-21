@@ -100,19 +100,19 @@
                     </div>
                 </div>
             </div>
-  
+
 
             <!-- Trips Content -->
             <div class="trips-content">
                 @if (isLoadingTrips)
                 {
                     <div class="loading-container">
-                      
-                            <div class="loading-content">
-                                <Icon Type="@IconType.Outline.Loading3Quarters" Spin Class="loading-icon" />
-                  
-                            </div>
-                    
+
+                        <div class="loading-content">
+                            <Icon Type="@IconType.Outline.Loading3Quarters" Spin Class="loading-icon" />
+
+                        </div>
+
                     </div>
                 }
                 else if (!trips.Any())
@@ -150,16 +150,16 @@
                     }
                     else
                     {
-                       <div class="trips-list">
-        @foreach (var trip in filteredTrips)
-        {
-            <TripListItem Trip="trip"
-                          OnClick="@(() => NavigateToTripDetails(trip.Id))"
-                          OnDelete="() => DeleteTripAsync(trip.Id)"
-                          OnEdit="() => ShowEditTripModal(trip.Id)"
-                          OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
-        }
-    </div>
+                        <div class="trips-list">
+                            @foreach (var trip in filteredTrips)
+                            {
+                                <TripListItem Trip="trip"
+                                              OnClick="@(() => NavigateToTripDetails(trip.Id))"
+                                              OnDelete="() => DeleteTripAsync(trip.Id)"
+                                              OnEdit="() => ShowEditTripModal(trip.Id)"
+                                              OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
+                            }
+                        </div>
                     }
                 }
             </div>
@@ -199,10 +199,10 @@
     }
     else
     {
+
         <ExpenseTable TripId="@selectedTripId" Families="@families" />
     }
 </Modal>
-
 
 @code {
 
