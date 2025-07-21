@@ -3,7 +3,7 @@ using FilterPagingEfCore.Extenstion;
 using FilterPagingEfCore.Paging;
 using Microsoft.EntityFrameworkCore;
 
-public class FriendshipRepository : GenericRepository<FamilyFriendship, int>, IFriendshipRepository
+public class FriendshipRepository : GenericRepository<FamilyFriendship, int>, IFriendShipRepository
 {
     private readonly AppDbContext _context;
     private readonly IMapper _mapper;

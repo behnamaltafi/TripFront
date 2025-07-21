@@ -176,33 +176,33 @@
                 OnClick="@ShowAddTripModal" />
     </div>
 </div>
-<!-- Trip Form Modal -->
-<TripFormModal Title="@tripModalTitle"
-               TripModel="@currentTrip"
-               Visible="@isTripModalVisible"
-               Families="@families"
-               OnSave="SaveTripAsync"
-               OnCancel="() => isTripModalVisible = false" />
+<ExpenseTable TripId="@selectedTripId" Families="@families" />
+@if (isTripForm)
+{
+    <TripForm Title="@tripModalTitle"
+              TripModel="@currentTrip"
+              Visible="true"
+              Families="@families"
+              OnSave="SaveTripAsync"
+              OnCancel="() => isTripForm = false" />
+}
 
-<!-- Expense Modal -->
-<Modal Title="هزینه‌های سفر"
-       Visible="@isExpenseModalVisible"
-       Width="900"
-       OnCancel="@(() => { isExpenseModalVisible = false; CancelExpenseEdit(); })"
-       Footer="null"
-       Class="expense-modal card-bordered">
-    @if (isLoadingExpenses)
-    {
-        <div class="modal-loading">
-            <Spin Tip="در حال بارگذاری هزینه‌ها..." />
-        </div>
-    }
-    else
-    {
-
-        <ExpenseTable TripId="@selectedTripId" Families="@families" />
-    }
-</Modal>
+<!-- Expense Section -->
+@if (isExpenseVisible)
+{
+    <div class="expense-section">
+        @if (isLoadingExpenses)
+        {
+            <div class="section-loading">
+                <Spin Tip="در حال بارگذاری هزینه‌ها..." />
+            </div>
+        }
+        else
+        {
+            <ExpenseTable TripId="@selectedTripId" Families="@families" />
+        }
+    </div>
+}
 
 @code {
 
@@ -210,13 +210,13 @@
     private List<TripDTO> trips = new();
     private List<TripDTO> filteredTrips = new();
     private TripDTO currentTrip = new();
-    private bool isTripModalVisible = false;
+    private bool isTripForm = false;
     private string tripModalTitle = string.Empty;
     private int selectedTripId;
     private List<FamilyDTO> families = new();
     private List<ExpenseDTO> expenses = new();
     private ExpenseDTO currentExpense = new();
-    private bool isExpenseModalVisible = false;
+    private bool isExpenseVisible = false;
     private bool isEditingExpense = false;
     private bool isLoadingTrips = false;
     private bool isLoadingExpenses = false;
@@ -335,7 +335,7 @@
     {
         currentTrip = CreateNewTrip();
         tripModalTitle = "افزودن سفر جدید";
-        isTripModalVisible = true;
+        isTripForm = true;
     }
 
     private void ShowEditTripModal(int tripId)
@@ -345,7 +345,7 @@
         {
             currentTrip = trip;
             tripModalTitle = "ویرایش سفر";
-            isTripModalVisible = true;
+            isTripForm = true;
         }
     }
 
@@ -364,7 +364,7 @@
                 Message.Success("سفر با موفقیت ویرایش شد");
             }
 
-            isTripModalVisible = false;
+            isTripForm = false;
             await LoadTripsAsync();
         }
         catch (Exception ex)
@@ -392,7 +392,7 @@
     private async Task ShowExpensesModalAsync(int tripId)
     {
         selectedTripId = tripId;
-        isExpenseModalVisible = true;
+        isExpenseVisible = true;
         await LoadFamiliesAsync("");
     }
 

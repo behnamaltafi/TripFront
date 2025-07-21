@@ -10,8 +10,8 @@ public partial class TripProfile
         {
             CreateMap<Family, FamilyDTO>()
               .ForMember(dest => dest.Interests, opt => opt.MapFrom(src => src.FamilyInterests.Select(x => x.Interest.Title).ToList()));
-
-            CreateMap<Family, FamilyInfo>()
+            CreateMap<FamilyFriendship, FamilyDTO>();
+           CreateMap<Family, FamilyInfo>()
               .ForMember(dest => dest.Trips, opt => opt.MapFrom(src => src.TripFamilies.Count()))
               .ForMember(dest => dest.Interests, opt => opt.MapFrom(src => src.FamilyInterests.Select(x=>x.Interest.Title).ToList()))
               .ForMember(dest => dest.Budget, opt => opt.MapFrom(src =>

@@ -1,12 +1,12 @@
 ﻿using BusinessExceptionStructure;
 using FilterPagingEfCore.Paging;
 
-public class FriendshipService : IFriendshipService
+public class FriendShipService : IFriendShipService
 {
-    private readonly IFriendshipRepository _repository;
+    private readonly IFriendShipRepository _repository;
     private readonly IFamilyService _familyService;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    public FriendshipService(IFriendshipRepository repository, IHttpContextAccessor httpContextAccessor, IFamilyService familyService)
+    public FriendShipService(IFriendShipRepository repository, IHttpContextAccessor httpContextAccessor, IFamilyService familyService)
     {
         _repository = repository;
         _httpContextAccessor = httpContextAccessor;

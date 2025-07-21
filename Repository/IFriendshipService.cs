@@ -1,7 +1,7 @@
 ﻿
 using FilterPagingEfCore.Paging;
 
-public interface IFriendshipService
+public interface IFriendShipService
 {
     Task AddFriendshipAsync(FamilyFriendship friendship);
     Task<bool> AreFriendsAsync( int targetFamilyId);

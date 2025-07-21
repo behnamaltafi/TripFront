@@ -1,6 +1,6 @@
 ﻿using FilterPagingEfCore.Paging;
 
-public interface IFriendshipRepository : IGenericRepository<FamilyFriendship, int>
+public interface IFriendShipRepository : IGenericRepository<FamilyFriendship, int>
 {
     Task AddFriendshipAsync(FamilyFriendship friendship);
     Task<bool> AreFriendsAsync(int currentFamilyId, int targetFamilyId);
