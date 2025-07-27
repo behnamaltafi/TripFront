@@ -6,55 +6,29 @@
 @using TripFront.Components.FrontUtility
 @using FilterPagingEfCore.Paging
 
-<div class="expense-container @(IsMobile ? "mobile" : "desktop")">
-    <!-- Header with Add Button -->
+<div class="expense-container">
+    <!-- Header with Back Button and Add Button -->
     <div class="expense-header">
         <div class="header-content">
+            <Button Type="@ButtonType.Text"
+                    Icon="@IconType.Outline.ArrowLeft"
+                    OnClick="@OnBack"
+                    Class="back-button">
+                <span class="back-text">بازگشت</span>
+            </Button>
             <h2 class="header-title">
                 <Icon Type="@IconType.Outline.DollarCircle" Class="header-icon" />
-                هزینه‌ها
+                هزینه‌ها @Expenses.Sum(e => e.Amount)
             </h2>
-            <Tag Color="TagColor.Blue">@Expenses.Count مورد</Tag>
         </div>
 
-        @if (IsMobile)
-        {
-            <div class="fab-container">
-                <Button Type="@ButtonType.Primary"
-                        Shape="@ButtonShape.Circle"
-                        Size="@ButtonSize.Large"
-                        Icon="@IconType.Outline.Plus"
-                        OnClick="@ShowAddForm"
-                        Class="fab-button" />
-            </div>
-        }
-        else
-        {
-            <Button Type="@ButtonType.Primary"
-                    Size="@ButtonSize.Large"
-                    Icon="@IconType.Outline.Plus"
-                    OnClick="@ShowAddForm">
-                <span>هزینه جدید</span>
-            </Button>
-        }
-    </div>
-
-    <!-- Stats Summary -->
-    <div class="expense-stats @(IsMobile ? "mobile-stats" : "desktop-stats")">
-        <Card Class="stat-card compact">
-            <Statistic Title="مجموع هزینه‌ها"
-                       Value="@Expenses.Sum(e => e.Amount)"
-                       Suffix="تومان"
-                       ValueStyle="color: #3f8600"
-                     />
-        </Card>
-        <Card Class="stat-card compact">
-            <Statistic Title="میانگین هزینه"
-                       Value="@(Expenses.Any() ? Expenses.Average(e => e.Amount) : 0)"
-                       Suffix="تومان"
-                       ValueStyle="color: #1890ff"
-                       />
-        </Card>
+        <Button Type="@ButtonType.Primary"
+                Size="@ButtonSize.Small"
+                Icon="@IconType.Outline.Plus"
+                OnClick="@ShowAddForm"
+                Class="desktop-add-button btn btn-primary">
+            <span>هزینه جدید</span>
+        </Button>
     </div>
 
     <!-- Main Content Area -->
@@ -62,15 +36,15 @@
         @if (ShowForm)
         {
             <!-- Inline Form -->
-            <Card Class="expense-form-card" Bordered="true">
+            <Card Class="expense-form-card card card-bordered" Bordered="true">
                 <CardMeta>
                     <TitleTemplate>
-                        <h3>@(Model.Id == 0 ? "ثبت هزینه جدید" : "ویرایش هزینه")</h3>
+                        <h3 class="card-title">@(Model.Id == 0 ? "ثبت هزینه جدید" : "ویرایش هزینه")</h3>
                     </TitleTemplate>
                 </CardMeta>
                 <CardContent>
-                    <Form Model="@Model" Layout="@(IsMobile ? FormLayout.Vertical : FormLayout.Horizontal)">
-                        <FormItem Label="خانواده" Required>
+                    <Form Model="@Model" Class="expense-form">
+                        <FormItem Label="خانواده" Required Class="form-group">
                             <Select DataSource="@Families"
                                     @bind-Value="@SelectedFamilyId"
                                     ValueName="@nameof(FamilyDTO.Id)"
@@ -78,26 +52,23 @@
                                     EnableSearch="true"
                                     Placeholder="انتخاب خانواده"
                                     OnFocus="@Focus"
-                                    Size="@(IsMobile ? InputSize.Large : InputSize.Default)"
                                     OnSearch="@(async (value) => await Search(value))"
                                     AutoClearSearchValue="false">
                             </Select>
                         </FormItem>
 
-                        <FormItem Label="مبلغ (تومان)" Required>
+                        <FormItem Label="مبلغ (تومان)" Required Class="form-group">
                             <AntDesign.InputNumber @bind-Value="@Model.Amount"
                                                    Min="0"
                                                    Formatter="@(value => value.ToString("N0"))"
-                                                   Size="@(IsMobile ? InputSize.Large : InputSize.Default)"
                                                    Style="width: 100%;" />
                         </FormItem>
 
-                        <FormItem Label="توضیحات">
+                        <FormItem Label="توضیحات" Class="form-group">
                             <TextArea @bind-Value="@Model.Description"
-                                      Rows="@(IsMobile ?(uint) 2 : 3)"
+                                      Rows="3"
                                       MaxLength="200"
                                       ShowCount
-                                      Size="@(IsMobile ? InputSize.Large : InputSize.Default)"
                                       Placeholder="توضیحات اختیاری..." />
                         </FormItem>
                     </Form>
@@ -105,10 +76,11 @@
                 <CardActions>
                     <div class="form-actions">
                         <Space>
-                            <Button OnClick="@CancelForm">انصراف</Button>
+                            <Button OnClick="@CancelForm" Class="btn btn-secondary">انصراف</Button>
                             <Button Type="@ButtonType.Primary"
                                     OnClick="@Save"
-                                    Loading="@IsSaving">
+                                    Loading="@IsSaving"
+                                    Class="btn btn-primary">
                                 @(Model.Id == 0 ? "ثبت" : "ذخیره")
                             </Button>
                         </Space>
@@ -126,42 +98,70 @@
         }
         else if (!Expenses.Any())
         {
-            <Empty 
-      
+            <Empty Description="@EmptyMessage"
                    Class="custom-empty">
-         @*        @if (!ShowForm)
-                {
-                    <ChildContent>
-                        <Button Type="@ButtonType.Primary"
-                                Icon="@IconType.Outline.Plus"
-                                OnClick="@ShowAddForm">
-                            اولین هزینه را ثبت کنید
-                        </Button>
-                    </ChildContent>
-                } *@
+                <ChildContent>
+                    <Button Type="@ButtonType.Primary"
+                            Icon="@IconType.Outline.Plus"
+                            OnClick="@ShowAddForm"
+                            Class="btn btn-primary">
+                        اولین هزینه را ثبت کنید
+                    </Button>
+                </ChildContent>
             </Empty>
         }
         else
         {
-            @if (IsMobile)
-            {
-                <!-- Mobile List View -->
-                <div class="expense-list mobile-list">
+            <!-- Desktop Table View -->
+            <div class="desktop-view">
+                <Table DataSource="@Expenses"
+                       Loading="@IsLoading"
+                       Bordered="true"
+                       Size="@TableSize.Default"
+                       Class="expense-table">
+                    <PropertyColumn Title="خانواده" Property="c=>c.FamilyName" />
+                    <PropertyColumn Title="مبلغ" Property="c=>c.Amount" Format="N0">
+                        <TitleTemplate>
+                            مبلغ به تومان
+                        </TitleTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Title="توضیحات" Property="c=>c.Description" />
+                    <ActionColumn Title="عملیات">
+                        <Space>
+                            <Button Type="@ButtonType.Text"
+                                    Icon="@IconType.Outline.Edit"
+                                    OnClick="@(() => Edit(context.Id))" />
+                            <Popconfirm Title="آیا از حذف این هزینه اطمینان دارید؟"
+                                        OnConfirm="@(() => DeleteAsync(context.Id))"
+                                        OkText="بله، حذف شود"
+                                        CancelText="خیر">
+                                <Button Type="@ButtonType.Text"
+                                        Danger
+                                        Icon="@IconType.Outline.Delete" />
+                            </Popconfirm>
+                        </Space>
+                    </ActionColumn>
+                </Table>
+            </div>
+
+            <!-- Mobile List View -->
+            <div class="mobile-view">
+                <div class="expense-list">
                     @foreach (var expense in Expenses)
                     {
-                        <Card Class="expense-card" Bordered="false" Size="CardSize.Small">
+                        <Card Class="expense-card card" Bordered="false" Size="CardSize.Small">
                             <div class="expense-item">
                                 <div class="expense-main">
                                     <div class="expense-info">
                                         <div class="family-name">@expense.FamilyName</div>
                                         @if (!string.IsNullOrEmpty(expense.Description))
                                         {
-                                            <div class="expense-desc">@expense.Description</div>
+                                            <div class="expense-desc text-muted">@expense.Description</div>
                                         }
                                     </div>
                                     <div class="expense-amount">
-                                        <span class="amount">@expense.Amount.ToString("N0")</span>
-                                        <span class="currency">تومان</span>
+                                        <span class="amount text-primary">@expense.Amount.ToString("N0")</span>
+                                        <span class="currency text-muted">تومان</span>
                                     </div>
                                 </div>
                                 <div class="expense-actions">
@@ -183,300 +183,407 @@
                         </Card>
                     }
                 </div>
-            }
-            else
-            {
-                <!-- Desktop Table View -->
-                <Table DataSource="@Expenses"
-                       Loading="@IsLoading"
-                       Bordered="true"
-                       Size="@TableSize.Default"
-                       Class="expense-table">
-                    <PropertyColumn Title="خانواده" Property="c=>c.FamilyName" />
-                    <PropertyColumn Title="مبلغ" Property="c=>c.Amount">
-                        <TitleTemplate >
-                 مبلغ به تومان
-                        </TitleTemplate>
-                    </PropertyColumn>
-                    <PropertyColumn Title="توضیحات" Property="c=>c.FamilyName" />
-                    <ActionColumn Title="عملیات">
-                        <Space>
-                            <Button Type="@ButtonType.Text"
-                                    Icon="@IconType.Outline.Edit"
-                                    OnClick="@(() => Edit(context.Id))" />
-                            <Popconfirm Title="آیا از حذف این هزینه اطمینان دارید؟"
-                                        OnConfirm="@(() => DeleteAsync(context.Id))"
-                                        OkText="بله، حذف شود"
-                                        CancelText="خیر">
-                                <Button Type="@ButtonType.Text"
-                                        Danger
-                                        Icon="@IconType.Outline.Delete" />
-                            </Popconfirm>
-                        </Space>
-                    </ActionColumn>
-                </Table>
-            }
+            </div>
 
             <!-- Pagination -->
             @if (TotalCount > PageSize)
             {
                 <div class="expense-pagination">
-                    <Pagination Simple="@IsMobile"
-                                Current="@CurrentPage"
+                    <Pagination Current="@CurrentPage"
                                 PageSize="@PageSize"
                                 Total="@TotalCount"
-                             
                                 OnChange="@OnPageChanged"
-                                ShowSizeChanger="@(!IsMobile)" />
+                                ShowSizeChanger="true"
+                                Class="pagination-responsive" />
                 </div>
             }
         }
     </div>
+
+    <!-- FAB for mobile -->
+    @if (!ShowForm)
+    {
+        <div class="fab-container">
+            <Button Type="@ButtonType.Primary"
+                    Shape="@ButtonShape.Circle"
+                    Size="@ButtonSize.Large"
+                    Icon="@IconType.Outline.Plus"
+                    OnClick="@ShowAddForm"
+                    Class="fab-button" />
+        </div>
+    }
+
+
 </div>
+
 
 <style>
     /* Container Styles */
     .expense-container {
-        padding: 24px;
-        background: #f0f2f5;
+        padding: var(--spacing-lg);
+        background: var(--bg-primary);
         min-height: 100vh;
+        font-family: var(--font-family);
     }
-    
-    .expense-container.mobile {
-        padding: 0;
-        background: #f5f5f5;
-    }
-    
+
     /* Header Styles */
     .expense-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 24px;
-        background: white;
-        padding: 16px 24px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: var(--spacing-lg);
+        background: var(--bg-white);
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
     }
-    
-    .mobile .expense-header {
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        border-radius: 0;
-        margin-bottom: 16px;
-        padding: 12px 16px;
-    }
-    
+
     .header-content {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: var(--spacing-md);
     }
-    
-    .header-title {
-        margin: 0;
-        font-size: 20px;
+
+    .back-button {
+        font-size: var(--font-size-base);
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-xs) var(--spacing-md);
+        color: var(--text-secondary);
+        transition: all var(--transition-fast);
     }
-    
-    .mobile .header-title {
-        font-size: 18px;
+
+    .back-button:hover {
+        color: var(--primary-color);
+        background: var(--bg-secondary);
     }
-    
+
+    .back-text {
+        display: inline;
+    }
+
+    .header-title {
+        margin: 0;
+        font-size: var(--font-size-xl);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        color: var(--text-primary);
+    }
+
     .header-icon {
-        color: #1890ff;
+        color: var(--primary-color);
     }
-    
+
+    .desktop-add-button {
+        display: flex;
+    }
+
     /* Stats Styles */
     .expense-stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
     }
-    
-    .mobile-stats {
-        padding: 0 16px;
-        margin-bottom: 16px;
-    }
-    
-    .stat-card.compact {
+
+    .stat-card {
         height: auto;
     }
-    
-    .stat-card.compact .ant-card-body {
-        padding: 16px;
+
+    .stat-card .ant-card-body {
+        padding: var(--spacing-md);
     }
-    
+
     /* Form Card */
     .expense-form-card {
-        margin-bottom: 24px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: var(--spacing-lg);
     }
-    
-    .mobile .expense-form-card {
-        margin: 16px;
-        border-radius: 8px;
+
+    .expense-form-card .card-title {
+        font-size: var(--font-size-lg);
+        margin-bottom: var(--spacing-md);
     }
-    
+
+    .expense-form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .expense-form .ant-form-item {
+        margin-bottom: 0;
+    }
+
     .form-actions {
         display: flex;
         justify-content: flex-end;
-        padding: 16px;
-        background: #fafafa;
-        border-top: 1px solid #f0f0f0;
+        padding: var(--spacing-md);
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-lighter);
+        margin: 0 calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg));
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     }
-    
+
+    /* Desktop/Mobile Views */
+    .desktop-view {
+        display: block;
+    }
+
+    .mobile-view {
+        display: none;
+    }
+
+    /* Table Styles */
+    .expense-table {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
     /* Mobile List Styles */
-    .expense-list.mobile-list {
-        padding: 0 16px 16px;
+    .expense-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
     }
-    
+
     .expense-card {
-        margin-bottom: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        border-radius: 8px !important;
+        border-radius: var(--radius-lg) !important;
+        transition: all var(--transition-base);
     }
-    
+
+    .expense-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
     .expense-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 12px;
+        gap: var(--spacing-md);
     }
-    
+
     .expense-main {
         flex: 1;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
-    
+
     .expense-info {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: var(--spacing-xs);
     }
-    
+
     .family-name {
-        font-weight: 500;
-        font-size: 15px;
-        color: #262626;
+        font-weight: 600;
+        font-size: var(--font-size-base);
+        color: var(--text-primary);
     }
-    
+
     .expense-desc {
-        font-size: 13px;
-        color: #8c8c8c;
+        font-size: var(--font-size-sm);
     }
-    
+
     .expense-amount {
         text-align: right;
     }
-    
+
     .expense-amount .amount {
-        font-size: 16px;
+        font-size: var(--font-size-lg);
         font-weight: 600;
-        color: #1890ff;
     }
-    
+
     .expense-amount .currency {
-        font-size: 12px;
-        color: #8c8c8c;
-        margin-right: 4px;
+        font-size: var(--font-size-xs);
+        margin-right: var(--spacing-xs);
     }
-    
+
     .expense-actions {
         display: flex;
-        gap: 4px;
-        border-left: 1px solid #f0f0f0;
-        padding-left: 8px;
+        gap: var(--spacing-xs);
+        border-left: 1px solid var(--border-lighter);
+        padding-left: var(--spacing-sm);
     }
-    
+
     /* FAB Styles */
     .fab-container {
         position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 1000;
+        bottom: var(--spacing-lg);
+        right: var(--spacing-lg);
+        z-index: var(--z-fixed);
+        display: none;
     }
-    
+
     .fab-button {
         width: 56px !important;
         height: 56px !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        background: var(--primary-gradient) !important;
+        border: none !important;
+        box-shadow: var(--shadow-colored);
+        transition: all var(--transition-base);
     }
-    
-    /* Desktop Table */
-    .expense-table {
-        background: white;
-        border-radius: 8px;
-        overflow: hidden;
+
+    .fab-button:hover {
+        transform: scale(1.1);
+        box-shadow: var(--shadow-xl);
     }
-    
+
     /* Pagination */
     .expense-pagination {
-        margin-top: 24px;
+        margin-top: var(--spacing-lg);
         display: flex;
         justify-content: center;
-        background: white;
-        padding: 16px;
-        border-radius: 8px;
+        background: var(--bg-white);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
     }
-    
-    .mobile .expense-pagination {
-        position: sticky;
-        bottom: 0;
-        margin: 0;
-        border-radius: 0;
-        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-    }
-    
+
     /* Loading State */
     .loading-state {
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 300px;
-        background: white;
-        border-radius: 8px;
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
     }
-    
+
     /* Empty State */
     .custom-empty {
-        background: white;
-        padding: 48px;
-        border-radius: 8px;
+        background: var(--bg-white);
+        padding: var(--spacing-xxl);
+        border-radius: var(--radius-lg);
         text-align: center;
+        box-shadow: var(--shadow-sm);
     }
-    
-    /* Mobile Form Optimizations */
-    .mobile .ant-form-item {
-        margin-bottom: 16px;
+
+    /* Responsive Media Queries */
+    @@media (max-width: 768px) {
+        .expense-container {
+            padding: 0;
+            padding-bottom: 80px;
+        }
+
+        .expense-header {
+            position: sticky;
+            top: 0;
+            z-index: var(--z-sticky);
+            border-radius: 0;
+            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-md) var(--spacing-md);
+        }
+
+        .back-text {
+            display: none;
+        }
+
+        .back-button {
+            padding: var(--spacing-xs);
+        }
+
+        .header-title {
+            font-size: var(--font-size-lg);
+        }
+
+        .desktop-add-button {
+            display: none;
+        }
+
+        .expense-stats {
+            padding: 0 var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .expense-form-card {
+            margin: var(--spacing-md);
+            border-radius: var(--radius-lg);
+        }
+
+        .expense-form {
+            gap: var(--spacing-md);
+        }
+
+        .expense-form .ant-form-item-label {
+            padding-bottom: var(--spacing-xs);
+        }
+
+        .expense-form .ant-input,
+        .expense-form .ant-input-number,
+        .expense-form .ant-select-selector,
+        .expense-form .ant-input-affix-wrapper,
+        .expense-form textarea {
+            font-size: var(--font-size-base) !important;
+        }
+
+        .desktop-view {
+            display: none;
+        }
+
+        .mobile-view {
+            display: block;
+            padding: 0 var(--spacing-md);
+        }
+
+        .fab-container {
+            display: block;
+            bottom: var(--spacing-md);
+            right: var(--spacing-md);
+        }
+
+        .expense-pagination {
+            position: sticky;
+            bottom: 0;
+            margin: 0;
+            border-radius: 0;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+        }
+
+        .pagination-responsive .ant-pagination-options {
+            display: none;
+        }
+
+        .pagination-responsive .ant-pagination-item {
+            min-width: 28px;
+            height: 28px;
+            line-height: 26px;
+            margin: 0 2px;
+        }
     }
-    
-    .mobile .ant-input,
-    .mobile .ant-input-number,
-    .mobile .ant-select-selector,
-    .mobile .ant-input-affix-wrapper {
-        font-size: 16px !important;
+
+    @@media (max-width: 480px) {
+        .expense-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .expense-amount .amount {
+            font-size: var(--font-size-base);
+        }
+
+        .family-name {
+            font-size: var(--font-size-sm);
+        }
     }
 </style>
 
 @code {
-    // Services
     [Inject] private IExpenseService _expenseService { get; set; }
     [Inject] private ITripService _tripService { get; set; }
     [Inject] private IMapper _mapper { get; set; }
     [Inject] private IMessageService _message { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
-    [Inject] private IJSRuntime JSRuntime { get; set; }
 
     // Parameters
     [Parameter] public int TripId { get; set; }
     [Parameter] public List<FamilyDTO> Families { get; set; } = new();
+    [Parameter] public EventCallback OnBack { get; set; }
 
     // State
     private List<ExpenseDTO> Expenses { get; set; } = new();
@@ -485,7 +592,7 @@
     private bool ShowForm { get; set; }
     private bool IsSaving { get; set; }
     private bool IsLoading { get; set; }
-    private bool IsMobile { get; set; }
+    private string EmptyMessage { get; set; } = "هنوز هزینه‌ای ثبت نشده است";
 
     // Pagination
     private int CurrentPage { get; set; } = 1;
@@ -495,16 +602,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // // Detect mobile
-        // IsMobile = await JSRuntime.InvokeAsync<bool>("eval", 
-        //     "window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)");
-
-        // if (IsMobile)
-        // {
-        //     PageSize = 20;
-        // }
-
-        // await RefreshTableAsync();
+        await RefreshTableAsync();
     }
 
     private void ShowAddForm()
@@ -608,6 +706,7 @@
             var result = await _expenseService.FindTripExpenses(queryModel.ToPagingParam(), TripId);
             Expenses = _mapper.Map<List<ExpenseDTO>>(result.Items);
             TotalCount = result.TotalCount;
+            _lastQueryModel = queryModel;
         }
         catch (Exception ex)
         {

@@ -243,6 +243,7 @@
     position: fixed;
     bottom: var(--spacing-lg);
     right: var(--spacing-lg);
+    display: block;
     z-index: var(--z-fixed);
     display: none;
 }
@@ -344,9 +345,6 @@
         flex-wrap: wrap;
     }
 
-    .fab-container {
-        display: block;
-    }
 
     .hero-cta-btn {
         display: none;
