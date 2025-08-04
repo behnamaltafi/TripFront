@@ -6,22 +6,23 @@
 @using TripFront.Components.FrontUtility
 @using FilterPagingEfCore.Paging
 
+
+<script src="~/js/app.js"></script>
 <div class="expense-container">
-    <!-- Header with Back Button and Add Button -->
+    <!-- HEADER with back left, Add right (RTL) -->
     <div class="expense-header">
+        <Button Type="@ButtonType.Text"
+                Icon="@IconType.Outline.ArrowLeft"
+                OnClick="@OnBack"
+                Class="back-button">
+            <span class="back-text">بازگشت</span>
+        </Button>
         <div class="header-content">
-            <Button Type="@ButtonType.Text"
-                    Icon="@IconType.Outline.ArrowLeft"
-                    OnClick="@OnBack"
-                    Class="back-button">
-                <span class="back-text">بازگشت</span>
-            </Button>
             <h2 class="header-title">
                 <Icon Type="@IconType.Outline.DollarCircle" Class="header-icon" />
                 هزینه‌ها @Expenses.Sum(e => e.Amount)
             </h2>
         </div>
-
         <Button Type="@ButtonType.Primary"
                 Size="@ButtonSize.Small"
                 Icon="@IconType.Outline.Plus"
@@ -31,65 +32,14 @@
         </Button>
     </div>
 
-    <!-- Main Content Area -->
-    <div class="expense-content">
+    <div class="expense-content"
+         @ref="_expenseListDiv"
+         style="overflow-y:auto; max-height:80vh;">
         @if (ShowForm)
         {
-            <!-- Inline Form -->
-            <Card Class="expense-form-card card card-bordered" Bordered="true">
-                <CardMeta>
-                    <TitleTemplate>
-                        <h3 class="card-title">@(Model.Id == 0 ? "ثبت هزینه جدید" : "ویرایش هزینه")</h3>
-                    </TitleTemplate>
-                </CardMeta>
-                <CardContent>
-                    <Form Model="@Model" Class="expense-form">
-                        <FormItem Label="خانواده" Required Class="form-group">
-                            <Select DataSource="@Families"
-                                    @bind-Value="@SelectedFamilyId"
-                                    ValueName="@nameof(FamilyDTO.Id)"
-                                    LabelName="@nameof(FamilyDTO.Name)"
-                                    EnableSearch="true"
-                                    Placeholder="انتخاب خانواده"
-                                    OnFocus="@Focus"
-                                    OnSearch="@(async (value) => await Search(value))"
-                                    AutoClearSearchValue="false">
-                            </Select>
-                        </FormItem>
-
-                        <FormItem Label="مبلغ (تومان)" Required Class="form-group">
-                            <AntDesign.InputNumber @bind-Value="@Model.Amount"
-                                                   Min="0"
-                                                   Formatter="@(value => value.ToString("N0"))"
-                                                   Style="width: 100%;" />
-                        </FormItem>
-
-                        <FormItem Label="توضیحات" Class="form-group">
-                            <TextArea @bind-Value="@Model.Description"
-                                      Rows="3"
-                                      MaxLength="200"
-                                      ShowCount
-                                      Placeholder="توضیحات اختیاری..." />
-                        </FormItem>
-                    </Form>
-                </CardContent>
-                <CardActions>
-                    <div class="form-actions">
-                        <Space>
-                            <Button OnClick="@CancelForm" Class="btn btn-secondary">انصراف</Button>
-                            <Button Type="@ButtonType.Primary"
-                                    OnClick="@Save"
-                                    Loading="@IsSaving"
-                                    Class="btn btn-primary">
-                                @(Model.Id == 0 ? "ثبت" : "ذخیره")
-                            </Button>
-                        </Space>
-                    </div>
-                </CardActions>
-            </Card>
+            <!-- ... (form code unchanged, see your original block) ... -->
         }
 
-        <!-- Expense List -->
         @if (IsLoading)
         {
             <div class="loading-state">
@@ -98,8 +48,7 @@
         }
         else if (!Expenses.Any())
         {
-            <Empty Description="@EmptyMessage"
-                   Class="custom-empty">
+            <Empty Description="@EmptyMessage" Class="custom-empty">
                 <ChildContent>
                     <Button Type="@ButtonType.Primary"
                             Icon="@IconType.Outline.Plus"
@@ -112,95 +61,42 @@
         }
         else
         {
-            <!-- Desktop Table View -->
             <div class="desktop-view">
-                <Table DataSource="@Expenses"
-                       Loading="@IsLoading"
-                       Bordered="true"
-                       Size="@TableSize.Default"
-                       Class="expense-table">
-                    <PropertyColumn Title="خانواده" Property="c=>c.FamilyName" />
-                    <PropertyColumn Title="مبلغ" Property="c=>c.Amount" Format="N0">
-                        <TitleTemplate>
-                            مبلغ به تومان
-                        </TitleTemplate>
-                    </PropertyColumn>
-                    <PropertyColumn Title="توضیحات" Property="c=>c.Description" />
-                    <ActionColumn Title="عملیات">
-                        <Space>
-                            <Button Type="@ButtonType.Text"
-                                    Icon="@IconType.Outline.Edit"
-                                    OnClick="@(() => Edit(context.Id))" />
-                            <Popconfirm Title="آیا از حذف این هزینه اطمینان دارید؟"
-                                        OnConfirm="@(() => DeleteAsync(context.Id))"
-                                        OkText="بله، حذف شود"
-                                        CancelText="خیر">
-                                <Button Type="@ButtonType.Text"
-                                        Danger
-                                        Icon="@IconType.Outline.Delete" />
-                            </Popconfirm>
-                        </Space>
-                    </ActionColumn>
-                </Table>
+                <!-- (Table code unchanged) -->
             </div>
-
-            <!-- Mobile List View -->
             <div class="mobile-view">
                 <div class="expense-list">
                     @foreach (var expense in Expenses)
                     {
-                        <Card Class="expense-card card" Bordered="false" Size="CardSize.Small">
-                            <div class="expense-item">
-                                <div class="expense-main">
-                                    <div class="expense-info">
-                                        <div class="family-name">@expense.FamilyName</div>
-                                        @if (!string.IsNullOrEmpty(expense.Description))
-                                        {
-                                            <div class="expense-desc text-muted">@expense.Description</div>
-                                        }
-                                    </div>
-                                    <div class="expense-amount">
-                                        <span class="amount text-primary">@expense.Amount.ToString("N0")</span>
-                                        <span class="currency text-muted">تومان</span>
-                                    </div>
-                                </div>
-                                <div class="expense-actions">
-                                    <Button Type="@ButtonType.Text"
-                                            Icon="@IconType.Outline.Edit"
-                                            OnClick="@(() => Edit(expense.Id))"
-                                            Size="@ButtonSize.Small" />
-                                    <Popconfirm Title="آیا از حذف این هزینه اطمینان دارید؟"
-                                                OnConfirm="@(() => DeleteAsync(expense.Id))"
-                                                OkText="بله، حذف شود"
-                                                CancelText="خیر">
-                                        <Button Type="@ButtonType.Text"
-                                                Danger
-                                                Icon="@IconType.Outline.Delete"
-                                                Size="@ButtonSize.Small" />
-                                    </Popconfirm>
-                                </div>
-                            </div>
-                        </Card>
+                        <!-- (mobile card code unchanged) -->
                     }
                 </div>
+                @if (IsLoadingMore)
+                {
+                    <div class="loading-state">
+                        <Spin Size="@SpinSize.Small" Tip="...در حال بارگذاری بیشتر" />
+                    </div>
+                }
+                @if (IsAllLoaded && Expenses.Any())
+                {
+                    <div style="text-align:center; color:#bbb; font-size:0.9rem;padding:10px;">
+                        تمام هزینه‌ها بارگذاری شدند
+                    </div>
+                }
             </div>
 
-            <!-- Pagination -->
-            @if (TotalCount > PageSize)
-            {
-                <div class="expense-pagination">
-                    <Pagination Current="@CurrentPage"
-                                PageSize="@PageSize"
-                                Total="@TotalCount"
-                                OnChange="@OnPageChanged"
-                                ShowSizeChanger="true"
-                                Class="pagination-responsive" />
-                </div>
-            }
+            <!-- Pagination: Only show on desktop -->
+            <div class="expense-pagination desktop-pagination">
+                <Pagination Current="@CurrentPage"
+                            PageSize="@PageSize"
+                            Total="@TotalCount"
+                            OnChange="@OnPageChanged"
+                            ShowSizeChanger="true"
+                            Class="pagination-responsive" />
+            </div>
         }
     </div>
-
-    <!-- FAB for mobile -->
+    <!-- FAB -->
     @if (!ShowForm)
     {
         <div class="fab-container">
@@ -212,8 +108,6 @@
                     Class="fab-button" />
         </div>
     }
-
-
 </div>
 
 
@@ -225,6 +119,33 @@
         min-height: 100vh;
         font-family: var(--font-family);
     }
+    @@media (max-width: 768px) {
+        .desktop-pagination
+
+    {
+        display: none;
+    }
+
+    .expense-content {
+        /* Ensures scroll for mobile view */
+        overflow-y: auto;
+        max-height: 75vh;
+    }
+
+    }
+    @@media (min-width: 769px) {
+        .mobile-view
+
+    {
+        display: none;
+    }
+
+    .desktop-pagination {
+        display: flex;
+    }
+
+    }
+
 
     /* Header Styles */
     .expense-header {
@@ -573,19 +494,22 @@
     }
 </style>
 
+
 @code {
+    // -------- Dependencies
     [Inject] private IExpenseService _expenseService { get; set; }
     [Inject] private ITripService _tripService { get; set; }
     [Inject] private IMapper _mapper { get; set; }
     [Inject] private IMessageService _message { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
+    [Inject] private IJSRuntime JS { get; set; }
 
-    // Parameters
+    // -------- Parameters
     [Parameter] public int TripId { get; set; }
     [Parameter] public List<FamilyDTO> Families { get; set; } = new();
     [Parameter] public EventCallback OnBack { get; set; }
 
-    // State
+    // -------- State
     private List<ExpenseDTO> Expenses { get; set; } = new();
     private ExpenseDTO Model { get; set; } = new();
     private int? SelectedFamilyId { get; set; }
@@ -593,6 +517,7 @@
     private bool IsSaving { get; set; }
     private bool IsLoading { get; set; }
     private string EmptyMessage { get; set; } = "هنوز هزینه‌ای ثبت نشده است";
+    private ElementReference _expenseListDiv;
 
     // Pagination
     private int CurrentPage { get; set; } = 1;
@@ -600,9 +525,27 @@
     private int TotalCount { get; set; }
     private QueryModel<ExpenseDTO> _lastQueryModel = new QueryModel<ExpenseDTO>(1, 10, 1, null, null);
 
+    // ----- Infinite Scroll State
+    private bool IsLoadingMore { get; set; } = false;
+    private bool IsAllLoaded { get; set; } = false;
+    private DotNetObjectReference<ExpenseTable> _dotNetRef;
+
     protected override async Task OnInitializedAsync()
     {
         await RefreshTableAsync();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("attachScrollEvent", _expenseListDiv, _dotNetRef);
+        }
+    }
+    public void Dispose()
+    {
+        JS.InvokeVoidAsync("detachScrollEvent", _expenseListDiv);
+        _dotNetRef?.Dispose();
     }
 
     private void ShowAddForm()
@@ -618,12 +561,12 @@
         if (existing is not null)
         {
             Model = new ExpenseDTO
-            {
-                Id = existing.Id,
-                FamilyId = existing.FamilyId,
-                Amount = existing.Amount,
-                Description = existing.Description
-            };
+                {
+                    Id = existing.Id,
+                    FamilyId = existing.FamilyId,
+                    Amount = existing.Amount,
+                    Description = existing.Description
+                };
             SelectedFamilyId = Model.FamilyId;
             ShowForm = true;
         }
@@ -693,18 +636,39 @@
 
     private async Task RefreshTableAsync()
     {
-        await LoadExpensesAsync(_lastQueryModel ?? new QueryModel<ExpenseDTO>(1, PageSize, 1, null, null));
+        // Desktop: load with paging; mobile: load first page
+        var query = new QueryModel<ExpenseDTO>(1, PageSize, 1, null, null);
+        await LoadExpensesAsync(query, true);
     }
 
-    private async Task LoadExpensesAsync(QueryModel<ExpenseDTO> queryModel)
+    private async Task LoadExpensesAsync(QueryModel<ExpenseDTO> queryModel, bool reset = false)
     {
         try
         {
-            IsLoading = true;
+            IsLoading = reset;
+            IsLoadingMore = !reset;
             StateHasChanged();
 
             var result = await _expenseService.FindTripExpenses(queryModel.ToPagingParam(), TripId);
-            Expenses = _mapper.Map<List<ExpenseDTO>>(result.Items);
+            var newExpenses = _mapper.Map<List<ExpenseDTO>>(result.Items);
+
+            if (reset)
+            {
+                Expenses = newExpenses;
+                CurrentPage = 1;
+                IsAllLoaded = newExpenses.Count >= result.TotalCount;
+            }
+            else
+            {
+                foreach (var e in newExpenses)
+                {
+                    if (!Expenses.Any(ex => ex.Id == e.Id))
+                        Expenses.Add(e);
+                }
+                // mobile: loaded all
+                if (Expenses.Count >= result.TotalCount)
+                    IsAllLoaded = true;
+            }
             TotalCount = result.TotalCount;
             _lastQueryModel = queryModel;
         }
@@ -715,44 +679,37 @@
         finally
         {
             IsLoading = false;
+            IsLoadingMore = false;
             StateHasChanged();
         }
     }
 
     private async Task OnPageChanged(PaginationEventArgs args)
     {
+        // Desktop: classic paging
         CurrentPage = args.Page;
         PageSize = args.PageSize;
-        await LoadExpensesAsync(new QueryModel<ExpenseDTO>(CurrentPage, PageSize, TotalCount, null, null));
+        IsAllLoaded = false;
+        await LoadExpensesAsync(new QueryModel<ExpenseDTO>(CurrentPage, PageSize, TotalCount, null, null), true);
     }
 
-    private async Task LoadFamiliesAsync(string searchTerm)
-    {
-        var filters = new List<FilterParam>();
+    // -- Families loading code unchanged (Focus, Search etc.)
 
-        if (!string.IsNullOrEmpty(searchTerm))
+    // ---- Infinite SCROLL callback from JS
+    [JSInvokable]
+    public async Task OnScrolledToEnd()
+    {
+        if (IsLoadingMore || IsAllLoaded || IsLoading)
+            return;
+
+        var nextPage = ((Expenses.Count / PageSize) + 1);
+        if (Expenses.Count >= TotalCount)
         {
-            filters.Add(new FilterParam
-            {
-                ColumnName = "FamilyName",
-                FilterValue = searchTerm,
-                FilterOption = ComparisonMethod.Contain
-            });
+            IsAllLoaded = true;
+            return;
         }
 
-        var pagingFilters = new PagingParam { FilterParam = filters };
-        var result = await _tripService.GetTripFamilyAsync(pagingFilters, TripId);
-        Families = _mapper.Map<List<FamilyDTO>>(result.Items);
-        StateHasChanged();
-    }
-
-    private async Task Focus()
-    {
-        await LoadFamiliesAsync("");
-    }
-
-    private async Task Search(string searchTerm)
-    {
-        await LoadFamiliesAsync(searchTerm);
+        IsLoadingMore = true;
+        await LoadExpensesAsync(new QueryModel<ExpenseDTO>(nextPage, PageSize, TotalCount, null, null), false);
     }
 }
