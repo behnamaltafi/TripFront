@@ -73,12 +73,12 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        await GetprofileImage();
-
         if (!user.Identity?.IsAuthenticated ?? true)
         {
             Navigation.NavigateTo("Account/Login", forceLoad: true);
         }
+        await GetprofileImage();
+
    
     }
 
