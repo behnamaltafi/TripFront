@@ -144,8 +144,7 @@
                                            Size="@InputSize.Large"
                                            AllowClear="true"
                                            @bind-Value="searchTerm"
-                                           OnPressEnter="@(() => FilterTrips())"
-                                           OnChange="@((_) => FilterTrips())"
+                                           @bind-Value:event="oninput"
                                            Class="search-input" />
                                 </div>
                             </div>
@@ -265,7 +264,21 @@
     private int expensesCurrentPage = 1;
     private string emptyMessage = "هنوز سفری ثبت نکرده‌اید. اولین سفر خود را برنامه‌ریزی کنید!";
 
-    private string searchTerm = "";
+    private string searchTerm
+    {
+        get => _searchTerm;
+        set
+        {
+            if (_searchTerm == value)
+            {
+                return;
+            }
+
+            _searchTerm = value;
+            FilterTrips();
+        }
+    }
+    private string _searchTerm = string.Empty;
     private string filterStatus = "";
     private string viewMode = "grid";
 
