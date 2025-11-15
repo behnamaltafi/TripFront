@@ -1,6 +1,10 @@
 /* ========================================
    DONGCHI THEME - General Theme System
    ======================================== */
+@import url('/Styles/login.css');
+@import url('/Styles/trip.css');
+@import url('/Styles/tripCard.css');
+@import url('/Styles/triplistitem.css');
 @font-face {
     font-family: 'Vazir';
     src: url('/font/Vazir.woff2') format('woff2');
