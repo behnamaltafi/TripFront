@@ -1,0 +1,128 @@
+.app-layout {
+    min-height: 100vh;
+    background: #f5f7fa;
+}
+
+.app-header {
+    background: white !important;
+    padding: 0 !important;
+    height: var(--header-height);
+    box-shadow: var(--shadow-sm);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    font-size: 32px;
+    color: var(--primary-color);
+}
+
+.app-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1a1a1a;
+    font-family: 'Vazir', sans-serif;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-btn {
+    font-size: 20px;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.header-btn:hover {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+.notification-badge {
+    margin-right: 8px;
+}
+
+.user-avatar {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.user-avatar:hover {
+    transform: scale(1.05);
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+}
+
+.profile-menu {
+    min-width: 180px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+.profile-menu .ant-menu-item {
+    font-family: 'Vazir', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.profile-menu .ant-menu-item:hover {
+    background: #f0f5ff;
+    color: var(--primary-color);
+}
+
+.logout-item:hover {
+    background: #fff1f0 !important;
+    color: var(--danger-color) !important;
+}
+
+.main-content {
+    margin-top: var(--header-height);
+    min-height: calc(100vh - var(--header-height));
+    background: transparent;
+}
+
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    color: var(--danger-color);
+}
+
+.error-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+    .app-title {
+        font-size: 20px;
+    }
+
+    .header-content {
+        padding: 0 16px;
+    }
+}
