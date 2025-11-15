@@ -6,6 +6,8 @@
 @using FilterPagingEfCore.Paging
 @rendermode InteractiveServer
 
+<link href="/styles/trip.css" rel="stylesheet" />
+
 <div class="container-full display-block trips-page">
     @* Show Trip Form when adding/editing *@
     @if (isTripForm)
@@ -47,150 +49,182 @@
     @* Show main content when no forms are open *@
     else
     {
-        <!-- Hero Section with Showcase Pattern -->
-        <div class="showcase-section trips-hero">
-            <div class="animated-bg"></div>
-            <div class="hero-content">
-                <h1 class="hero-title">سفرهای شما</h1>
-                <p class="hero-subtitle">خاطرات زیبای سفر را ثبت کنید و مدیریت کنید</p>
-                <Button Type="@ButtonType.Primary"
-                        Size="@ButtonSize.Large"
-                        Icon="@IconType.Outline.Plus"
-                        Disabled="@isLoadingTrips"
-                        OnClick="@AddTripModal"
-                        Class="btn btn-primary hero-cta-btn">
-                    <span>برنامه‌ریزی سفر جدید</span>
-                </Button>
+        <section class="trips-shell">
+            <!-- Hero Section with Showcase Pattern -->
+            <div class="showcase-section trips-hero">
+                <div class="animated-bg"></div>
+                <div class="hero-content">
+                    <p class="hero-kicker">داشبورد سفرهای شخصی</p>
+                    <h1 class="hero-title">سفرهای شما</h1>
+                    <p class="hero-subtitle">خاطرات زیبای سفر را ثبت کنید و مدیریت کنید</p>
+                    <div class="hero-cta-group">
+                        <Button Type="@ButtonType.Primary"
+                                Size="@ButtonSize.Large"
+                                Icon="@IconType.Outline.Plus"
+                                Disabled="@isLoadingTrips"
+                                OnClick="@AddTripModal"
+                                Class="btn btn-primary hero-cta-btn">
+                            <span>برنامه‌ریزی سفر جدید</span>
+                        </Button>
+                        <Button Type="@ButtonType.Default"
+                                Size="@ButtonSize.Large"
+                                Icon="@IconType.Outline.Reload"
+                                Loading="@isLoadingTrips"
+                                OnClick="@LoadTripsAsync"
+                                Class="hero-ghost-btn">
+                            بروزرسانی لیست
+                        </Button>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Main Content Section -->
-        <div class="form-section display-block">
-            <div class="content-wrapper">
-                <!-- Stats Cards -->
-                <div class="stats-container">
-                    <div class="card stat-card">
-                        <div class="stat-icon-wrapper">
-                            <Icon Type="@IconType.Outline.Compass" Class="stat-icon" />
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-value">@trips.Count</span>
-                            <span class="stat-label text-muted">سفر ها</span>
-                        </div>
-                    </div>
-                    <div class="card stat-card">
-                        <div class="stat-icon-wrapper">
-                            <Icon Type="@IconType.Outline.Calendar" Class="stat-icon" />
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-value">@GetActiveTripCount()</span>
-                            <span class="stat-label text-muted">بدهکار</span>
-                        </div>
-                    </div>
-                    <div class="card stat-card">
-                        <div class="stat-icon-wrapper">
-                            <Icon Type="@IconType.Outline.Team" Class="stat-icon" />
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-value">@GetTotalTravelers()</span>
-                            <span class="stat-label text-muted">دوستان</span>
-                        </div>
-                    </div>
-                    <div class="card stat-card">
-                        <div class="stat-icon-wrapper">
-                            <Icon Type="@IconType.Outline.DollarCircle" Class="stat-icon" />
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-value">@GetTotalBudget()</span>
-                            <span class="stat-label text-muted">بستانکار</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Filter Section -->
-                <div class="card filter-card">
-                    <div class="filter-controls">
-                        <div class="filter-left">
-                            <Input Placeholder="جستجوی سفر..."
-                                   Size="@InputSize.Large"
-                                   AllowClear="true"
-                                   @bind-Value="searchTerm"
-                                   OnPressEnter="@(() => FilterTrips())" />
-                        </div>
-
-                        <div class="filter-right">
-                            <RadioGroup @bind-Value="viewMode" ButtonStyle="@RadioButtonStyle.Solid">
-                                <Radio RadioButton Value="@("grid")">
-                                    <Icon Type="@IconType.Outline.AppstoreAdd" />
-                                </Radio>
-                                <Radio RadioButton Value="@("list")">
-                                    <Icon Type="@IconType.Outline.UnorderedList" />
-                                </Radio>
-                            </RadioGroup>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Trips Content -->
-                <div class="trips-content">
-                    @if (isLoadingTrips)
-                    {
-                        <div class="loading-container">
-                            <div class="loading-content">
-                                <Icon Type="@IconType.Outline.Loading3Quarters" Spin Class="loading-icon" />
+            <!-- Main Content Section -->
+            <div class="form-section display-block">
+                <div class="content-wrapper">
+                    <!-- Stats Cards -->
+                    <div class="stats-container">
+                        <div class="card stat-card">
+                            <div class="stat-icon-wrapper">
+                                <Icon Type="@IconType.Outline.Compass" Class="stat-icon" />
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label">سفرها</span>
+                                <span class="stat-value">@trips.Count</span>
                             </div>
                         </div>
-                    }
-                    else if (!trips.Any())
-                    {
-                        <div class="empty-container">
-                            <Empty Description="@emptyMessage"
-                                   Class="custom-empty">
-                                <ChildContent>
-                                    <Button Type="@ButtonType.Primary"
-                                            Icon="@IconType.Outline.Plus"
-                                            OnClick="@AddTripModal"
-                                            Class="btn btn-primary">
-                                        اولین سفر خود را ایجاد کنید
-                                    </Button>
-                                </ChildContent>
-                            </Empty>
+                        <div class="card stat-card">
+                            <div class="stat-icon-wrapper">
+                                <Icon Type="@IconType.Outline.Calendar" Class="stat-icon" />
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label">بدهکار</span>
+                                <span class="stat-value">@GetActiveTripCount()</span>
+                            </div>
                         </div>
-                    }
-                    else
-                    {
-                        @if (viewMode == "grid")
+                        <div class="card stat-card">
+                            <div class="stat-icon-wrapper">
+                                <Icon Type="@IconType.Outline.Team" Class="stat-icon" />
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label">دوستان</span>
+                                <span class="stat-value">@GetTotalTravelers()</span>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-icon-wrapper">
+                                <Icon Type="@IconType.Outline.DollarCircle" Class="stat-icon" />
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label">بستانکار</span>
+                                <span class="stat-value">@GetTotalBudget()</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="card filter-card">
+                        <div class="filter-header">
+                            <div>
+                                <p class="filter-title">فیلتر و جستجو</p>
+                                <span class="filter-caption">@($"{filteredTrips.Count} سفر یافت شد")</span>
+                            </div>
+                            <Button Type="@ButtonType.Link"
+                                    Icon="@IconType.Outline.Rest"
+                                    Disabled="@(!trips.Any())"
+                                    OnClick="@ResetFilters"
+                                    Class="filter-reset">
+                                پاکسازی فیلترها
+                            </Button>
+                        </div>
+                        <div class="filter-controls">
+                            <div class="filter-left">
+                                <div class="search-input-wrapper">
+                                    <Icon Type="@IconType.Outline.Search" Class="search-icon" />
+                                    <Input Placeholder="جستجوی سفر..."
+                                           Size="@InputSize.Large"
+                                           AllowClear="true"
+                                           @bind-Value="searchTerm"
+                                           OnPressEnter="@(() => FilterTrips())"
+                                           OnChange="@((_) => FilterTrips())"
+                                           Class="search-input" />
+                                </div>
+                            </div>
+
+                            <div class="filter-right">
+                                <RadioGroup @bind-Value="viewMode" ButtonStyle="@RadioButtonStyle.Solid">
+                                    <Radio RadioButton Value="@("grid")">
+                                        <Icon Type="@IconType.Outline.AppstoreAdd" />
+                                    </Radio>
+                                    <Radio RadioButton Value="@("list")">
+                                        <Icon Type="@IconType.Outline.UnorderedList" />
+                                    </Radio>
+                                </RadioGroup>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trips Content -->
+                    <div class="trips-content">
+                        @if (isLoadingTrips)
                         {
-                            <div class="trips-grid">
-                                @foreach (var trip in filteredTrips)
-                                {
-                                    <div class="trip-card-wrapper">
-                                        <TripCard Trip="trip"
-                                                  OnClick="@(() => NavigateToTripDetails(trip.Id))"
-                                                  OnDelete="() => DeleteTripAsync(trip.Id)"
-                                                  OnEdit="() => ShowEditTripModal(trip.Id)"
-                                                  OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
-                                    </div>
-                                }
+                            <div class="loading-container">
+                                <div class="loading-content">
+                                    <Icon Type="@IconType.Outline.Loading3Quarters" Spin Class="loading-icon" />
+                                    <p>در حال بارگذاری سفرها...</p>
+                                </div>
+                            </div>
+                        }
+                        else if (!trips.Any())
+                        {
+                            <div class="empty-container">
+                                <Empty Description="@emptyMessage"
+                                       Class="custom-empty">
+                                    <ChildContent>
+                                        <Button Type="@ButtonType.Primary"
+                                                Icon="@IconType.Outline.Plus"
+                                                OnClick="@AddTripModal"
+                                                Class="btn btn-primary">
+                                            اولین سفر خود را ایجاد کنید
+                                        </Button>
+                                    </ChildContent>
+                                </Empty>
                             </div>
                         }
                         else
                         {
-                            <div class="trips-list">
-                                @foreach (var trip in filteredTrips)
-                                {
-                                    <TripListItem Trip="trip"
-                                                  OnClick="@(() => NavigateToTripDetails(trip.Id))"
-                                                  OnDelete="() => DeleteTripAsync(trip.Id)"
-                                                  OnEdit="() => ShowEditTripModal(trip.Id)"
-                                                  OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
-                                }
-                            </div>
+                            @if (viewMode == "grid")
+                            {
+                                <div class="trips-grid">
+                                    @foreach (var trip in filteredTrips)
+                                    {
+                                        <div class="trip-card-wrapper">
+                                            <TripCard Trip="trip"
+                                                      OnClick="@(() => NavigateToTripDetails(trip.Id))"
+                                                      OnDelete="() => DeleteTripAsync(trip.Id)"
+                                                      OnEdit="() => ShowEditTripModal(trip.Id)"
+                                                      OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="trips-list">
+                                    @foreach (var trip in filteredTrips)
+                                    {
+                                        <TripListItem Trip="trip"
+                                                      OnClick="@(() => NavigateToTripDetails(trip.Id))"
+                                                      OnDelete="() => DeleteTripAsync(trip.Id)"
+                                                      OnEdit="() => ShowEditTripModal(trip.Id)"
+                                                      OnExpenses="() => ShowExpensesModalAsync(trip.Id)" />
+                                    }
+                                </div>
+                            }
                         }
-                    }
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Floating Action Button -->
         <div class="fab-container">
@@ -286,6 +320,14 @@
         }
 
         StateHasChanged();
+    }
+
+    private void ResetFilters()
+    {
+        searchTerm = string.Empty;
+        filterStatus = string.Empty;
+        viewMode = "grid";
+        FilterTrips();
     }
 
     private int GetActiveTripCount()
