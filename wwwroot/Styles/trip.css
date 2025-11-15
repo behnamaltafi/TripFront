@@ -361,3 +361,39 @@
     }
 }
 
+/* Trip page specific sections */
+.trips-page .section-header {
+    padding: 20px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.trips-page .back-button {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.trips-page .back-button:hover {
+    color: var(--primary-color);
+}
+
+.trips-page .form-section,
+.trips-page .expense-section {
+    padding: 20px;
+    animation: tripFadeIn 0.3s ease;
+}
+
+@keyframes tripFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
