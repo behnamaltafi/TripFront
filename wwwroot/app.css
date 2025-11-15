@@ -5,6 +5,13 @@
 @import url('/Styles/trip.css');
 @import url('/Styles/tripCard.css');
 @import url('/Styles/triplistitem.css');
+@import url('/Styles/layout.css');
+@import url('/Styles/tripForm.css');
+@import url('/Styles/tripModal.css');
+@import url('/Styles/chart.css');
+@import url('/Styles/expense.css');
+@import url('/Styles/profile.css');
+@import url('/Styles/tripLegacy.css');
 @font-face {
     font-family: 'Vazir';
     src: url('/font/Vazir.woff2') format('woff2');
@@ -36,6 +43,8 @@
     --bg-primary: #f0f2f5;
     --bg-secondary: #f1f7f4;
     --bg-white: #ffffff;
+    --card-background: #ffffff;
+    --background: #f0f2f5;
     --text-primary: #333333;
     --text-secondary: #595959;
     --text-muted: #8c8c8c;
@@ -46,6 +55,7 @@
     /* Semantic Colors */
     --success-color: #52c41a;
     --error-color: #ff4d4f;
+    --danger-color: #ff4d4f;
     --warning-color: #faad14;
     --info-color: #1890ff;
     /* Spacing */
@@ -56,6 +66,7 @@
     --spacing-xl: 32px;
     --spacing-xxl: 48px;
     --spacing-xxxl: 60px;
+    --header-height: 72px;
     /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;

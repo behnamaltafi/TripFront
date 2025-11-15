@@ -1,0 +1,17 @@
+.trip-modal .ant-modal-body {
+    padding: 24px;
+    background-color: #fafafa;
+}
+
+.trip-modal .form-card {
+    margin-top: 24px;
+    background-color: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    padding: 16px;
+}
+
+.trip-modal .ant-table-wrapper {
+    margin-bottom: 16px;
+}
