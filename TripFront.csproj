@@ -40,9 +40,9 @@
 		<Reference Include="BusinessException">
 			<HintPath>Dll\BusinessException.dll</HintPath>
 		</Reference>
-		<Reference Include="FilterPagingEfCore">
-			<HintPath>PagingDll\FilterPagingEfCore.dll</HintPath>
-		</Reference>
+                <Reference Include="FilterPagingEfCore">
+                        <HintPath>Dll\FilterPagingEfCore.dll</HintPath>
+                </Reference>
 	</ItemGroup>
 
 	<ItemGroup>
