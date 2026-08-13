@@ -143,14 +143,14 @@
                                     <Input Placeholder="جستجوی سفر..."
                                            Size="@InputSize.Large"
                                            AllowClear="true"
-                                           @bind-Value="searchTerm"
-                                           @bind-Value:event="oninput"
+                                           Value="searchTerm"
+                                           @* @bind-Value:event="oninput" *@
                                            Class="search-input" />
                                 </div>
                             </div>
 
                             <div class="filter-right">
-                                <RadioGroup @bind-Value="viewMode" ButtonStyle="@RadioButtonStyle.Solid">
+                                <RadioGroup Value="viewMode" ButtonStyle="@RadioButtonStyle.Solid">
                                     <Radio RadioButton Value="@("grid")">
                                         <Icon Type="@IconType.Outline.AppstoreAdd" />
                                     </Radio>
@@ -363,10 +363,10 @@
     private TripDTO CreateNewTrip()
     {
         return new TripDTO
-            {
-                StartDate = DateTime.Now,
-                EndDate = DateTime.Now.AddDays(3)
-            };
+        {
+            StartDate = DateTime.Now,
+            EndDate = DateTime.Now.AddDays(3)
+        };
     }
 
     private void AddTripModal()
@@ -472,11 +472,11 @@
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 filters.Add(new FilterParam
-                    {
-                        ColumnName = "Name",
-                        FilterValue = searchTerm,
-                        FilterOption = ComparisonMethod.Contain
-                    });
+                {
+                    ColumnName = "Name",
+                    FilterValue = searchTerm,
+                    FilterOption = ComparisonMethod.Contain
+                });
             }
 
             var pagingFilters = new PagingParam { FilterParam = filters };
