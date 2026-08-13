@@ -1,0 +1,24 @@
+<div class="app-layout">
+  <header class="app-header">
+    <div class="header-content">
+      <a class="logo-section" routerLink="/trips" aria-label="دونگچی">
+        <span class="logo-icon">✦</span>
+        <span class="app-title">دونگچی</span>
+      </a>
+
+      <div class="header-actions">
+        @if (auth.isAuthenticated()) {
+          <a class="header-link" routerLink="/trips">سفرهای من</a>
+          <button class="header-btn logout-button" type="button" (click)="logout()">خروج</button>
+        } @else {
+          <a class="header-link" routerLink="/login">ورود</a>
+          <a class="header-cta" routerLink="/register">ثبت‌نام</a>
+        }
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <router-outlet />
+  </main>
+</div>

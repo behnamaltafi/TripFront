@@ -1,0 +1,71 @@
+<section dir="rtl">
+  <div class="hero">
+    <div>
+      <p class="eyebrow">داشبورد سفرها</p>
+      <h1>سفرهای شما</h1>
+      <p>هزینه‌های مشترک را با هم‌سفرها مدیریت و تسویه کنید.</p>
+    </div>
+    <button class="primary" type="button" (click)="openCreateForm()">+ سفر جدید</button>
+  </div>
+
+  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+
+  @if (showCreateForm) {
+    <section class="form-card">
+      <div class="section-heading">
+        <h2>ثبت سفر جدید</h2>
+        <button class="text-button" type="button" (click)="showCreateForm = false">بستن</button>
+      </div>
+      <form (ngSubmit)="createTrip()">
+        <label for="title">نام سفر</label>
+        <input id="title" name="title" [(ngModel)]="model.title" required maxlength="100" />
+
+        <div class="form-grid">
+          <div>
+            <label for="startDate">تاریخ شروع</label>
+            <input id="startDate" name="startDate" [(ngModel)]="model.startDate" required type="date" />
+          </div>
+          <div>
+            <label for="endDate">تاریخ پایان</label>
+            <input id="endDate" name="endDate" [(ngModel)]="model.endDate" type="date" />
+          </div>
+          <div>
+            <label for="memberCount">تعداد اعضای خانواده</label>
+            <input id="memberCount" name="memberCount" [(ngModel)]="model.memberCount" required min="1" type="number" />
+          </div>
+        </div>
+
+        <label for="description">توضیحات</label>
+        <textarea id="description" name="description" [(ngModel)]="model.description" maxlength="500" rows="3"></textarea>
+        <button class="primary" [disabled]="saving()" type="submit">{{ saving() ? 'در حال ثبت…' : 'ثبت سفر' }}</button>
+      </form>
+    </section>
+  }
+
+  @if (loading()) {
+    <p class="status">در حال بارگذاری سفرها…</p>
+  } @else if (trips().length === 0) {
+    <section class="empty-state">
+      <h2>هنوز سفری ثبت نشده است</h2>
+      <p>اولین سفر را ایجاد کنید تا مدیریت هزینه‌ها را شروع کنیم.</p>
+      <button class="primary" type="button" (click)="openCreateForm()">ایجاد اولین سفر</button>
+    </section>
+  } @else {
+    <section class="trip-grid">
+      @for (trip of trips(); track trip.id) {
+        <article class="trip-card">
+          <div class="trip-card-header">
+            <span class="date">{{ trip.startDate | date: 'yyyy/MM/dd' }}</span>
+            <button class="delete" type="button" (click)="deleteTrip(trip)">حذف</button>
+          </div>
+          <h2>{{ trip.title }}</h2>
+          <p>{{ trip.description || 'بدون توضیحات' }}</p>
+          <div class="trip-meta">
+            <span>{{ trip.families.length }} خانواده</span>
+            <strong>{{ trip.budget | number }} تومان</strong>
+          </div>
+        </article>
+      }
+    </section>
+  }
+</section>

@@ -1,0 +1,21 @@
+<section class="auth-card" dir="rtl">
+  <p class="eyebrow">خوش آمدید</p>
+  <h1>ورود به دونگچی</h1>
+  <p class="subtitle">سفرها و هزینه‌های مشترک را در یک جا مدیریت کنید.</p>
+
+  <form (ngSubmit)="submit()">
+    <label for="username">نام کاربری یا شماره موبایل</label>
+    <input id="username" name="username" [(ngModel)]="username" required autocomplete="username" />
+
+    <label for="password">رمز عبور</label>
+    <input id="password" name="password" [(ngModel)]="password" required type="password" autocomplete="current-password" />
+
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+
+    <button class="primary" [disabled]="submitting()" type="submit">
+      {{ submitting() ? 'در حال ورود…' : 'ورود' }}
+    </button>
+  </form>
+
+  <p class="alternate">حساب ندارید؟ <a routerLink="/register">ثبت‌نام کنید</a></p>
+</section>

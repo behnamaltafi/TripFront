@@ -1,0 +1,38 @@
+<section class="auth-card wide" dir="rtl">
+  <p class="eyebrow">شروع کنید</p>
+  <h1>ساخت حساب کاربری</h1>
+  <p class="subtitle">یک خانواده ایجاد کنید و هم‌سفرها را بعداً به آن اضافه کنید.</p>
+
+  <form (ngSubmit)="submit()">
+    <div class="form-grid">
+      <div>
+        <label for="firstName">نام</label>
+        <input id="firstName" name="firstName" [(ngModel)]="model.firstName" required autocomplete="given-name" />
+      </div>
+      <div>
+        <label for="lastName">نام خانوادگی</label>
+        <input id="lastName" name="lastName" [(ngModel)]="model.lastName" required autocomplete="family-name" />
+      </div>
+    </div>
+
+    <label for="email">ایمیل</label>
+    <input id="email" name="email" [(ngModel)]="model.email" required type="email" autocomplete="email" />
+
+    <label for="username">شماره موبایل / نام کاربری</label>
+    <input id="username" name="username" [(ngModel)]="model.username" required autocomplete="username" />
+
+    <label for="accountNumber">شماره کارت <span>(اختیاری)</span></label>
+    <input id="accountNumber" name="accountNumber" [(ngModel)]="model.accountNumber" inputmode="numeric" />
+
+    <label for="password">رمز عبور</label>
+    <input id="password" name="password" [(ngModel)]="model.password" required minlength="6" type="password" autocomplete="new-password" />
+
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+
+    <button class="primary" [disabled]="submitting()" type="submit">
+      {{ submitting() ? 'در حال ساخت حساب…' : 'ساخت حساب' }}
+    </button>
+  </form>
+
+  <p class="alternate">حساب دارید؟ <a routerLink="/login">وارد شوید</a></p>
+</section>
